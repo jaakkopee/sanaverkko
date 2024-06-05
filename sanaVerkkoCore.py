@@ -167,7 +167,7 @@ class SanaVerkkoKontrolleri:
 
     def initWords(self):
         self.words = self.parseText("input.txt")
-        self.referenceWords = self.parseText("nsoe.txt")
+        self.referenceWords = self.parseText("aba.txt")
 
         for word in self.words:
             self.referenceWords.append(word)
@@ -298,6 +298,29 @@ class SanaVerkkoKontrolleri:
             if (sentChanged):
                 self.writeToFile(sentence+"\n")
                 print (sentence)
+                sentence_gematria = 0
+                word_gematria = 0
+                for word in sentence.split():
+                    word_gematria = get_gematria(word)
+                    sentence_gematria += word_gematria
+                    self.writeToFile(str(word_gematria) + " + ")
+                self.writeToFile(" = " + str(sentence_gematria))
+                self.writeToFile(" -> ")
+                nr_reduction_array = [sentence_gematria]
+                while nr_reduction_array[-1] >= 10:
+
+                    nr_reduction_array.extend([numerological_reduction(sentence_gematria)])
+                    sentence_gematria = nr_reduction_array[-1]
+                for i in range(len(nr_reduction_array)):
+                    self.writeToFile(str(nr_reduction_array[i]))
+                    if i < len(nr_reduction_array) - 1:
+                        self.writeToFile(" -> ")
+                self.writeToFile(" -> ")
+                self.writeToFile(str(digital_root(nr_reduction_array[-1])))
+
+                self.writeToFile("\n")
+                self.outfile.flush()      
+
                 #draw sentence
                 font = pygame.font.Font(None, 18)
                 text = font.render(sentence, 1, (0, 255, 127))
@@ -372,7 +395,7 @@ class Neuron:
             self.activation = -self.controller.params["activation_limit"]
         
         for connection in self.connections:
-            self.activation += sigmoid(connection[0].activation, self.controller.params["sigmoid_scale"]) * connection[1] * value
+            self.activation += sigmoid(connection[0].activation, self.controller.params["sigmoid_scale"], self.controller) * connection[1] * value
         if self.activation >= math.inf:
             self.activation = math.inf
         if self.activation <= -math.inf:
@@ -385,12 +408,19 @@ class Neuron:
         for connection in self.connections:
             connection[0].activation += connection[1] * error * learning_rate
 
-def sigmoid(x, scale):
+def sigmoid(x, scale, controller=None):
     scale_start = -scale
     scale_end = scale
 
     x *= scale
-    ans = (2 / (1 + math.exp(-x)) - 1) * (scale_end - scale_start) + scale_start
+    try:
+        ans = (2 / (1 + math.exp(-x)) - 1) * (scale_end - scale_start) + scale_start
+    except OverflowError:
+        if x > 0:
+            ans = controller.params["activation_limit"]
+        else:
+            ans = -controller.params["activation_limit"]
+
     return ans
 
 
