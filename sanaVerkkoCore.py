@@ -5,6 +5,7 @@ import time
 import math
 import wx
 import threading
+import sys
 
 
 
@@ -166,8 +167,8 @@ class SanaVerkkoKontrolleri:
         self.clock = pygame.time.Clock()
 
     def initWords(self):
-        self.words = self.parseText("input.txt")
-        self.referenceWords = self.parseText("aba.txt")
+        self.words = self.parseText(sys.argv[1])
+        self.referenceWords = self.parseText(sys.argv[2])
 
         for word in self.words:
             self.referenceWords.append(word)
