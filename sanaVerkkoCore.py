@@ -386,7 +386,13 @@ class Neuron:
             connection[0].activation += connection[1] * error * learning_rate
 
 def sigmoid(x, scale):
-    return 1 / (1 + math.exp(-x * scale))
+    scale_start = -scale
+    scale_end = scale
+
+    x *= scale
+    ans = (2 / (1 + math.exp(-x)) - 1) * (scale_end - scale_start) + scale_start
+    return ans
+
 
 def sign(num):
     if num > 0:
