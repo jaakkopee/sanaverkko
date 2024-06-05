@@ -158,7 +158,7 @@ class SanaVerkkoKontrolleri:
 
     def initWords(self):
         self.words = self.parseText("text.txt")
-        self.referenceWords = self.parseText("kalevala.txt")
+        self.referenceWords = self.parseText("nsoe.txt")
 
         for word in self.words:
             self.referenceWords.append(word)
