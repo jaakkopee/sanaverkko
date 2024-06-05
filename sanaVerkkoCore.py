@@ -50,7 +50,7 @@ class SanaVerkkoKontrolleri:
 
     def widgetSetup(self):
         self.word_change_threshold_label = wx.StaticText(self.frame, label="Word change threshold")
-        self.word_change_threshold_slider = wx.Slider(self.frame, value=0, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
+        self.word_change_threshold_slider = wx.Slider(self.frame, value=0, minValue=0, maxValue=1000, style=wx.SL_HORIZONTAL)
         self.word_change_threshold_value = wx.StaticText(self.frame, label="0")
 
         self.learning_rate_label = wx.StaticText(self.frame, label="Learning rate")
