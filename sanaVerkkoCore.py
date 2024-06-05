@@ -166,7 +166,7 @@ class SanaVerkkoKontrolleri:
         self.clock = pygame.time.Clock()
 
     def initWords(self):
-        self.words = self.parseText("text.txt")
+        self.words = self.parseText("input.txt")
         self.referenceWords = self.parseText("nsoe.txt")
 
         for word in self.words:
