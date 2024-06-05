@@ -14,6 +14,7 @@ class SanaVerkkoKontrolleri:
     
     def __init__(self):
         self.params = {}
+        self.params["set_weight_by_gematria"] = False
         self.params["learning_rate"] = 0.1
         self.params["error"] = 0
         self.params["target"] = 0
@@ -49,6 +50,8 @@ class SanaVerkkoKontrolleri:
         self.outfile = open("output.txt", "w")
 
     def widgetSetup(self):
+        self.set_weight_by_gematria_checkbox = wx.CheckBox(self.frame, label="Set weight by gematria")
+
         self.word_change_threshold_label = wx.StaticText(self.frame, label="Word change threshold")
         self.word_change_threshold_slider = wx.Slider(self.frame, value=0, minValue=0, maxValue=1000, style=wx.SL_HORIZONTAL)
         self.word_change_threshold_value = wx.StaticText(self.frame, label="0")
@@ -77,6 +80,8 @@ class SanaVerkkoKontrolleri:
         self.sigmoid_scale_slider = wx.Slider(self.frame, value=5, minValue=0, maxValue=10, style=wx.SL_HORIZONTAL)
         self.sigmoid_scale_value = wx.StaticText(self.frame, label="5")
 
+        self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
+        
         self.sizer.Add(self.word_change_threshold_label, 0, wx.ALL, 5)
         self.sizer.Add(self.word_change_threshold_slider, 0, wx.ALL, 5)
         self.sizer.Add(self.word_change_threshold_value, 0, wx.ALL, 5)
@@ -105,6 +110,7 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.sigmoid_scale_slider, 0, wx.ALL, 5)
         self.sizer.Add(self.sigmoid_scale_value, 0, wx.ALL, 5)
 
+        self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.onSetWeightByGematriaChange)
         self.word_change_threshold_slider.Bind(wx.EVT_SCROLL, self.onWordChangeThresholdChange)
         self.learning_rate_slider.Bind(wx.EVT_SCROLL, self.onLearningRateChange)
         self.error_slider.Bind(wx.EVT_SCROLL, self.onErrorChange)
@@ -114,6 +120,9 @@ class SanaVerkkoKontrolleri:
         self.sigmoid_scale_slider.Bind(wx.EVT_SCROLL, self.onSigmoidScaleChange)
 
         self.sizer.Layout()
+
+    def onSetWeightByGematriaChange(self, event):
+        self.setParam("set_weight_by_gematria", event.IsChecked())
 
     def onWordChangeThresholdChange(self, event):
         self.setParam("word_change_threshold", event.GetPosition()/100)
@@ -220,8 +229,9 @@ class SanaVerkkoKontrolleri:
             for connection in word.neuron.connections:
                 connection[0].word = refWord.word
                 connection[0].gematria = refWord.gematria
-                #connection[1] = getGematriaDistance(word.gematria, connection[0].gematria)
-
+                if self.params["set_weight_by_gematria"] == True:
+                    connection[1] = self.getGematriaDistance(word.gematria, connection[0].gematria)
+                
             return word
         
     def writeToFile(self, word):
@@ -250,7 +260,7 @@ class SanaVerkkoKontrolleri:
                 if word.neuron.activation < -2 or word.neuron.activation > 2:
                     word.neuron.activation = 1
 
-                if word.neuron.activation < -0.777 or word.neuron.activation > 0.777:
+                if word.neuron.activation < -self.params["word_change_threshold"] or word.neuron.activation > self.params["word_change_threshold"]:
                     self.changeWord(word, self.referenceWords)
                     sentChanged = True
 
