@@ -460,7 +460,8 @@ class Word:
 
 if __name__ == "__main__":
     kontrol = SanaVerkkoKontrolleri()
-    t0 = threading.Thread(target=kontrol.testNeurons)
-    t0.start()
+    kontrol_thread = threading.Thread(target=kontrol.testNeurons)
+    kontrol_thread.start()
     kontrol.tk.mainloop()
+    
 
