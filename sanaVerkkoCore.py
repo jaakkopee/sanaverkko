@@ -147,7 +147,7 @@ class SanaVerkkoKontrolleri:
 
     def initPygame(self):
         pygame.init()
-        self.size = width, height = 800, 600
+        self.size = width, height = 1024, 768
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("SanaVerkko")
         self.clock = pygame.time.Clock()
@@ -161,8 +161,8 @@ class SanaVerkkoKontrolleri:
 
         #place words in a circle
         for i, word in enumerate(self.words):
-            word.x = self.size[0]/2 + 200 * math.cos(2 * math.pi * i / len(self.words))
-            word.y = self.size[1]/2 + 200 * math.sin(2 * math.pi * i / len(self.words))
+            word.x = self.size[0]/2 + 600 * math.cos(2 * math.pi * i / len(self.words))
+            word.y = self.size[1]/2 + 600 * math.sin(2 * math.pi * i / len(self.words))
             word.neuron.x = word.x
             word.neuron.y = word.y
 
@@ -293,18 +293,15 @@ class SanaVerkkoKontrolleri:
                     self.writeToFile(str(word_gematria) + " + ")
                 self.writeToFile(" = " + str(sentence_gematria))
                 self.writeToFile(" -> ")
-                nr_reduction_array = [sentence_gematria]
-                while nr_reduction_array[-1] >= 10:
+                nr_reduction_array = []
+                while sentence_gematria >= 10:
+                    sentence_gematria = numerological_reduction(sentence_gematria)
+                    nr_reduction_array.append(sentence_gematria)
 
-                    nr_reduction_array.extend([numerological_reduction(sentence_gematria)])
-                    sentence_gematria = nr_reduction_array[-1]
                 for i in range(len(nr_reduction_array)):
                     self.writeToFile(str(nr_reduction_array[i]))
                     if i < len(nr_reduction_array) - 1:
                         self.writeToFile(" -> ")
-                self.writeToFile(" -> ")
-                self.writeToFile(str(digital_root(nr_reduction_array[-1])))
-
                 self.writeToFile("\n")
                 self.outfile.flush()      
 
