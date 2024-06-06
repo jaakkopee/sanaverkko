@@ -3,87 +3,101 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <jack/jack.h>
+#include <alsa/asoundlib.h>
 #include <math.h>
 #include <time.h>
 #include "sanasyna.h"
 
 using namespace std;
 
+// alsa
+extern snd_pcm_t *handle;
+extern snd_pcm_hw_params_t *params;
+extern snd_pcm_uframes_t frames;
+extern int dir;
+extern snd_pcm_uframes_t period_size;
+extern snd_pcm_uframes_t buffer_size;
+
+unsigned int sample_rate = 44100;
 double amplitude = 0.0;
 double freq = 440.0;
-int sample_rate = 44100;
-int buffer_size = 1024;
-jack_client_t *client;
-jack_port_t *input_port;
-jack_port_t *output_port;
-jack_default_audio_sample_t *input_buffer;
-jack_default_audio_sample_t *output_buffer;
 
-int process(jack_nframes_t nframes, void *arg){
-    jack_default_audio_sample_t *in = (jack_default_audio_sample_t *)jack_port_get_buffer(input_port, nframes);
-    jack_default_audio_sample_t *out = (jack_default_audio_sample_t *)jack_port_get_buffer(output_port, nframes);
-    for(int i = 0; i < nframes; i++){
-        amplitude = sin(2 * M_PI * freq * i / sample_rate);
-        out[i] = amplitude * in[i];
+
+int init_alsa(){
+    int rc;
+    if((rc = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)) < 0){
+        fprintf(stderr, "unable to open pcm device: %s\n", snd_strerror(rc));
+        return 1;
     }
 
+    snd_pcm_hw_params_alloca(&params);
+
+    if((rc = snd_pcm_hw_params_any(handle, params)) < 0){
+        fprintf(stderr, "unable to initialize hw parameters: %s\n", snd_strerror(rc));
+        return 1;
+    }
+
+    if((rc = snd_pcm_hw_params_set_access(handle, params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0){
+        fprintf(stderr, "unable to set access type: %s\n", snd_strerror(rc));
+        return 1;
+    }
+
+    if((rc = snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_S16_LE)) < 0){
+        fprintf(stderr, "unable to set format: %s\n", snd_strerror(rc));
+        return 1;
+    }
+
+    if((rc = snd_pcm_hw_params_set_channels(handle, params, 2)) < 0){
+        fprintf(stderr, "unable to set channels: %s\n", snd_strerror(rc));
+        return 1;
+    }
+
+    if((rc = snd_pcm_hw_params_set_rate_near(handle, params, &sample_rate, 0)) < 0){
+        fprintf(stderr, "unable to set sample rate: %s\n", snd_strerror(rc));
+        return 1;
+    }
+
+    if((rc = snd_pcm_hw_params(handle, params)) < 0){
+        fprintf(stderr, "unable to set hw parameters: %s\n", snd_strerror(rc));
+        return 1;
+    }
+
+    snd_pcm_hw_params_get_period_size(params, &period_size, &dir);
+    snd_pcm_hw_params_get_buffer_size(params, &buffer_size);
+
     return 0;
 }
 
-int srate(jack_nframes_t nframes, void *arg){
-    std::cout << "Setting sample rate" << std::endl;
+int close_alsa(){
+    snd_pcm_drain(handle);
+    snd_pcm_close(handle);
     return 0;
 }
 
-int buffer(jack_nframes_t nframes, void *arg){
-    std::cout << "Setting buffer size" << std::endl;
-    return 0;
+void play(){
+    int i;
+    int16_t buf[period_size];
+    double phase = 0.0;
+    double phase_incr = 2.0 * M_PI * freq / sample_rate;
+    for(i = 0; i < period_size; i++){
+        buf[i] = amplitude * sin(phase);
+        phase += phase_incr;
+    }
+    snd_pcm_writei(handle, buf, period_size);
 }
 
-void error(const char *desc){
-    std::cout << "Error: " << desc << std::endl;
+void stop(){
+    snd_pcm_drop(handle);
 }
 
-void jack_shutdown(void *arg){
-    std::cout << "Jack shutdown" << std::endl;
-}
 void init_sanasyna(){
-    const char *client_name = "sanasyna";
-    jack_options_t options = JackNullOption;
-    jack_status_t status;
-
-    client = jack_client_open(client_name, options, &status);
-    if(client == NULL){
-        std::cout << "Error: jack_client_open() failed, status = " << status << std::endl;
-        if(status & JackServerFailed){
-            std::cout << "Unable to connect to JACK server" << std::endl;
-        }
-        exit(1);
-    }
-
-    jack_set_process_callback(client, process, 0);
-    jack_set_sample_rate_callback(client, srate, 0);
-    jack_set_buffer_size_callback(client, buffer, 0);
-    jack_on_shutdown(client, jack_shutdown, 0);
-
-    input_port = jack_port_register(client, "input", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-    output_port = jack_port_register(client, "output", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-
-    if((input_port == NULL) || (output_port == NULL)){
-        std::cout << "Error: jack_port_register() failed" << std::endl;
-        exit(1);
-    }
-
-    if(jack_activate(client)){
-        std::cout << "Error: jack_activate() failed" << std::endl;
-        exit(1);
-    }
-
-    while(true){
-        continue;
-    }
+    init_alsa();
+    play();
+    stop();
+    close_alsa();
 }
+
+
 
 int main(){
     init_sanasyna();

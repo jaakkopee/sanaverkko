@@ -6,22 +6,22 @@
 
 %{
     #include "sanasyna.h"
-    #include <jack/jack.h>
+    #include <asoundlib.h>
 
     extern double amplitude;
-    extern int sample_rate;
-    extern int buffer_size;
-    extern jack_client_t *client;
-    extern jack_port_t *input_port;
-    extern jack_port_t *output_port;
-    extern jack_default_audio_sample_t *input_buffer;
-    extern jack_default_audio_sample_t *output_buffer;
+    extern double freq;
 
-    int process(jack_nframes_t nframes, void *arg);
-    int srate(jack_nframes_t nframes, void *arg);
-    int buffer(jack_nframes_t nframes, void *arg);
-    void error(const char *desc);
-    void jack_shutdown(void *arg);
-    void init_sanasyna();
-    void main();
+    // alsa
+    extern snd_pcm_t *handle;
+    extern snd_pcm_hw_params_t *params;
+    extern snd_pcm_uframes_t frames;
+    extern int dir;
+    extern snd_pcm_uframes_t period_size;
+    extern snd_pcm_uframes_t buffer_size;
+
+    int init_alsa();
+    void play();
+    void stop();
+    void close();
+
 %}
