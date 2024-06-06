@@ -3008,18 +3008,18 @@ static swig_module_info swig_module = {swig_types, 1, 0, 0, 0, 0};
 
 
     #include "sanasyna.h"
-    #include <alsa/asoundlib.h>
+    #include <asoundlib.h>
 
     extern double amplitude;
     extern double freq;
-    
+
     // alsa
-    snd_pcm_t *handle;
-    snd_pcm_hw_params_t *params;
-    snd_pcm_uframes_t frames;
-    int dir;
-    snd_pcm_uframes_t period_size;
-    snd_pcm_uframes_t buffer_size;
+    extern snd_pcm_t *handle;
+    extern snd_pcm_hw_params_t *params;
+    extern snd_pcm_uframes_t frames;
+    extern int dir;
+    extern snd_pcm_uframes_t period_size;
+    extern snd_pcm_uframes_t buffer_size;
 
     int init_alsa();
     void play();

@@ -11,12 +11,12 @@
 using namespace std;
 
 // alsa
-extern snd_pcm_t *handle;
-extern snd_pcm_hw_params_t *params;
-extern snd_pcm_uframes_t frames;
-extern int dir;
-extern snd_pcm_uframes_t period_size;
-extern snd_pcm_uframes_t buffer_size;
+snd_pcm_t *handle;
+snd_pcm_hw_params_t *params;
+snd_pcm_uframes_t frames;
+int dir;
+snd_pcm_uframes_t period_size;
+snd_pcm_uframes_t buffer_size;
 
 unsigned int sample_rate = 44100;
 double amplitude = 0.0;
@@ -91,8 +91,10 @@ void stop(){
 }
 
 void init_sanasyna(){
+    std::cout << "init_sanasyna" << std::endl;
     init_alsa();
     play();
+    sleep(1);
     stop();
     close_alsa();
 }
