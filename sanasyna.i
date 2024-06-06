@@ -1,5 +1,9 @@
-/* example.i */
+// Purpose: SWIG interface file for sanasyna module.
+
+
+// Define the module name
 %module sanasyna
+
 %{
     #include "sanasyna.h"
     #include <jack/jack.h>
@@ -18,4 +22,6 @@
     int buffer(jack_nframes_t nframes, void *arg);
     void error(const char *desc);
     void jack_shutdown(void *arg);
+    void init_sanasyna();
+    void main();
 %}

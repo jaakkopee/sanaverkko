@@ -3,7 +3,7 @@ import pygame
 import random
 import time
 import math
-import wx
+import tkinter as tk
 import threading
 import sys
 
@@ -24,13 +24,17 @@ class SanaVerkkoKontrolleri:
         self.params["sigmoid_scale"] = 2
         self.params["word_change_threshold"] = 0.777
 
-        self.app = wx.App(False)
-        self.frame = wx.Frame(None, wx.ID_ANY, "SanaVerkko", size=(400, 800))
-        self.panel = wx.Panel(self.frame)
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.frame.SetSizer(self.sizer)
-        self.frame.Show()
-        self.mainloop = threading.Thread(target=self.app.MainLoop)
+        self.tk = tk.Tk()
+        self.frame = tk.Frame(self.tk)
+        self.frame.pack()
+        self.sizer = tk.Grid()
+        self.frame.config(width=400, height=600)
+        self.frame.grid()
+        self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(0, weight=1)
+        self.frame.pack_propagate(False)
+        self.frame.pack()
+
 
         self.words = []
         self.referenceWords = []
@@ -51,107 +55,89 @@ class SanaVerkkoKontrolleri:
         self.outfile = open("output.txt", "w")
 
     def widgetSetup(self):
-        self.set_weight_by_gematria_checkbox = wx.CheckBox(self.frame, label="Set weight by gematria")
+        self.set_weight_by_gematria_checkbox = tk.Checkbutton(self.frame, text="Set weight by gematria", variable=self.params["set_weight_by_gematria"])
 
-        self.word_change_threshold_label = wx.StaticText(self.frame, label="Word change threshold")
-        self.word_change_threshold_slider = wx.Slider(self.frame, value=0, minValue=0, maxValue=1000, style=wx.SL_HORIZONTAL)
-        self.word_change_threshold_value = wx.StaticText(self.frame, label="0")
-
-        self.learning_rate_label = wx.StaticText(self.frame, label="Learning rate")
-        self.learning_rate_slider = wx.Slider(self.frame, value=0, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
-        self.learning_rate_value = wx.StaticText(self.frame, label="0")
-
-        self.error_label = wx.StaticText(self.frame, label="Error")
-        self.error_slider = wx.Slider(self.frame, value=0, minValue=0, maxValue=100, style=wx.SL_HORIZONTAL)
-        self.error_value = wx.StaticText(self.frame, label="0")
-
-        self.target_label = wx.StaticText(self.frame, label="Target")
-        self.target_slider = wx.Slider(self.frame, value=0, minValue=-100, maxValue=100, style=wx.SL_HORIZONTAL)
-        self.target_value = wx.StaticText(self.frame, label="0")
-
-        self.activation_increase_label = wx.StaticText(self.frame, label="Activation increase")
-        self.activation_increase_slider = wx.Slider(self.frame, value=-0, minValue=0, maxValue=500, style=wx.SL_HORIZONTAL)
-        self.activation_increase_value = wx.StaticText(self.frame, label="0")
-
-        self.activation_limit_label = wx.StaticText(self.frame, label="Activation limit")
-        self.activation_limit_slider = wx.Slider(self.frame, value=5, minValue=0, maxValue=10, style=wx.SL_HORIZONTAL)
-        self.activation_limit_value = wx.StaticText(self.frame, label="5")
-
-        self.sigmoid_scale_label = wx.StaticText(self.frame, label="Sigmoid scale")
-        self.sigmoid_scale_slider = wx.Slider(self.frame, value=5, minValue=0, maxValue=10, style=wx.SL_HORIZONTAL)
-        self.sigmoid_scale_value = wx.StaticText(self.frame, label="5")
-
-        self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
+        self.word_change_threshold_label = tk.Label(self.frame, text="Word change threshold")
+        self.word_change_threshold_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.word_change_threshold_value = tk.Label(self.frame, text="0")
         
-        self.sizer.Add(self.word_change_threshold_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.word_change_threshold_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.word_change_threshold_value, 0, wx.ALL, 5)
+        self.learning_rate_label = tk.Label(self.frame, text="Learning rate")
+        self.learning_rate_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.learning_rate_value = tk.Label(self.frame, text="0")
 
-        self.sizer.Add(self.learning_rate_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.learning_rate_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.learning_rate_value, 0, wx.ALL, 5)
+        self.error_label = tk.Label(self.frame, text="Error")
+        self.error_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.error_value = tk.Label(self.frame, text="0")
 
-        self.sizer.Add(self.error_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.error_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.error_value, 0, wx.ALL, 5)
+        self.target_label = tk.Label(self.frame, text="Target")
+        self.target_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.target_value = tk.Label(self.frame, text="0")
 
-        self.sizer.Add(self.target_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.target_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.target_value, 0, wx.ALL, 5)
+        self.activation_increase_label = tk.Label(self.frame, text="Activation increase")
+        self.activation_increase_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.activation_increase_value = tk.Label(self.frame, text="0")
 
-        self.sizer.Add(self.activation_increase_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.activation_increase_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.activation_increase_value, 0, wx.ALL, 5)
+        self.activation_limit_label = tk.Label(self.frame, text="Activation limit")
+        self.activation_limit_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.activation_limit_value = tk.Label(self.frame, text="0")
 
-        self.sizer.Add(self.activation_limit_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.activation_limit_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.activation_limit_value, 0, wx.ALL, 5)
+        self.sigmoid_scale_label = tk.Label(self.frame, text="Sigmoid scale")
+        self.sigmoid_scale_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
+        self.sigmoid_scale_value = tk.Label(self.frame, text="0")
+        
+        self.frame.config(width=400, height=600)
+        self.frame.grid()
+        self.frame.columnconfigure(0, weight=1)
+        self.frame.rowconfigure(0, weight=1)
+        self.frame.pack_propagate(False)
+        self.frame.pack()
 
-        self.sizer.Add(self.sigmoid_scale_label, 0, wx.ALL, 5)
-        self.sizer.Add(self.sigmoid_scale_slider, 0, wx.ALL, 5)
-        self.sizer.Add(self.sigmoid_scale_value, 0, wx.ALL, 5)
+        self.set_weight_by_gematria_checkbox.grid(row=0, column=0, columnspan=2)
+        self.word_change_threshold_label.grid(row=1, column=0)
+        self.word_change_threshold_slider.grid(row=1, column=1)
+        self.word_change_threshold_value.grid(row=1, column=2)
+        self.learning_rate_label.grid(row=2, column=0)
+        self.learning_rate_slider.grid(row=2, column=1)
+        self.learning_rate_value.grid(row=2, column=2)
+        self.error_label.grid(row=3, column=0)
+        self.error_slider.grid(row=3, column=1)
+        self.error_value.grid(row=3, column=2)
+        self.target_label.grid(row=4, column=0)
+        self.target_slider.grid(row=4, column=1)
+        self.target_value.grid(row=4, column=2)
+        self.activation_increase_label.grid(row=5, column=0)
+        self.activation_increase_slider.grid(row=5, column=1)
+        self.activation_increase_value.grid(row=5, column=2)
+        self.activation_limit_label.grid(row=6, column=0)
+        self.activation_limit_slider.grid(row=6, column=1)
+        self.activation_limit_value.grid(row=6, column=2)
+        self.sigmoid_scale_label.grid(row=7, column=0)
+        self.sigmoid_scale_slider.grid(row=7, column=1)
+        self.sigmoid_scale_value.grid(row=7, column=2)
 
-        self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.onSetWeightByGematriaChange)
-        self.word_change_threshold_slider.Bind(wx.EVT_SCROLL, self.onWordChangeThresholdChange)
-        self.learning_rate_slider.Bind(wx.EVT_SCROLL, self.onLearningRateChange)
-        self.error_slider.Bind(wx.EVT_SCROLL, self.onErrorChange)
-        self.target_slider.Bind(wx.EVT_SCROLL, self.onTargetChange)
-        self.activation_increase_slider.Bind(wx.EVT_SCROLL, self.onActivationIncreaseChange)
-        self.activation_limit_slider.Bind(wx.EVT_SCROLL, self.onActivationLimitChange)
-        self.sigmoid_scale_slider.Bind(wx.EVT_SCROLL, self.onSigmoidScaleChange)
+        self.word_change_threshold_slider.bind("<ButtonRelease-1>", self.updateParams)
+        self.learning_rate_slider.bind("<ButtonRelease-1>", self.updateParams)
+        self.error_slider.bind("<ButtonRelease-1>", self.updateParams)
+        self.target_slider.bind("<ButtonRelease-1>", self.updateParams)
+        self.activation_increase_slider.bind("<ButtonRelease-1>", self.updateParams)
+        self.activation_limit_slider.bind("<ButtonRelease-1>", self.updateParams)
+        self.sigmoid_scale_slider.bind("<ButtonRelease-1>", self.updateParams)
 
-        self.sizer.Layout()
-
-    def onSetWeightByGematriaChange(self, event):
-        self.setParam("set_weight_by_gematria", event.IsChecked())
-
-    def onWordChangeThresholdChange(self, event):
-        self.setParam("word_change_threshold", event.GetPosition()/100)
-        self.word_change_threshold_value.SetLabel(str(event.GetPosition()/100))
-
-    def onLearningRateChange(self, event):
-        self.setParam("learning_rate", event.GetPosition()/100)
-        self.learning_rate_value.SetLabel(str(event.GetPosition()/100))
-
-    def onErrorChange(self, event):
-        self.setParam("error", event.GetPosition()/100)
-        self.error_value.SetLabel(str(event.GetPosition()/100))
-
-    def onTargetChange(self, event):
-        self.setParam("target", event.GetPosition()/100)
-        self.target_value.SetLabel(str(event.GetPosition()/100))
-
-    def onActivationIncreaseChange(self, event):
-        self.setParam("activation_increase", event.GetPosition()/500)
-        self.activation_increase_value.SetLabel(str(event.GetPosition()/500))
-
-    def onActivationLimitChange(self, event):
-        self.setParam("activation_limit", event.GetPosition())
-        self.activation_limit_value.SetLabel(str(event.GetPosition()))
-
-    def onSigmoidScaleChange(self, event):
-        self.setParam("sigmoid_scale", event.GetPosition())
-        self.sigmoid_scale_value.SetLabel(str(event.GetPosition()))
+    def updateParams(self, event):
+        self.params["word_change_threshold"] = self.word_change_threshold_slider.get()/100
+        self.word_change_threshold_value.config(text=str(self.params["word_change_threshold"]))
+        self.params["learning_rate"] = self.learning_rate_slider.get()/100
+        self.learning_rate_value.config(text=str(self.params["learning_rate"]))
+        self.params["error"] = self.error_slider.get()/100
+        self.error_value.config(text=str(self.params["error"]))
+        self.params["target"] = self.target_slider.get()/100
+        self.target_value.config(text=str(self.params["target"]))
+        self.params["activation_increase"] = self.activation_increase_slider.get()/1000
+        self.activation_increase_value.config(text=str(self.params["activation_increase"]))
+        self.params["activation_limit"] = self.activation_limit_slider.get()/100
+        self.activation_limit_value.config(text=str(self.params["activation_limit"]))
+        self.params["sigmoid_scale"] = self.sigmoid_scale_slider.get()/100
+        self.sigmoid_scale_value.config(text=str(self.params["sigmoid_scale"]))
 
     def getParam(self, param):
         return self.params[param]
@@ -474,5 +460,7 @@ class Word:
 
 if __name__ == "__main__":
     kontrol = SanaVerkkoKontrolleri()
-    kontrol.testNeurons()
+    t0 = threading.Thread(target=kontrol.testNeurons)
+    t0.start()
+    kontrol.tk.mainloop()
 

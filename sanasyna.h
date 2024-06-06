@@ -1,6 +1,7 @@
 #include <jack/jack.h>
 
 extern double amplitude;
+extern double freq;
 extern int sample_rate;
 extern int buffer_size;
 extern jack_client_t *client;
@@ -14,6 +15,9 @@ int srate(jack_nframes_t nframes, void *arg);
 int buffer(jack_nframes_t nframes, void *arg);
 void error(const char *desc);
 void jack_shutdown(void *arg);
+void init_sanasyna();
+int main();
+
 //
 //
 // Compare this snippet from sanasyna.py:
