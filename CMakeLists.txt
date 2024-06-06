@@ -1,5 +1,7 @@
-project(_sanasyna)
-cmake_minimum_required(VERSION 3.21)
+project(_sanasyna LANGUAGES CXX)
+
+cmake_minimum_required(VERSION 3.25.1)
+
 
 #sfml
 find_package(SFML 2.5 COMPONENTS audio system REQUIRED)
