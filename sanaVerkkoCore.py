@@ -63,30 +63,73 @@ class SanaVerkkoKontrolleri:
         self.set_weight_by_gematria_checkbox = wx.CheckBox(panel, -1, "Set weight by gematria")
         self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
         self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.OnSetWeightByGematria)
+
+        self.learning_rate_label = wx.StaticText(panel, -1, "Learning rate")
         self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]))
         self.learning_rate_ctrl.Bind(wx.EVT_TEXT, self.OnLearningRate)
+
+        self.error_label = wx.StaticText(panel, -1, "Error")
         self.error_ctrl = wx.TextCtrl(panel, -1, str(self.params["error"]))
         self.error_ctrl.Bind(wx.EVT_TEXT, self.OnError)
+
+        self.activation_increase_label = wx.StaticText(panel, -1, "Activation increase")
         self.activation_increase_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_increase"]))
         self.activation_increase_ctrl.Bind(wx.EVT_TEXT, self.OnActivationIncrease)
+
+        self.activation_limit_label = wx.StaticText(panel, -1, "Activation limit")
         self.activation_limit_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_limit"]))
         self.activation_limit_ctrl.Bind(wx.EVT_TEXT, self.OnActivationLimit)
+
+        self.sigmoid_scale_label = wx.StaticText(panel, -1, "Sigmoid scale")
         self.sigmoid_scale_ctrl = wx.TextCtrl(panel, -1, str(self.params["sigmoid_scale"]))
         self.sigmoid_scale_ctrl.Bind(wx.EVT_TEXT, self.OnSigmoidScale)
+
+        self.word_change_threshold_label = wx.StaticText(panel, -1, "Word change threshold")
         self.word_change_threshold_ctrl = wx.TextCtrl(panel, -1, str(self.params["word_change_threshold"]))
         self.word_change_threshold_ctrl.Bind(wx.EVT_TEXT, self.OnWordChangeThreshold)
+
+        self.zoom_label = wx.StaticText(panel, -1, "Zoom")
         self.zoom_ctrl = wx.TextCtrl(panel, -1, str(self.params["zoom"]))
         self.zoom_ctrl.Bind(wx.EVT_TEXT, self.OnZoom)
 
+        self.add_words_label = wx.StaticText(panel, -1, "Add word(s)")
+        self.add_words_ctrl = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER)
+        self.add_words_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnAddWords)
+        self.add_words_button = wx.Button(panel, -1, "Add")
+        self.add_words_button.Bind(wx.EVT_BUTTON, self.OnAddWords)
+        self.add_words_status = wx.StaticText(panel, -1, "")
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.learning_rate_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.learning_rate_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.error_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.error_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.activation_increase_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.activation_increase_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.activation_limit_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.activation_limit_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.sigmoid_scale_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.sigmoid_scale_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.word_change_threshold_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.word_change_threshold_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.zoom_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.zoom_ctrl, 0, wx.ALL, 5)
+
+        add_words_row = wx.BoxSizer(wx.HORIZONTAL)
+        add_words_row.Add(self.add_words_ctrl, 1, wx.RIGHT, 5)
+        add_words_row.Add(self.add_words_button, 0)
+        self.sizer.Add(self.add_words_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(add_words_row, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.add_words_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
         panel.SetSizer(self.sizer)
         self.app.SetTopWindow(self.frame)
         self.frame.Show()
@@ -215,6 +258,47 @@ class SanaVerkkoKontrolleri:
                 if all(char in valid_chars for char in word):
                     words.append(Word(word, 0, 0, (255, 255, 255), self))
         return words
+
+    def addWordToNetwork(self, word_text):
+        new_word = Word(word_text, 0, 0, (255, 255, 255), self)
+
+        for existing_word in self.words:
+            weight_to_existing = self.getGematriaDistance(new_word.gematria, existing_word.gematria)
+            weight_to_new = self.getGematriaDistance(existing_word.gematria, new_word.gematria)
+            new_word.connect(existing_word, weight_to_existing)
+            existing_word.connect(new_word, weight_to_new)
+
+        self.words.append(new_word)
+        self.referenceWords.append(new_word)
+        self.makeWordCircle(self.words)
+        return new_word
+
+    def OnAddWords(self, event):
+        raw_input = self.add_words_ctrl.GetValue().strip().lower()
+        if raw_input == "":
+            self.add_words_status.SetLabel("Type one or more words to add")
+            return
+
+        valid_chars = gematria_table.keys()
+        added_words = []
+        rejected_words = []
+
+        for raw_word in raw_input.split():
+            if all(char in valid_chars for char in raw_word):
+                added_words.append(self.addWordToNetwork(raw_word))
+            else:
+                rejected_words.append(raw_word)
+
+        self.add_words_ctrl.SetValue("")
+
+        if added_words:
+            added_info = ", ".join(f"{word.word}:{word.gematria}" for word in added_words)
+            if rejected_words:
+                self.add_words_status.SetLabel(f"Added {added_info}. Rejected: {' '.join(rejected_words)}")
+            else:
+                self.add_words_status.SetLabel(f"Added {added_info}")
+        else:
+            self.add_words_status.SetLabel(f"Rejected (invalid chars): {' '.join(rejected_words)}")
     
     def getGematriaDistance(self, gematria1, gematria2):
         return abs(gematria1 - gematria2) / 1000
