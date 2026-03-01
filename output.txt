@@ -1,13 +1,7 @@
-jake is is master programmer
- 36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
- jake a is master programmer
- 36 +  1 +  109 +  436 +  493 +   = 1075  ->  13  ->  4 
+jake is a master programmer
+ 36 +  109 +  1 +  436 +  493 +   = 1075  ->  13  ->  4 
  jake is is master programmer
  36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
- jake is a master programmer
- 36 +  109 +  1 +  436 +  493 +   = 1075  ->  13  ->  4 
- jake a a master programmer
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
  jake a is master programmer
  36 +  1 +  109 +  436 +  493 +   = 1075  ->  13  ->  4 
  jake a a master programmer
@@ -20,24 +14,162 @@ jake is is master programmer
  36 +  1 +  109 +  436 +  493 +   = 1075  ->  13  ->  4 
  jake a a master programmer
  36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
- jake is a master programmer
- 36 +  109 +  1 +  436 +  493 +   = 1075  ->  13  ->  4 
- jake a a master programmer
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
  jake a is master programmer
  36 +  1 +  109 +  436 +  493 +   = 1075  ->  13  ->  4 
- jake a a master programmer
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ jake is is master programmer
+ 36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
  jake a is master programmer
  36 +  1 +  109 +  436 +  493 +   = 1075  ->  13  ->  4 
- jake a a master programmer
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ jake is is master programmer
+ 36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
+ jake is is master programmer
+ 36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
  jake is a master programmer
  36 +  109 +  1 +  436 +  493 +   = 1075  ->  13  ->  4 
  jake is is master programmer
  36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
  jake a is master programmer
  36 +  1 +  109 +  436 +  493 +   = 1075  ->  13  ->  4 
+ jake is is master programmer
+ 36 +  109 +  109 +  436 +  493 +   = 1183  ->  13  ->  4 
  jake a a master programmer
  36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ babal a a fascinating control
+ 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ babal a a fascinating control
+ 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ babal a a fascinating control
+ 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ babal aha a fascinating control
+ 36 +  10 +  1 +  436 +  493 +   = 976  ->  22  ->  4 
+ babal aha a fascinating control
+ 36 +  10 +  1 +  436 +  493 +   = 976  ->  22  ->  4 
+ babal aha aha fascinating control
+ 36 +  10 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ babal aha aha fascinating control
+ 36 +  10 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ babal aha aha fascinating control
+ 36 +  10 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ babal aha aha fascinating control
+ 36 +  10 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ babal aha a fascinating control
+ 36 +  10 +  1 +  436 +  493 +   = 976  ->  22  ->  4 
+ babal aha a fascinating control
+ 36 +  10 +  1 +  436 +  493 +   = 976  ->  22  ->  4 
+ babal aha aha fascinating control
+ 36 +  10 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ babal a aha fascinating control
+ 36 +  1 +  10 +  436 +  493 +   = 976  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating locus
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm a aha fascinating control
+ 45 +  1 +  10 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha a fascinating control
+ 45 +  10 +  1 +  436 +  493 +   = 985  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  
