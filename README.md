@@ -2,6 +2,10 @@
 
 ![SanaVerkko screenshot](sanaverkko%20screenshot%201.png)
 
+## Demo
+
+![SanaVerkko demo](demo.gif)
+
 SanaVerkko is an experimental **word network + gematria + audio** playground.
 
 It combines:
@@ -16,6 +20,7 @@ You can add words, import a text database, mutate words by gematria relations, a
 - Gematria mapping for letters `a-z`, `å`, `ä`, `ö`
 - Dynamic word-neuron network (connections weighted by gematria distance)
 - Adjustable model parameters from UI
+- Optional POS-aware word matching (toggle in UI)
 - Add words directly from UI
 - Import text files as reference database (append/replace mode)
 - Clear current sentence/network words
@@ -30,6 +35,7 @@ You can add words, import a text database, mutate words by gematria relations, a
   - Noise-heavy
   - Classic analog
 - ADSR controls + graphical ADSR envelope display
+- Hybrid deterministic/random word selection (tunable exploration)
 - Separate output window showing `output.txt` updates live
 
 ## Repository layout
@@ -45,6 +51,13 @@ You can add words, import a text database, mutate words by gematria relations, a
 - Python 3.11+ (tested here with Python 3.14)
 - macOS/Linux/Windows
 - Audio device available for `sounddevice`
+
+Python dependencies used by this repo:
+- `numpy`
+- `pygame`
+- `wxPython`
+- `sounddevice`
+- `nltk`
 
 Install dependencies:
 
@@ -75,7 +88,7 @@ If only one file is provided, it is used as input words. Reference database can 
 When app starts, you should see:
 
 1. **Control window** (wxPython): parameters, add/import, audio controls
-2. **Network window** (pygame): neurons, connections, sentence + gematria display
+2. **Network window** (pygame): neurons, connections, sentence + gematria display + POS tags
 3. **Output window** (wxPython): live contents of `output.txt`
 
 The control window is adaptive and scrollable.
@@ -91,6 +104,9 @@ The control window is adaptive and scrollable.
 - Word change threshold
 - Zoom
 - Process interval (seconds)
+- Selection exploration (0-1)
+- Selection top-k
+- Use POS matching (checkbox)
 
 ### Word/database controls
 - **Add word(s)**: add one or many words (space-separated)
@@ -116,6 +132,19 @@ When sentence changes, app writes:
 - per-word gematria sum expression,
 - numerological reduction chain.
 
+## Selection logic
+
+- Word replacement uses a fast indexed lookup by:
+  - exact gematria,
+  - numerological reduction,
+  - digital root,
+  - and optionally POS tag.
+- Candidate selection is hybrid:
+  - deterministic best match by default,
+  - with configurable exploration over top-ranked candidates.
+
+This prevents getting stuck in one fixed sentence while keeping transformations mostly logical.
+
 ## Troubleshooting
 
 ### No sound
@@ -129,6 +158,10 @@ When sentence changes, app writes:
 
 ### Invalid words are rejected
 Only words composed of letters in the gematria table are accepted (`a-z`, `å`, `ä`, `ö`).
+
+### POS behavior
+- If `nltk` tagger data is available, POS matching uses it.
+- If not, app falls back to an internal heuristic POS tagger.
 
 ## Notes
 
