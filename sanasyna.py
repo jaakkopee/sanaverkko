@@ -19,6 +19,10 @@ _current_loop = True
 _playback_position = 0
 _is_playing = False
 _state_lock = threading.Lock()
+_adsr_attack = 0.01
+_adsr_decay = 0.04
+_adsr_sustain = 0.85
+_adsr_release = 0.03
 
 
 def _ensure_stream():
@@ -104,14 +108,56 @@ def _create_timebase(duration):
     return np.arange(sample_count, dtype=np.float32) / float(_sample_rate)
 
 
+def _apply_adsr(samples):
+    sample_count = samples.size
+    if sample_count <= 1:
+        return samples
+
+    attack_count = max(0, int(_adsr_attack * _sample_rate))
+    decay_count = max(0, int(_adsr_decay * _sample_rate))
+    release_count = max(0, int(_adsr_release * _sample_rate))
+
+    total_shape_count = attack_count + decay_count + release_count
+    if total_shape_count >= sample_count and total_shape_count > 0:
+        scale = (sample_count - 1) / float(total_shape_count)
+        attack_count = int(attack_count * scale)
+        decay_count = int(decay_count * scale)
+        release_count = int(release_count * scale)
+
+    sustain_count = max(0, sample_count - attack_count - decay_count - release_count)
+    envelope = np.zeros(sample_count, dtype=np.float32)
+
+    cursor = 0
+    if attack_count > 0:
+        envelope[cursor:cursor + attack_count] = np.linspace(0.0, 1.0, attack_count, endpoint=False, dtype=np.float32)
+        cursor += attack_count
+
+    if decay_count > 0:
+        envelope[cursor:cursor + decay_count] = np.linspace(1.0, _adsr_sustain, decay_count, endpoint=False, dtype=np.float32)
+        cursor += decay_count
+
+    if sustain_count > 0:
+        envelope[cursor:cursor + sustain_count] = _adsr_sustain
+        cursor += sustain_count
+
+    if cursor < sample_count:
+        remaining = sample_count - cursor
+        release_start = _adsr_sustain if cursor > 0 else 1.0
+        envelope[cursor:] = np.linspace(release_start, 0.0, remaining, endpoint=True, dtype=np.float32)
+
+    return samples * envelope
+
+
 def _set_current_sound(samples):
     global _current_samples, _playback_position
 
     if not _ensure_audio():
         return
 
+    shaped_samples = _apply_adsr(np.array(samples, dtype=np.float32))
+
     with _state_lock:
-        _current_samples = np.clip(np.array(samples, dtype=np.float32), -1.0, 1.0)
+        _current_samples = np.clip(shaped_samples, -1.0, 1.0)
         _playback_position = 0
 
 
@@ -231,6 +277,15 @@ def set_amplitude(amplitude):
 
 def set_freq(freq):
     _ = freq
+
+
+def set_adsr(attack=0.01, decay=0.04, sustain=0.85, release=0.03):
+    global _adsr_attack, _adsr_decay, _adsr_sustain, _adsr_release
+
+    _adsr_attack = max(0.0, float(attack))
+    _adsr_decay = max(0.0, float(decay))
+    _adsr_sustain = min(1.0, max(0.0, float(sustain)))
+    _adsr_release = max(0.0, float(release))
 
 
 def set_sample_rate(sample_rate):

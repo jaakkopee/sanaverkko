@@ -32,6 +32,7 @@ class SanaVerkkoKontrolleri:
         self.params["zoom"]=0.1
         self.params["process_interval"] = 0.25
         self.params["import_mode"] = "append"
+        self.params["audio_wave_mode"] = "dynamic"
 
         self.app = wx.App()
 
@@ -102,6 +103,11 @@ class SanaVerkkoKontrolleri:
         self.process_interval_ctrl = wx.TextCtrl(panel, -1, str(self.params["process_interval"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.process_interval_ctrl, self.OnProcessInterval)
 
+        self.audio_wave_mode_label = wx.StaticText(panel, -1, "Audio waveform mode")
+        self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=["Dynamic", "Pure sine", "Noise-heavy", "Classic analog"])
+        self.audio_wave_mode_choice.SetSelection(0)
+        self.audio_wave_mode_choice.Bind(wx.EVT_CHOICE, self.OnAudioWaveMode)
+
         self.add_words_label = wx.StaticText(panel, -1, "Add word(s)")
         self.add_words_ctrl = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER)
         self.add_words_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnAddWords)
@@ -146,6 +152,9 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.process_interval_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.process_interval_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
 
         add_words_row = wx.BoxSizer(wx.HORIZONTAL)
         add_words_row.Add(self.add_words_ctrl, 1, wx.RIGHT, 5)
@@ -239,6 +248,18 @@ class SanaVerkkoKontrolleri:
             self.params["import_mode"] = "append"
         event.Skip()
 
+    def OnAudioWaveMode(self, event):
+        selected_mode = self.audio_wave_mode_choice.GetStringSelection()
+        if selected_mode == "Pure sine":
+            self.params["audio_wave_mode"] = "pure_sine"
+        elif selected_mode == "Noise-heavy":
+            self.params["audio_wave_mode"] = "noise_heavy"
+        elif selected_mode == "Classic analog":
+            self.params["audio_wave_mode"] = "classic_analog"
+        else:
+            self.params["audio_wave_mode"] = "dynamic"
+        event.Skip()
+
     def OnClose(self, event):
         if self.closed:
             return
@@ -276,6 +297,8 @@ class SanaVerkkoKontrolleri:
         self.audio_refresh_interval = 0.15
         self.last_audio_update = 0
         self.audio_playing = False
+        self.audio_wave_index = 0
+        self.audio_waveforms = ["sine", "triangle", "square", "sawtooth", "noise"]
         sanasyna.init_audio(self.audio_sample_rate)
 
     def updateAudio(self):
@@ -288,11 +311,41 @@ class SanaVerkkoKontrolleri:
             return
 
         average_activation = sum(abs(word.neuron.activation) for word in self.words) / len(self.words)
+        signed_activation = sum(word.neuron.activation for word in self.words) / len(self.words)
         gematria_total = sum(word.gematria for word in self.words)
         frequency = 110 + (gematria_total % 770)
         amplitude = min(0.25, max(0.05, average_activation / 10))
 
-        sanasyna.generate_sine_wave(frequency, amplitude, self.audio_sample_rate)
+        activation_spread = sum(abs(word.neuron.activation - signed_activation) for word in self.words) / len(self.words)
+        mode = self.params.get("audio_wave_mode", "dynamic")
+
+        if mode == "pure_sine":
+            waveform = "sine"
+        elif mode == "noise_heavy":
+            noise_heavy_waves = ["noise", "square", "noise", "triangle", "noise", "sawtooth"]
+            self.audio_wave_index = (self.audio_wave_index + 1) % len(noise_heavy_waves)
+            waveform = noise_heavy_waves[self.audio_wave_index]
+        elif mode == "classic_analog":
+            classic_waves = ["triangle", "sawtooth", "triangle", "square", "sawtooth"]
+            self.audio_wave_index = (self.audio_wave_index + 1) % len(classic_waves)
+            waveform = classic_waves[self.audio_wave_index]
+        else:
+            dynamic_offset = int((abs(signed_activation) + activation_spread) * 10)
+            self.audio_wave_index = (self.audio_wave_index + 1 + dynamic_offset) % len(self.audio_waveforms)
+            waveform = self.audio_waveforms[self.audio_wave_index]
+
+        if waveform == "triangle":
+            sanasyna.generate_triangle_wave(frequency, amplitude * 0.95, self.audio_sample_rate)
+        elif waveform == "square":
+            sanasyna.generate_square_wave(frequency, amplitude * 0.80, self.audio_sample_rate)
+        elif waveform == "sawtooth":
+            sanasyna.generate_sawtooth_wave(frequency, amplitude * 0.85, self.audio_sample_rate)
+        elif waveform == "noise":
+            noise_amplitude = max(0.03, amplitude * 0.55)
+            sanasyna.generate_noise_wave(frequency, noise_amplitude, self.audio_sample_rate)
+        else:
+            sanasyna.generate_sine_wave(frequency, amplitude, self.audio_sample_rate)
+
         sanasyna.play(loop=True)
         self.audio_playing = True
 
