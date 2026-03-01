@@ -30,6 +30,7 @@ class SanaVerkkoKontrolleri:
         self.params["sigmoid_scale"] = 2
         self.params["word_change_threshold"] = 0.777
         self.params["zoom"]=0.1
+        self.params["process_interval"] = 0.25
 
         self.app = wx.App()
 
@@ -51,6 +52,7 @@ class SanaVerkkoKontrolleri:
         self.conn_color_r = 0
         self.conn_color_g = 0
         self.conn_color_b = 0
+        self.last_process_time = 0
 
         self.initPygame()
         self.initAudio()
@@ -65,32 +67,36 @@ class SanaVerkkoKontrolleri:
         self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.OnSetWeightByGematria)
 
         self.learning_rate_label = wx.StaticText(panel, -1, "Learning rate")
-        self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]))
-        self.learning_rate_ctrl.Bind(wx.EVT_TEXT, self.OnLearningRate)
+        self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.learning_rate_ctrl, self.OnLearningRate)
 
         self.error_label = wx.StaticText(panel, -1, "Error")
-        self.error_ctrl = wx.TextCtrl(panel, -1, str(self.params["error"]))
-        self.error_ctrl.Bind(wx.EVT_TEXT, self.OnError)
+        self.error_ctrl = wx.TextCtrl(panel, -1, str(self.params["error"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.error_ctrl, self.OnError)
 
         self.activation_increase_label = wx.StaticText(panel, -1, "Activation increase")
-        self.activation_increase_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_increase"]))
-        self.activation_increase_ctrl.Bind(wx.EVT_TEXT, self.OnActivationIncrease)
+        self.activation_increase_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_increase"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.activation_increase_ctrl, self.OnActivationIncrease)
 
         self.activation_limit_label = wx.StaticText(panel, -1, "Activation limit")
-        self.activation_limit_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_limit"]))
-        self.activation_limit_ctrl.Bind(wx.EVT_TEXT, self.OnActivationLimit)
+        self.activation_limit_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_limit"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.activation_limit_ctrl, self.OnActivationLimit)
 
         self.sigmoid_scale_label = wx.StaticText(panel, -1, "Sigmoid scale")
-        self.sigmoid_scale_ctrl = wx.TextCtrl(panel, -1, str(self.params["sigmoid_scale"]))
-        self.sigmoid_scale_ctrl.Bind(wx.EVT_TEXT, self.OnSigmoidScale)
+        self.sigmoid_scale_ctrl = wx.TextCtrl(panel, -1, str(self.params["sigmoid_scale"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.sigmoid_scale_ctrl, self.OnSigmoidScale)
 
         self.word_change_threshold_label = wx.StaticText(panel, -1, "Word change threshold")
-        self.word_change_threshold_ctrl = wx.TextCtrl(panel, -1, str(self.params["word_change_threshold"]))
-        self.word_change_threshold_ctrl.Bind(wx.EVT_TEXT, self.OnWordChangeThreshold)
+        self.word_change_threshold_ctrl = wx.TextCtrl(panel, -1, str(self.params["word_change_threshold"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.word_change_threshold_ctrl, self.OnWordChangeThreshold)
 
         self.zoom_label = wx.StaticText(panel, -1, "Zoom")
-        self.zoom_ctrl = wx.TextCtrl(panel, -1, str(self.params["zoom"]))
-        self.zoom_ctrl.Bind(wx.EVT_TEXT, self.OnZoom)
+        self.zoom_ctrl = wx.TextCtrl(panel, -1, str(self.params["zoom"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.zoom_ctrl, self.OnZoom)
+
+        self.process_interval_label = wx.StaticText(panel, -1, "Process interval (s)")
+        self.process_interval_ctrl = wx.TextCtrl(panel, -1, str(self.params["process_interval"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.process_interval_ctrl, self.OnProcessInterval)
 
         self.add_words_label = wx.StaticText(panel, -1, "Add word(s)")
         self.add_words_ctrl = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER)
@@ -98,6 +104,11 @@ class SanaVerkkoKontrolleri:
         self.add_words_button = wx.Button(panel, -1, "Add")
         self.add_words_button.Bind(wx.EVT_BUTTON, self.OnAddWords)
         self.add_words_status = wx.StaticText(panel, -1, "")
+
+        self.import_db_label = wx.StaticText(panel, -1, "Import database file")
+        self.import_db_button = wx.Button(panel, -1, "Import .txt")
+        self.import_db_button.Bind(wx.EVT_BUTTON, self.OnImportDatabaseFile)
+        self.import_db_status = wx.StaticText(panel, -1, "")
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
@@ -123,12 +134,19 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.zoom_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.zoom_ctrl, 0, wx.ALL, 5)
 
+        self.sizer.Add(self.process_interval_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.process_interval_ctrl, 0, wx.ALL, 5)
+
         add_words_row = wx.BoxSizer(wx.HORIZONTAL)
         add_words_row.Add(self.add_words_ctrl, 1, wx.RIGHT, 5)
         add_words_row.Add(self.add_words_button, 0)
         self.sizer.Add(self.add_words_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(add_words_row, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.add_words_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        self.sizer.Add(self.import_db_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.import_db_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.import_db_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         panel.SetSizer(self.sizer)
         self.app.SetTopWindow(self.frame)
@@ -137,27 +155,68 @@ class SanaVerkkoKontrolleri:
     def OnSetWeightByGematria(self, event):
         self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
 
+    def _bindNumericCtrl(self, ctrl, handler):
+        ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
+        ctrl.Bind(wx.EVT_KILL_FOCUS, handler)
+
+    def _readFloat(self, ctrl):
+        text_value = ctrl.GetValue().strip().replace(",", ".")
+        if text_value == "":
+            return None
+        try:
+            return float(text_value)
+        except ValueError:
+            return None
+
     def OnLearningRate(self, event):
-        self.params["learning_rate"] = float(self.learning_rate_ctrl.GetValue())
+        value = self._readFloat(self.learning_rate_ctrl)
+        if value is not None:
+            self.params["learning_rate"] = value
+        event.Skip()
 
     def OnError(self, event):
-        self.params["error"] = float(self.error_ctrl.GetValue())
+        value = self._readFloat(self.error_ctrl)
+        if value is not None:
+            self.params["error"] = value
+        event.Skip()
 
     def OnActivationIncrease(self, event):
-        self.params["activation_increase"] = float(self.activation_increase_ctrl.GetValue())
+        value = self._readFloat(self.activation_increase_ctrl)
+        if value is not None:
+            self.params["activation_increase"] = value
+        event.Skip()
 
     def OnActivationLimit(self, event):
-        self.params["activation_limit"] = float(self.activation_limit_ctrl.GetValue())
+        value = self._readFloat(self.activation_limit_ctrl)
+        if value is not None:
+            self.params["activation_limit"] = value
+        event.Skip()
 
     def OnSigmoidScale(self, event):
-        self.params["sigmoid_scale"] = float(self.sigmoid_scale_ctrl.GetValue())
+        value = self._readFloat(self.sigmoid_scale_ctrl)
+        if value is not None:
+            self.params["sigmoid_scale"] = value
+        event.Skip()
 
     def OnWordChangeThreshold(self, event):
-        self.params["word_change_threshold"] = float(self.word_change_threshold_ctrl.GetValue())
+        value = self._readFloat(self.word_change_threshold_ctrl)
+        if value is not None:
+            self.params["word_change_threshold"] = value
+        event.Skip()
 
     def OnZoom(self, event):
-        self.params["zoom"] = float(self.zoom_ctrl.GetValue())
-        self.makeWordCircle(self.words)
+        value = self._readFloat(self.zoom_ctrl)
+        if value is not None:
+            self.params["zoom"] = value
+            self.makeWordCircle(self.words)
+        event.Skip()
+
+    def OnProcessInterval(self, event):
+        value = self._readFloat(self.process_interval_ctrl)
+        if value is not None:
+            self.params["process_interval"] = max(0.01, value)
+            self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+        event.Skip()
 
     def OnClose(self, event):
         if self.closed:
@@ -249,15 +308,53 @@ class SanaVerkkoKontrolleri:
                     print (word.word + " connected to " + word2.word + " with weight " + str(weight))
 
     def parseText(self, filename):
-        file = open(filename, "r")
         words = []
         valid_chars = gematria_table.keys()
-        for line in file:
-            for word in line.split():
-                word = word.lower()
-                if all(char in valid_chars for char in word):
-                    words.append(Word(word, 0, 0, (255, 255, 255), self))
+        with open(filename, "r") as file:
+            for line in file:
+                for word in line.split():
+                    word = word.lower()
+                    if all(char in valid_chars for char in word):
+                        words.append(Word(word, 0, 0, (255, 255, 255), self))
         return words
+
+    def _uniqueWordObjects(self, words):
+        unique_words = []
+        seen_words = set()
+        for word in words:
+            if word.word not in seen_words:
+                unique_words.append(word)
+                seen_words.add(word.word)
+        return unique_words
+
+    def importReferenceDatabase(self, filename):
+        imported_words = self.parseText(filename)
+        if not imported_words:
+            return 0, len(self.referenceWords)
+
+        self.referenceWords = self._uniqueWordObjects(imported_words + self.words)
+        return len(imported_words), len(self.referenceWords)
+
+    def OnImportDatabaseFile(self, event):
+        with wx.FileDialog(
+            self.frame,
+            "Import database text file",
+            wildcard="Text files (*.txt)|*.txt|All files (*.*)|*.*",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        ) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            selected_path = file_dialog.GetPath()
+
+        try:
+            imported_count, total_count = self.importReferenceDatabase(selected_path)
+            if imported_count == 0:
+                self.import_db_status.SetLabel("No valid words found in selected file")
+            else:
+                self.import_db_status.SetLabel(f"Imported {imported_count} words, database size {total_count}")
+        except Exception as error:
+            self.import_db_status.SetLabel(f"Import failed: {error}")
 
     def addWordToNetwork(self, word_text):
         new_word = Word(word_text, 0, 0, (255, 255, 255), self)
@@ -326,6 +423,7 @@ class SanaVerkkoKontrolleri:
         else:
             word.word = refWord.word
             word.gematria = refWord.gematria
+            word.neuron.word = refWord.word
             for connection in word.neuron.connections:
                 connection[0].word = refWord.word
                 connection[0].gematria = refWord.gematria
@@ -338,6 +436,11 @@ class SanaVerkkoKontrolleri:
         self.outfile.write(word + " ")
 
     def simulationStep(self):
+        now = time.time()
+        if now - self.last_process_time < self.params["process_interval"]:
+            return
+        self.last_process_time = now
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -469,19 +572,107 @@ def get_activation_color(activation):
         return (255, 255, 255)
 
 
-def draw_text_centered(screen, text, size, color, x, y):
-    if pygame_font is None:
-        return
+BITMAP_FONT_3x5 = {
+    "a": ("111", "101", "111", "101", "101"),
+    "b": ("110", "101", "110", "101", "110"),
+    "c": ("111", "100", "100", "100", "111"),
+    "d": ("110", "101", "101", "101", "110"),
+    "e": ("111", "100", "110", "100", "111"),
+    "f": ("111", "100", "110", "100", "100"),
+    "g": ("111", "100", "101", "101", "111"),
+    "h": ("101", "101", "111", "101", "101"),
+    "i": ("111", "010", "010", "010", "111"),
+    "j": ("111", "001", "001", "101", "111"),
+    "k": ("101", "101", "110", "101", "101"),
+    "l": ("100", "100", "100", "100", "111"),
+    "m": ("101", "111", "111", "101", "101"),
+    "n": ("101", "111", "111", "111", "101"),
+    "o": ("111", "101", "101", "101", "111"),
+    "p": ("111", "101", "111", "100", "100"),
+    "q": ("111", "101", "101", "111", "001"),
+    "r": ("111", "101", "110", "101", "101"),
+    "s": ("111", "100", "111", "001", "111"),
+    "t": ("111", "010", "010", "010", "010"),
+    "u": ("101", "101", "101", "101", "111"),
+    "v": ("101", "101", "101", "101", "010"),
+    "w": ("101", "101", "111", "111", "101"),
+    "x": ("101", "101", "010", "101", "101"),
+    "y": ("101", "101", "111", "001", "111"),
+    "z": ("111", "001", "010", "100", "111"),
+    "å": ("111", "101", "111", "101", "101"),
+    "ä": ("111", "101", "111", "101", "101"),
+    "ö": ("111", "101", "101", "101", "111"),
+    "0": ("111", "101", "101", "101", "111"),
+    "1": ("010", "110", "010", "010", "111"),
+    "2": ("111", "001", "111", "100", "111"),
+    "3": ("111", "001", "111", "001", "111"),
+    "4": ("101", "101", "111", "001", "001"),
+    "5": ("111", "100", "111", "001", "111"),
+    "6": ("111", "100", "111", "101", "111"),
+    "7": ("111", "001", "010", "100", "100"),
+    "8": ("111", "101", "111", "101", "111"),
+    "9": ("111", "101", "111", "001", "111"),
+    "-": ("000", "000", "111", "000", "000"),
+    "+": ("000", "010", "111", "010", "000"),
+    ">": ("100", "010", "001", "010", "100"),
+    ",": ("000", "000", "000", "010", "100"),
+    ".": ("000", "000", "000", "000", "010"),
+    ":": ("000", "010", "000", "010", "000"),
+    "(": ("001", "010", "010", "010", "001"),
+    ")": ("100", "010", "010", "010", "100"),
+    " ": ("000", "000", "000", "000", "000"),
+    "?": ("111", "001", "011", "000", "010"),
+}
 
-    try:
-        if not pygame_font.get_init():
-            pygame_font.init()
-        font = pygame_font.Font(None, size)
-        rendered_text = font.render(str(text), 1, color)
-        textpos = rendered_text.get_rect(centerx=x, centery=y)
-        screen.blit(rendered_text, textpos)
-    except Exception:
-        return
+
+def draw_bitmap_text_centered(screen, text, size, color, x, y):
+    text_value = str(text).lower()
+    scale = max(1, int(size) // 6)
+    glyph_width = 3 * scale
+    glyph_height = 5 * scale
+    spacing = scale
+
+    total_width = 0
+    for character in text_value:
+        if character == " ":
+            total_width += 2 * scale + spacing
+        else:
+            total_width += glyph_width + spacing
+    if total_width > 0:
+        total_width -= spacing
+
+    cursor_x = int(x) - total_width // 2
+    top_y = int(y) - glyph_height // 2
+
+    for character in text_value:
+        glyph = BITMAP_FONT_3x5.get(character, BITMAP_FONT_3x5["?"])
+        local_width = 2 * scale if character == " " else glyph_width
+
+        if character != " ":
+            for row_index, row_pattern in enumerate(glyph):
+                for col_index, pixel in enumerate(row_pattern):
+                    if pixel == "1":
+                        px = cursor_x + col_index * scale
+                        py = top_y + row_index * scale
+                        pygame.draw.rect(screen, color, (px, py, scale, scale))
+
+        cursor_x += local_width + spacing
+
+
+def draw_text_centered(screen, text, size, color, x, y):
+    if pygame_font is not None:
+        try:
+            if not pygame_font.get_init():
+                pygame_font.init()
+            font = pygame_font.Font(None, size)
+            rendered_text = font.render(str(text), 1, color)
+            textpos = rendered_text.get_rect(centerx=x, centery=y)
+            screen.blit(rendered_text, textpos)
+            return
+        except Exception:
+            pass
+
+    draw_bitmap_text_centered(screen, text, size, color, x, y)
     
 class Neuron:
     def __init__(self, x, y, radius, color):
@@ -562,11 +753,42 @@ class Word:
         self.x = x
         self.y = y
         self.neuron = Neuron(x, y, 20, color)
+        self.neuron.word = word
         self.neuron.setController(controller)
+
+    def getConnectedWordsLabel(self, max_words=4):
+        if not self.neuron.connections:
+            return ""
+
+        weighted_names = []
+        for connection in self.neuron.connections:
+            connected_neuron = connection[0]
+            weight = connection[1]
+            if hasattr(connected_neuron, "word"):
+                weighted_names.append((connected_neuron.word, abs(weight)))
+
+        if not weighted_names:
+            return ""
+
+        weighted_names.sort(key=lambda item: item[1], reverse=True)
+        ordered_names = []
+        for name, _ in weighted_names:
+            if name not in ordered_names:
+                ordered_names.append(name)
+
+        visible_names = ordered_names[:max_words]
+        hidden_count = max(0, len(ordered_names) - len(visible_names))
+        label = "-> " + ", ".join(visible_names)
+        if hidden_count > 0:
+            label += f" (+{hidden_count})"
+        return label
 
     def draw(self, screen):
         self.neuron.draw(screen)
         draw_text_centered(screen, self.word, 22, get_activation_color(self.neuron.activation), self.x, self.y + 30)
+        connected_words_label = self.getConnectedWordsLabel()
+        if connected_words_label != "":
+            draw_text_centered(screen, connected_words_label, 14, (170, 170, 170), self.x, self.y + 46)
 
     def move(self, dx, dy):
         self.x += dx
