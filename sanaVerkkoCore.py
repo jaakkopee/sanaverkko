@@ -3,7 +3,7 @@ import pygame
 import random
 import time
 import math
-import tkinter as tk
+import wx
 import threading
 import sys
 
@@ -23,19 +23,13 @@ class SanaVerkkoKontrolleri:
         self.params["activation_limit"] = 2
         self.params["sigmoid_scale"] = 2
         self.params["word_change_threshold"] = 0.777
+        self.params["zoom"]=0.1
 
-        self.tk = tk.Tk()
-        self.frame = tk.Frame(self.tk)
-        self.frame.pack()
-        self.sizer = tk.Grid()
-        self.frame.config(width=400, height=600)
-        self.frame.grid()
-        self.frame.columnconfigure(0, weight=1)
-        self.frame.rowconfigure(0, weight=1)
-        self.frame.pack_propagate(False)
-        self.frame.pack()
+        self.app = wx.App()
 
-
+        self.frame = wx.Frame(None, -1, "SanaVerkko")
+        self.frame.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.frame.SetSize(600, 800)
         self.words = []
         self.referenceWords = []
         self.wordsToChange = []
@@ -55,89 +49,65 @@ class SanaVerkkoKontrolleri:
         self.outfile = open("output.txt", "w")
 
     def widgetSetup(self):
-        self.set_weight_by_gematria_checkbox = tk.Checkbutton(self.frame, text="Set weight by gematria", variable=self.params["set_weight_by_gematria"])
+        panel = wx.Panel(self.frame, -1)
+        self.set_weight_by_gematria_checkbox = wx.CheckBox(panel, -1, "Set weight by gematria")
+        self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
+        self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.OnSetWeightByGematria)
+        self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]))
+        self.learning_rate_ctrl.Bind(wx.EVT_TEXT, self.OnLearningRate)
+        self.error_ctrl = wx.TextCtrl(panel, -1, str(self.params["error"]))
+        self.error_ctrl.Bind(wx.EVT_TEXT, self.OnError)
+        self.activation_increase_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_increase"]))
+        self.activation_increase_ctrl.Bind(wx.EVT_TEXT, self.OnActivationIncrease)
+        self.activation_limit_ctrl = wx.TextCtrl(panel, -1, str(self.params["activation_limit"]))
+        self.activation_limit_ctrl.Bind(wx.EVT_TEXT, self.OnActivationLimit)
+        self.sigmoid_scale_ctrl = wx.TextCtrl(panel, -1, str(self.params["sigmoid_scale"]))
+        self.sigmoid_scale_ctrl.Bind(wx.EVT_TEXT, self.OnSigmoidScale)
+        self.word_change_threshold_ctrl = wx.TextCtrl(panel, -1, str(self.params["word_change_threshold"]))
+        self.word_change_threshold_ctrl.Bind(wx.EVT_TEXT, self.OnWordChangeThreshold)
+        self.zoom_ctrl = wx.TextCtrl(panel, -1, str(self.params["zoom"]))
+        self.zoom_ctrl.Bind(wx.EVT_TEXT, self.OnZoom)
 
-        self.word_change_threshold_label = tk.Label(self.frame, text="Word change threshold")
-        self.word_change_threshold_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.word_change_threshold_value = tk.Label(self.frame, text="0")
-        
-        self.learning_rate_label = tk.Label(self.frame, text="Learning rate")
-        self.learning_rate_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.learning_rate_value = tk.Label(self.frame, text="0")
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.learning_rate_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.error_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.activation_increase_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.activation_limit_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.sigmoid_scale_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.word_change_threshold_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.zoom_ctrl, 0, wx.ALL, 5)
+        panel.SetSizer(self.sizer)
+        self.frame.Show()
 
-        self.error_label = tk.Label(self.frame, text="Error")
-        self.error_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.error_value = tk.Label(self.frame, text="0")
+    def OnSetWeightByGematria(self, event):
+        self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
 
-        self.target_label = tk.Label(self.frame, text="Target")
-        self.target_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.target_value = tk.Label(self.frame, text="0")
+    def OnLearningRate(self, event):
+        self.params["learning_rate"] = float(self.learning_rate_ctrl.GetValue())
 
-        self.activation_increase_label = tk.Label(self.frame, text="Activation increase")
-        self.activation_increase_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.activation_increase_value = tk.Label(self.frame, text="0")
+    def OnError(self, event):
+        self.params["error"] = float(self.error_ctrl.GetValue())
 
-        self.activation_limit_label = tk.Label(self.frame, text="Activation limit")
-        self.activation_limit_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.activation_limit_value = tk.Label(self.frame, text="0")
+    def OnActivationIncrease(self, event):
+        self.params["activation_increase"] = float(self.activation_increase_ctrl.GetValue())
 
-        self.sigmoid_scale_label = tk.Label(self.frame, text="Sigmoid scale")
-        self.sigmoid_scale_slider = tk.Scale(self.frame, from_=0, to=100, orient=tk.HORIZONTAL)
-        self.sigmoid_scale_value = tk.Label(self.frame, text="0")
-        
-        self.frame.config(width=400, height=600)
-        self.frame.grid()
-        self.frame.columnconfigure(0, weight=1)
-        self.frame.rowconfigure(0, weight=1)
-        self.frame.pack_propagate(False)
-        self.frame.pack()
+    def OnActivationLimit(self, event):
+        self.params["activation_limit"] = float(self.activation_limit_ctrl.GetValue())
 
-        self.set_weight_by_gematria_checkbox.grid(row=0, column=0, columnspan=2)
-        self.word_change_threshold_label.grid(row=1, column=0)
-        self.word_change_threshold_slider.grid(row=1, column=1)
-        self.word_change_threshold_value.grid(row=1, column=2)
-        self.learning_rate_label.grid(row=2, column=0)
-        self.learning_rate_slider.grid(row=2, column=1)
-        self.learning_rate_value.grid(row=2, column=2)
-        self.error_label.grid(row=3, column=0)
-        self.error_slider.grid(row=3, column=1)
-        self.error_value.grid(row=3, column=2)
-        self.target_label.grid(row=4, column=0)
-        self.target_slider.grid(row=4, column=1)
-        self.target_value.grid(row=4, column=2)
-        self.activation_increase_label.grid(row=5, column=0)
-        self.activation_increase_slider.grid(row=5, column=1)
-        self.activation_increase_value.grid(row=5, column=2)
-        self.activation_limit_label.grid(row=6, column=0)
-        self.activation_limit_slider.grid(row=6, column=1)
-        self.activation_limit_value.grid(row=6, column=2)
-        self.sigmoid_scale_label.grid(row=7, column=0)
-        self.sigmoid_scale_slider.grid(row=7, column=1)
-        self.sigmoid_scale_value.grid(row=7, column=2)
+    def OnSigmoidScale(self, event):
+        self.params["sigmoid_scale"] = float(self.sigmoid_scale_ctrl.GetValue())
 
-        self.word_change_threshold_slider.bind("<ButtonRelease-1>", self.updateParams)
-        self.learning_rate_slider.bind("<ButtonRelease-1>", self.updateParams)
-        self.error_slider.bind("<ButtonRelease-1>", self.updateParams)
-        self.target_slider.bind("<ButtonRelease-1>", self.updateParams)
-        self.activation_increase_slider.bind("<ButtonRelease-1>", self.updateParams)
-        self.activation_limit_slider.bind("<ButtonRelease-1>", self.updateParams)
-        self.sigmoid_scale_slider.bind("<ButtonRelease-1>", self.updateParams)
+    def OnWordChangeThreshold(self, event):
+        self.params["word_change_threshold"] = float(self.word_change_threshold_ctrl.GetValue())
 
-    def updateParams(self, event):
-        self.params["word_change_threshold"] = self.word_change_threshold_slider.get()/100
-        self.word_change_threshold_value.config(text=str(self.params["word_change_threshold"]))
-        self.params["learning_rate"] = self.learning_rate_slider.get()/100
-        self.learning_rate_value.config(text=str(self.params["learning_rate"]))
-        self.params["error"] = self.error_slider.get()/100
-        self.error_value.config(text=str(self.params["error"]))
-        self.params["target"] = self.target_slider.get()/100
-        self.target_value.config(text=str(self.params["target"]))
-        self.params["activation_increase"] = self.activation_increase_slider.get()/1000
-        self.activation_increase_value.config(text=str(self.params["activation_increase"]))
-        self.params["activation_limit"] = self.activation_limit_slider.get()/100
-        self.activation_limit_value.config(text=str(self.params["activation_limit"]))
-        self.params["sigmoid_scale"] = self.sigmoid_scale_slider.get()/100
-        self.sigmoid_scale_value.config(text=str(self.params["sigmoid_scale"]))
+    def OnZoom(self, event):
+        self.params["zoom"] = float(self.zoom_ctrl.GetValue())
+        self.makeWordCircle(self.words)
+
+    def OnClose(self, event):
+        self.outfile.close()
+        self.frame.Destroy()
 
     def getParam(self, param):
         return self.params[param]
@@ -152,6 +122,15 @@ class SanaVerkkoKontrolleri:
         pygame.display.set_caption("SanaVerkko")
         self.clock = pygame.time.Clock()
 
+    def makeWordCircle(self, words):
+        zoom = self.params["zoom"]
+        for i, word in enumerate(words):
+            word.x = self.size[0]/2 + 6*zoom * math.cos(2 * math.pi * i / len(words))
+            word.y = self.size[1]/2 + 6*zoom * math.sin(2 * math.pi * i / len(words))
+            word.neuron.x = word.x
+            word.neuron.y = word.y
+
+
     def initWords(self):
         self.words = self.parseText(sys.argv[1])
         self.referenceWords = self.parseText(sys.argv[2])
@@ -160,11 +139,7 @@ class SanaVerkkoKontrolleri:
             self.referenceWords.append(word)
 
         #place words in a circle
-        for i, word in enumerate(self.words):
-            word.x = self.size[0]/2 + 600 * math.cos(2 * math.pi * i / len(self.words))
-            word.y = self.size[1]/2 + 600 * math.sin(2 * math.pi * i / len(self.words))
-            word.neuron.x = word.x
-            word.neuron.y = word.y
+        self.makeWordCircle(self.words)
 
         #connect words
         for word in self.words:
@@ -457,8 +432,8 @@ class Word:
 
 if __name__ == "__main__":
     kontrol = SanaVerkkoKontrolleri()
-    kontrol_thread = threading.Thread(target=kontrol.testNeurons)
+    kontrol_thread = threading.Thread(target=kontrol.testNeurons())
     kontrol_thread.start()
-    kontrol.tk.mainloop()
-    
+    kontrol.app.MainLoop()
+    kontrol_thread.join()
 
