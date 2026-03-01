@@ -1,5 +1,7 @@
 # SanaVerkko
 
+![SanaVerkko screenshot](sanaverkko%20screenshot%201.png)
+
 SanaVerkko is an experimental **word network + gematria + audio** playground.
 
 It combines:
