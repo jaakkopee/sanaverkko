@@ -17,6 +17,73 @@ except Exception:
 
 gematria_table = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10, "k": 20, "l": 30, "m": 40, "n": 50, "o": 60, "p": 70, "q": 80, "r": 90, "s": 100, "t": 200, "u": 300, "v": 400, "w": 500, "x": 600, "y": 700, "z": 800, "å": 900, "ä": 1000, "ö": 1100}
 
+
+class ADSRDisplayPanel(wx.Panel):
+    def __init__(self, parent):
+        super().__init__(parent, size=(240, 90))
+        self.attack = 0.01
+        self.decay = 0.04
+        self.sustain = 0.85
+        self.release = 0.03
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def set_adsr(self, attack, decay, sustain, release):
+        self.attack = max(0.0, float(attack))
+        self.decay = max(0.0, float(decay))
+        self.sustain = min(1.0, max(0.0, float(sustain)))
+        self.release = max(0.0, float(release))
+        self.Refresh()
+
+    def OnPaint(self, event):
+        _ = event
+        dc = wx.PaintDC(self)
+        width, height = self.GetClientSize()
+
+        dc.SetBrush(wx.Brush(wx.Colour(30, 30, 30)))
+        dc.SetPen(wx.Pen(wx.Colour(60, 60, 60), 1))
+        dc.DrawRectangle(0, 0, width, height)
+
+        left = 8
+        top = 8
+        draw_width = max(10, width - 16)
+        draw_height = max(10, height - 16)
+        bottom = top + draw_height
+
+        total_time = self.attack + self.decay + self.release + 0.25
+        if total_time <= 0:
+            total_time = 1.0
+
+        def x_from_time(time_value):
+            return left + int((time_value / total_time) * draw_width)
+
+        def y_from_level(level_value):
+            level = min(1.0, max(0.0, float(level_value)))
+            return top + int((1.0 - level) * draw_height)
+
+        t0 = 0.0
+        t1 = self.attack
+        t2 = t1 + self.decay
+        t3 = total_time - self.release
+        t4 = total_time
+
+        points = [
+            (x_from_time(t0), y_from_level(0.0)),
+            (x_from_time(t1), y_from_level(1.0)),
+            (x_from_time(t2), y_from_level(self.sustain)),
+            (x_from_time(t3), y_from_level(self.sustain)),
+            (x_from_time(t4), y_from_level(0.0)),
+        ]
+
+        dc.SetPen(wx.Pen(wx.Colour(180, 220, 255), 2))
+        for index in range(len(points) - 1):
+            x1, y1 = points[index]
+            x2, y2 = points[index + 1]
+            dc.DrawLine(x1, y1, x2, y2)
+
+        dc.SetPen(wx.Pen(wx.Colour(90, 90, 90), 1))
+        dc.DrawLine(left, bottom, left + draw_width, bottom)
+        dc.DrawLine(left, top, left, bottom)
+
 class SanaVerkkoKontrolleri:
     
     def __init__(self):
@@ -33,12 +100,16 @@ class SanaVerkkoKontrolleri:
         self.params["process_interval"] = 0.25
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
+        self.params["adsr_attack"] = 0.01
+        self.params["adsr_decay"] = 0.04
+        self.params["adsr_sustain"] = 0.85
+        self.params["adsr_release"] = 0.03
 
         self.app = wx.App()
 
         self.frame = wx.Frame(None, -1, "SanaVerkko")
         self.frame.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.frame.SetSize(600, 800)
+        self.frame.SetSize(760, 1080)
         self.words = []
         self.referenceWords = []
         self.wordsToChange = []
@@ -108,6 +179,21 @@ class SanaVerkkoKontrolleri:
         self.audio_wave_mode_choice.SetSelection(0)
         self.audio_wave_mode_choice.Bind(wx.EVT_CHOICE, self.OnAudioWaveMode)
 
+        self.adsr_label = wx.StaticText(panel, -1, "ADSR envelope")
+        self.adsr_display = ADSRDisplayPanel(panel)
+        self.adsr_attack_label = wx.StaticText(panel, -1, "Attack (s)")
+        self.adsr_attack_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_attack"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.adsr_attack_ctrl, self.OnADSR)
+        self.adsr_decay_label = wx.StaticText(panel, -1, "Decay (s)")
+        self.adsr_decay_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_decay"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.adsr_decay_ctrl, self.OnADSR)
+        self.adsr_sustain_label = wx.StaticText(panel, -1, "Sustain (0-1)")
+        self.adsr_sustain_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_sustain"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.adsr_sustain_ctrl, self.OnADSR)
+        self.adsr_release_label = wx.StaticText(panel, -1, "Release (s)")
+        self.adsr_release_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_release"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.adsr_release_ctrl, self.OnADSR)
+
         self.add_words_label = wx.StaticText(panel, -1, "Add word(s)")
         self.add_words_ctrl = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER)
         self.add_words_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnAddWords)
@@ -156,6 +242,20 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
 
+        self.sizer.Add(self.adsr_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.adsr_display, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+
+        adsr_grid = wx.FlexGridSizer(2, 4, 4, 5)
+        adsr_grid.Add(self.adsr_attack_label, 0, wx.ALIGN_LEFT)
+        adsr_grid.Add(self.adsr_decay_label, 0, wx.ALIGN_LEFT)
+        adsr_grid.Add(self.adsr_sustain_label, 0, wx.ALIGN_LEFT)
+        adsr_grid.Add(self.adsr_release_label, 0, wx.ALIGN_LEFT)
+        adsr_grid.Add(self.adsr_attack_ctrl, 0, wx.EXPAND)
+        adsr_grid.Add(self.adsr_decay_ctrl, 0, wx.EXPAND)
+        adsr_grid.Add(self.adsr_sustain_ctrl, 0, wx.EXPAND)
+        adsr_grid.Add(self.adsr_release_ctrl, 0, wx.EXPAND)
+        self.sizer.Add(adsr_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+
         add_words_row = wx.BoxSizer(wx.HORIZONTAL)
         add_words_row.Add(self.add_words_ctrl, 1, wx.RIGHT, 5)
         add_words_row.Add(self.add_words_button, 0)
@@ -173,6 +273,7 @@ class SanaVerkkoKontrolleri:
         panel.SetSizer(self.sizer)
         self.app.SetTopWindow(self.frame)
         self.frame.Show()
+        self._applyADSRToAudio()
 
     def OnSetWeightByGematria(self, event):
         self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
@@ -258,6 +359,42 @@ class SanaVerkkoKontrolleri:
             self.params["audio_wave_mode"] = "classic_analog"
         else:
             self.params["audio_wave_mode"] = "dynamic"
+        event.Skip()
+
+    def _applyADSRToAudio(self):
+        sanasyna.set_adsr(
+            self.params["adsr_attack"],
+            self.params["adsr_decay"],
+            self.params["adsr_sustain"],
+            self.params["adsr_release"],
+        )
+        self.adsr_display.set_adsr(
+            self.params["adsr_attack"],
+            self.params["adsr_decay"],
+            self.params["adsr_sustain"],
+            self.params["adsr_release"],
+        )
+
+    def OnADSR(self, event):
+        attack_value = self._readFloat(self.adsr_attack_ctrl)
+        decay_value = self._readFloat(self.adsr_decay_ctrl)
+        sustain_value = self._readFloat(self.adsr_sustain_ctrl)
+        release_value = self._readFloat(self.adsr_release_ctrl)
+
+        if attack_value is not None:
+            self.params["adsr_attack"] = max(0.0, attack_value)
+        if decay_value is not None:
+            self.params["adsr_decay"] = max(0.0, decay_value)
+        if sustain_value is not None:
+            self.params["adsr_sustain"] = min(1.0, max(0.0, sustain_value))
+        if release_value is not None:
+            self.params["adsr_release"] = max(0.0, release_value)
+
+        self.adsr_attack_ctrl.SetValue(str(self.params["adsr_attack"]))
+        self.adsr_decay_ctrl.SetValue(str(self.params["adsr_decay"]))
+        self.adsr_sustain_ctrl.SetValue(str(self.params["adsr_sustain"]))
+        self.adsr_release_ctrl.SetValue(str(self.params["adsr_release"]))
+        self._applyADSRToAudio()
         event.Skip()
 
     def OnClose(self, event):
