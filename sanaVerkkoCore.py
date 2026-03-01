@@ -310,15 +310,24 @@ class SanaVerkkoKontrolleri:
         frame_x, frame_y = self.frame.GetPosition()
         frame_w, _ = self.frame.GetSize()
         self.output_frame.SetPosition((frame_x + frame_w + 10, frame_y))
+        self.output_frame.Bind(wx.EVT_CLOSE, self.OnOutputFrameClose)
         self.output_frame.Show()
 
-        self.output_timer = wx.Timer(self.frame)
-        self.frame.Bind(wx.EVT_TIMER, self.OnOutputTimer, self.output_timer)
+        self.output_timer = wx.Timer(self.output_frame)
+        self.output_frame.Bind(wx.EVT_TIMER, self.OnOutputTimer, self.output_timer)
         self.output_timer.Start(300)
         self.refreshOutputWindow()
 
     def OnOutputTimer(self, event):
         self.refreshOutputWindow()
+
+    def OnOutputFrameClose(self, event):
+        if self.output_timer is not None:
+            self.output_timer.Stop()
+            self.output_timer = None
+        self.output_frame = None
+        self.output_text_ctrl = None
+        event.Skip()
 
     def refreshOutputWindow(self):
         if self.output_text_ctrl is None:
@@ -342,7 +351,6 @@ class SanaVerkkoKontrolleri:
 
     def _bindNumericCtrl(self, ctrl, handler):
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
-        ctrl.Bind(wx.EVT_KILL_FOCUS, handler)
 
     def _readFloat(self, ctrl):
         text_value = ctrl.GetValue().strip().replace(",", ".")
