@@ -105,6 +105,9 @@ class SanaVerkkoKontrolleri:
         self.params["word_change_threshold"] = 0.777
         self.params["zoom"]=0.1
         self.params["process_interval"] = 0.25
+        self.params["logic_iteration_limit"] = 48
+        self.params["selection_exploration"] = 0.18
+        self.params["selection_top_k"] = 4
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
         self.params["adsr_attack"] = 0.01
@@ -144,6 +147,9 @@ class SanaVerkkoKontrolleri:
         self.pos_tag_cache = {}
         self.nltk_pos_ready = False
         self.nltk_pos_init_attempted = False
+        self.reference_index_dirty = True
+        self.reference_index_has_pos = False
+        self.reference_index = {}
 
         self.initPygame()
         self.initAudio()
@@ -193,6 +199,14 @@ class SanaVerkkoKontrolleri:
         self.process_interval_label = wx.StaticText(panel, -1, "Process interval (s)")
         self.process_interval_ctrl = wx.TextCtrl(panel, -1, str(self.params["process_interval"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.process_interval_ctrl, self.OnProcessInterval)
+
+        self.selection_exploration_label = wx.StaticText(panel, -1, "Selection exploration (0-1)")
+        self.selection_exploration_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_exploration"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.selection_exploration_ctrl, self.OnSelectionExploration)
+
+        self.selection_top_k_label = wx.StaticText(panel, -1, "Selection top-k")
+        self.selection_top_k_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_top_k"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.selection_top_k_ctrl, self.OnSelectionTopK)
 
         self.audio_wave_mode_label = wx.StaticText(panel, -1, "Audio waveform mode")
         self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=["Dynamic", "Pure sine", "Noise-heavy", "Classic analog"])
@@ -259,6 +273,12 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.process_interval_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.process_interval_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.selection_exploration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.selection_exploration_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.selection_top_k_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.selection_top_k_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -438,6 +458,15 @@ class SanaVerkkoKontrolleri:
         except ValueError:
             return None
 
+    def _readInt(self, ctrl):
+        text_value = ctrl.GetValue().strip()
+        if text_value == "":
+            return None
+        try:
+            return int(float(text_value))
+        except ValueError:
+            return None
+
     def OnLearningRate(self, event):
         value = self._readFloat(self.learning_rate_ctrl)
         if value is not None:
@@ -486,6 +515,20 @@ class SanaVerkkoKontrolleri:
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
             self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+        event.Skip()
+
+    def OnSelectionExploration(self, event):
+        value = self._readFloat(self.selection_exploration_ctrl)
+        if value is not None:
+            self.params["selection_exploration"] = min(1.0, max(0.0, value))
+            self.selection_exploration_ctrl.SetValue(str(self.params["selection_exploration"]))
+        event.Skip()
+
+    def OnSelectionTopK(self, event):
+        value = self._readInt(self.selection_top_k_ctrl)
+        if value is not None:
+            self.params["selection_top_k"] = max(1, value)
+            self.selection_top_k_ctrl.SetValue(str(self.params["selection_top_k"]))
         event.Skip()
 
     def OnImportMode(self, event):
@@ -659,6 +702,7 @@ class SanaVerkkoKontrolleri:
             self.referenceWords.append(word)
 
         self.referenceWords = self._uniqueWordObjects(self.referenceWords)
+        self._markReferenceIndexDirty()
 
         #place words in a circle
         self.makeWordCircle(self.words)
@@ -693,6 +737,79 @@ class SanaVerkkoKontrolleri:
                 seen_words.add(word.word)
         return unique_words
 
+    def _markReferenceIndexDirty(self):
+        self.reference_index_dirty = True
+
+    def _rebuildReferenceIndex(self, include_pos=False):
+        by_gematria = {}
+        by_reduction = {}
+        by_root = {}
+        by_pos_gematria = {}
+        by_pos_reduction = {}
+        by_pos_root = {}
+
+        for ref_word in self.referenceWords:
+            gematria_value = ref_word.gematria
+            reduction_value = numerological_reduction(gematria_value)
+            root_value = digital_root(gematria_value)
+
+            by_gematria.setdefault(gematria_value, []).append(ref_word)
+            by_reduction.setdefault(reduction_value, []).append(ref_word)
+            by_root.setdefault(root_value, []).append(ref_word)
+
+            if include_pos:
+                pos_value = self.getWordPOS(ref_word.word)
+                by_pos_gematria.setdefault((pos_value, gematria_value), []).append(ref_word)
+                by_pos_reduction.setdefault((pos_value, reduction_value), []).append(ref_word)
+                by_pos_root.setdefault((pos_value, root_value), []).append(ref_word)
+
+        self.reference_index = {
+            "gematria": by_gematria,
+            "reduction": by_reduction,
+            "root": by_root,
+            "pos_gematria": by_pos_gematria,
+            "pos_reduction": by_pos_reduction,
+            "pos_root": by_pos_root,
+        }
+        self.reference_index_dirty = False
+        self.reference_index_has_pos = include_pos
+
+    def _ensureReferenceIndex(self, include_pos=False):
+        if self.reference_index_dirty:
+            self._rebuildReferenceIndex(include_pos=include_pos)
+            return
+
+        if include_pos and not self.reference_index_has_pos:
+            self._rebuildReferenceIndex(include_pos=True)
+
+    def _selectBestReference(self, source_word, candidates):
+        if not candidates:
+            return None
+
+        source_gematria = source_word.gematria
+        source_reduction = numerological_reduction(source_gematria)
+        source_root = digital_root(source_gematria)
+
+        ranked_candidates = sorted(
+            candidates,
+            key=lambda candidate: (
+                abs(candidate.gematria - source_gematria),
+                abs(numerological_reduction(candidate.gematria) - source_reduction),
+                abs(digital_root(candidate.gematria) - source_root),
+                candidate.word,
+            ),
+        )
+
+        exploration = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
+        top_k = max(1, int(self.params.get("selection_top_k", 4)))
+
+        if len(ranked_candidates) > 1 and random.random() < exploration:
+            top_candidates = ranked_candidates[:min(top_k, len(ranked_candidates))]
+            weights = [1.0 / float(index + 1) for index in range(len(top_candidates))]
+            return random.choices(top_candidates, weights=weights, k=1)[0]
+
+        return ranked_candidates[0]
+
     def importReferenceDatabase(self, filename, mode="append"):
         imported_words = self.parseText(filename)
         if not imported_words:
@@ -704,6 +821,7 @@ class SanaVerkkoKontrolleri:
             self.referenceWords = self._uniqueWordObjects(self.referenceWords + imported_words)
 
         self.referenceWords = self._uniqueWordObjects(self.referenceWords + self.words)
+        self._markReferenceIndexDirty()
         return len(imported_words), len(self.referenceWords)
 
     def OnImportDatabaseFile(self, event):
@@ -739,6 +857,7 @@ class SanaVerkkoKontrolleri:
 
         self.words.append(new_word)
         self.referenceWords.append(new_word)
+        self._markReferenceIndexDirty()
         self.makeWordCircle(self.words)
         return new_word
 
@@ -775,6 +894,7 @@ class SanaVerkkoKontrolleri:
         self.words = []
         if removed_words:
             self.referenceWords = [word for word in self.referenceWords if word.word not in removed_words]
+            self._markReferenceIndexDirty()
         self.last_audio_update = 0
         sanasyna.stop()
         self.audio_playing = False
@@ -784,50 +904,78 @@ class SanaVerkkoKontrolleri:
         return abs(gematria1 - gematria2) / 1000
     
     def findWord(self, word, referenceWords):
-        retwords = []
-        use_pos = self.params.get("use_pos_matching", False)
-        source_pos = self.getWordPOS(word.word) if use_pos else None
-
-        for refWord in referenceWords:
-            if use_pos:
-                ref_pos = self.getWordPOS(refWord.word)
-                if source_pos != ref_pos:
-                    continue
-
-            if word.gematria == refWord.gematria:
-                retwords += [refWord]
-            if numerological_reduction(word.gematria) == numerological_reduction(refWord.gematria):
-                retwords += [refWord]
-            if digital_root(word.gematria) == digital_root(refWord.gematria):
-                retwords += [refWord]
-
-        if use_pos and retwords == []:
-            for refWord in referenceWords:
-                if word.gematria == refWord.gematria:
-                    retwords += [refWord]
-                if numerological_reduction(word.gematria) == numerological_reduction(refWord.gematria):
-                    retwords += [refWord]
-                if digital_root(word.gematria) == digital_root(refWord.gematria):
-                    retwords += [refWord]
-            
-        if retwords != []:
-            return random.choice(retwords)
-        else:
+        if not referenceWords:
             return None
+
+        use_pos = self.params.get("use_pos_matching", False)
+        source_gematria = word.gematria
+        source_reduction = numerological_reduction(source_gematria)
+        source_root = digital_root(source_gematria)
+
+        self._ensureReferenceIndex(include_pos=use_pos)
+        index = self.reference_index
+
+        candidate_map = {}
+
+        def _add_candidates(candidates):
+            for candidate in candidates:
+                candidate_map[id(candidate)] = candidate
+
+        if use_pos:
+            source_pos = self.getWordPOS(word.word)
+            _add_candidates(index["pos_gematria"].get((source_pos, source_gematria), []))
+            _add_candidates(index["pos_reduction"].get((source_pos, source_reduction), []))
+            _add_candidates(index["pos_root"].get((source_pos, source_root), []))
+
+        if not candidate_map:
+            _add_candidates(index["gematria"].get(source_gematria, []))
+            _add_candidates(index["reduction"].get(source_reduction, []))
+            _add_candidates(index["root"].get(source_root, []))
+
+        candidates = list(candidate_map.values())
+        return self._selectBestReference(word, candidates)
         
     def changeWord(self, word, referenceWords):
         refWord = self.findWord(word, referenceWords)
         if refWord == None:
-            return word
+            return False
         else:
+            old_word = word.word
+            old_gematria = word.gematria
             word.word = refWord.word
             word.gematria = refWord.gematria
             word.neuron.word = refWord.word
+            self._markReferenceIndexDirty()
             for connection in word.neuron.connections:
                 if self.params["set_weight_by_gematria"] == True:
                     connection[1] = self.getGematriaDistance(word.gematria, connection[0].gematria)
-                
-            return word
+            return old_word != word.word or old_gematria != word.gematria
+
+    def iterateSentenceToLogic(self, max_iterations):
+        if not self.words or not self.referenceWords:
+            return False
+
+        threshold = self.params["word_change_threshold"]
+        changed_any = False
+        seen_states = set()
+
+        for _ in range(max_iterations):
+            sentence_state = tuple(word.word for word in self.words)
+            if sentence_state in seen_states:
+                break
+            seen_states.add(sentence_state)
+
+            changed_this_round = False
+            for word in self.words:
+                if word.neuron.activation < -threshold or word.neuron.activation > threshold:
+                    if self.changeWord(word, self.referenceWords):
+                        changed_this_round = True
+
+            if not changed_this_round:
+                break
+            changed_any = True
+
+        return changed_any
         
     def writeToFile(self, word):
         self.outfile.write(word + " ")
@@ -845,9 +993,7 @@ class SanaVerkkoKontrolleri:
                 return
 
         self.screen.fill((0, 0, 0))
-        gematria = 0
-        sentence = ""
-        sentChanged = False
+        logic_triggered = False
 
         for word in self.words:
             word.activate(math.sin(time.time()))
@@ -863,11 +1009,13 @@ class SanaVerkkoKontrolleri:
                 word.neuron.activation = 1
 
             if word.neuron.activation < -self.params["word_change_threshold"] or word.neuron.activation > self.params["word_change_threshold"]:
-                self.changeWord(word, self.referenceWords)
-                sentChanged = True
+                logic_triggered = True
 
-            sentence += word.word + " "
-            gematria += word.gematria
+        sentChanged = False
+        if logic_triggered:
+            sentChanged = self.iterateSentenceToLogic(self.params.get("logic_iteration_limit", 48))
+
+        sentence = " ".join(word.word for word in self.words)
 
         self.updateAudio()
 
@@ -1197,12 +1345,23 @@ class Word:
             label += f" (+{hidden_count})"
         return label
 
+    def getPOSLabel(self):
+        if self.controller is None:
+            return ""
+        try:
+            return self.controller.getWordPOS(self.word)
+        except Exception:
+            return ""
+
     def draw(self, screen):
         self.neuron.draw(screen)
         draw_text_centered(screen, self.word, 22, get_activation_color(self.neuron.activation), self.x, self.y + 30)
+        pos_label = self.getPOSLabel()
+        if pos_label != "":
+            draw_text_centered(screen, f"POS:{pos_label}", 12, (220, 220, 140), self.x, self.y + 46)
         connected_words_label = self.getConnectedWordsLabel()
         if connected_words_label != "":
-            draw_text_centered(screen, connected_words_label, 14, (170, 170, 170), self.x, self.y + 46)
+            draw_text_centered(screen, connected_words_label, 12, (170, 170, 170), self.x, self.y + 60)
 
     def move(self, dx, dy):
         self.x += dx
