@@ -1,3 +1,0 @@
-/Users/jaakkoprattala/Documents/koodii/sanaverkko/CMakeFiles/_sanasyna.dir
-/Users/jaakkoprattala/Documents/koodii/sanaverkko/CMakeFiles/edit_cache.dir
-/Users/jaakkoprattala/Documents/koodii/sanaverkko/CMakeFiles/rebuild_cache.dir

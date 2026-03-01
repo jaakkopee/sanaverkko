@@ -6,6 +6,7 @@ import math
 import wx
 import threading
 import sys
+import sanasyna
 
 
 
@@ -44,6 +45,7 @@ class SanaVerkkoKontrolleri:
         self.conn_color_b = 0
 
         self.initPygame()
+        self.initAudio()
         self.initWords()
         self.widgetSetup()
         self.outfile = open("output.txt", "w")
@@ -106,6 +108,9 @@ class SanaVerkkoKontrolleri:
         self.makeWordCircle(self.words)
 
     def OnClose(self, event):
+        sanasyna.stop()
+        sanasyna.close()
+        pygame.quit()
         self.outfile.close()
         self.frame.Destroy()
 
@@ -121,6 +126,31 @@ class SanaVerkkoKontrolleri:
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("SanaVerkko")
         self.clock = pygame.time.Clock()
+
+    def initAudio(self):
+        self.audio_sample_rate = 22050
+        self.audio_refresh_interval = 0.15
+        self.last_audio_update = 0
+        self.audio_playing = False
+        sanasyna.init_audio(self.audio_sample_rate)
+
+    def updateAudio(self):
+        now = time.time()
+        if now - self.last_audio_update < self.audio_refresh_interval:
+            return
+        self.last_audio_update = now
+
+        if len(self.words) == 0:
+            return
+
+        average_activation = sum(abs(word.neuron.activation) for word in self.words) / len(self.words)
+        gematria_total = sum(word.gematria for word in self.words)
+        frequency = 110 + (gematria_total % 770)
+        amplitude = min(0.25, max(0.05, average_activation / 10))
+
+        sanasyna.generate_sine_wave(frequency, amplitude, self.audio_sample_rate)
+        sanasyna.play(loop=True)
+        self.audio_playing = True
 
     def makeWordCircle(self, words):
         zoom = self.params["zoom"]
@@ -228,6 +258,8 @@ class SanaVerkkoKontrolleri:
 
                 sentence += word.word + " "
                 gematria += word.gematria
+
+            self.updateAudio()
 
             #draw connections
             for word in self.words:
@@ -432,7 +464,7 @@ class Word:
 
 if __name__ == "__main__":
     kontrol = SanaVerkkoKontrolleri()
-    kontrol_thread = threading.Thread(target=kontrol.testNeurons())
+    kontrol_thread = threading.Thread(target=kontrol.testNeurons)
     kontrol_thread.start()
     kontrol.app.MainLoop()
     kontrol_thread.join()
