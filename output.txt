@@ -1,25 +1,13 @@
 jake a a master programmer
  36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
- jake a a fascinating control
+ babal a a fascinating control
  36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm j aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating disconnected
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ babal a a fascinating control
+ 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
+ babal a aha fascinating control
+ 36 +  1 +  10 +  436 +  493 +   = 976  ->  22  ->  4 
+ babal a aha fascinating control
+ 36 +  1 +  10 +  436 +  493 +   = 976  ->  22  ->  4 
  adm aha aha fascinating control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  adm aha aha fascinating control
@@ -42,13 +30,25 @@ jake a a master programmer
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  adm aha aha fascinating control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- fled aha aha fascinating control
+ adm aha aha imagination control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha imagination control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  adm aha aha fascinating control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  adm aha aha fascinating control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha principles control
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha imagination control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha imagination control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  adm aha aha fascinating control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
@@ -56,492 +56,146 @@ jake a a master programmer
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
  adm aha aha fascinating control
  45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating better
- 45 +  10 +  10 +  436 +  502 +   = 1003  ->  4 
- abode aha aha fascinating better
- 72 +  10 +  10 +  436 +  502 +   = 1030  ->  4 
- abode aha aha fascinating better
- 72 +  10 +  10 +  436 +  502 +   = 1030  ->  4 
- abode aha chdd fascinating better
- 72 +  10 +  19 +  436 +  502 +   = 1039  ->  13  ->  4 
- abode aha adam alive better
- 72 +  10 +  46 +  445 +  502 +   = 1075  ->  13  ->  4 
- adm aha call alive better
- 45 +  10 +  64 +  445 +  502 +   = 1066  ->  13  ->  4 
- adm chdd call fascinating buted
- 45 +  19 +  64 +  436 +  511 +   = 1075  ->  13  ->  4 
- adm call bank alive buted
- 45 +  64 +  73 +  445 +  511 +   = 1138  ->  13  ->  4 
- adm call bank alive buted
- 45 +  64 +  73 +  445 +  511 +   = 1138  ->  13  ->  4 
- adm call bank alive buted
- 45 +  64 +  73 +  445 +  511 +   = 1138  ->  13  ->  4 
- adm call bank alive buted
- 45 +  64 +  73 +  445 +  511 +   = 1138  ->  13  ->  4 
- adm bank bank alive emitting
- 45 +  73 +  73 +  445 +  520 +   = 1156  ->  13  ->  4 
- adm bank bank alive emitting
- 45 +  73 +  73 +  445 +  520 +   = 1156  ->  13  ->  4 
- adm bank bank alive emitting
- 45 +  73 +  73 +  445 +  520 +   = 1156  ->  13  ->  4 
- adm bank acceding alive emitting
- 45 +  73 +  82 +  445 +  520 +   = 1165  ->  13  ->  4 
- adm bank acceding alive ground
- 45 +  73 +  82 +  445 +  511 +   = 1156  ->  13  ->  4 
- ball bank acceding insert buted
- 63 +  73 +  82 +  454 +  511 +   = 1183  ->  13  ->  4 
- ball bank bank alive better
- 63 +  73 +  73 +  445 +  502 +   = 1156  ->  13  ->  4 
- ball bank bank alive better
- 63 +  73 +  73 +  445 +  502 +   = 1156  ->  13  ->  4 
- ball bank bank fascinating buted
- 63 +  73 +  73 +  436 +  511 +   = 1156  ->  13  ->  4 
- ball call bank alive emitting
- 63 +  64 +  73 +  445 +  520 +   = 1165  ->  13  ->  4 
- ball adam acceding alive emitting
- 63 +  46 +  82 +  445 +  520 +   = 1156  ->  13  ->  4 
- ball adam bank alive emitting
- 63 +  46 +  73 +  445 +  520 +   = 1147  ->  13  ->  4 
- ball bel bank alive emitting
- 63 +  37 +  73 +  445 +  520 +   = 1138  ->  13  ->  4 
- ball bel bank alive buted
- 63 +  37 +  73 +  445 +  511 +   = 1129  ->  13  ->  4 
- ball bel bank alive buted
- 63 +  37 +  73 +  445 +  511 +   = 1129  ->  13  ->  4 
- ball bel bank alive buted
- 63 +  37 +  73 +  445 +  511 +   = 1129  ->  13  ->  4 
- ball adam bank alive buted
- 63 +  46 +  73 +  445 +  511 +   = 1138  ->  13  ->  4 
- ball adam call alive buted
- 63 +  46 +  64 +  445 +  511 +   = 1129  ->  13  ->  4 
- ball adam call alive buted
- 63 +  46 +  64 +  445 +  511 +   = 1129  ->  13  ->  4 
- ball adam call alive buted
- 63 +  46 +  64 +  445 +  511 +   = 1129  ->  13  ->  4 
- ball adam call fascinating buted
- 63 +  46 +  64 +  436 +  511 +   = 1120  ->  4 
- ball adam call fascinating buted
- 63 +  46 +  64 +  436 +  511 +   = 1120  ->  4 
- ball chdd call fascinating manifests
- 63 +  19 +  64 +  436 +  511 +   = 1093  ->  13  ->  4 
- ball chdd call fascinating buted
- 63 +  19 +  64 +  436 +  511 +   = 1093  ->  13  ->  4 
- ball chdd call fascinating buted
- 63 +  19 +  64 +  436 +  511 +   = 1093  ->  13  ->  4 
- ball chdd call fascinating buted
- 63 +  19 +  64 +  436 +  511 +   = 1093  ->  13  ->  4 
- ball chdd call fascinating fulfills
- 63 +  19 +  64 +  436 +  511 +   = 1093  ->  13  ->  4 
- ball chdd call alive fulfills
- 63 +  19 +  64 +  445 +  511 +   = 1102  ->  4 
- ball chdd call alive buted
- 63 +  19 +  64 +  445 +  511 +   = 1102  ->  4 
- abode aha like alive buted
- 72 +  10 +  64 +  445 +  511 +   = 1102  ->  4 
- abode aha call alive buted
- 72 +  10 +  64 +  445 +  511 +   = 1102  ->  4 
- can chdd bank alive buted
- 54 +  19 +  73 +  445 +  511 +   = 1102  ->  4 
- can chdd bank insert buted
- 54 +  19 +  73 +  454 +  511 +   = 1111  ->  4 
- can chdd bank insert buted
- 54 +  19 +  73 +  454 +  511 +   = 1111  ->  4 
- can adam bank insert better
- 54 +  46 +  73 +  454 +  502 +   = 1129  ->  13  ->  4 
- can adam bank admitted better
- 54 +  46 +  73 +  463 +  502 +   = 1138  ->  13  ->  4 
- adm and bank admitted better
- 45 +  55 +  73 +  463 +  502 +   = 1138  ->  13  ->  4 
- can bank acceding coupled better
- 54 +  73 +  82 +  472 +  502 +   = 1183  ->  13  ->  4 
- can bank gimel coupled better
- 54 +  73 +  91 +  472 +  502 +   = 1192  ->  13  ->  4 
- can begin air coupled better
- 54 +  73 +  100 +  472 +  502 +   = 1201  ->  4 
- can call air coupled better
- 54 +  64 +  100 +  472 +  502 +   = 1192  ->  13  ->  4 
- can call air coupled better
- 54 +  64 +  100 +  472 +  502 +   = 1192  ->  13  ->  4 
- can acceding air coupled better
- 54 +  82 +  100 +  472 +  502 +   = 1210  ->  4 
- can acceding air coupled better
- 54 +  82 +  100 +  472 +  502 +   = 1210  ->  4 
- can bank air coupled better
- 54 +  73 +  100 +  472 +  502 +   = 1201  ->  4 
- can bank air coupled buted
- 54 +  73 +  100 +  472 +  511 +   = 1210  ->  4 
- can bank air coupled buted
- 54 +  73 +  100 +  472 +  511 +   = 1210  ->  4 
- abode bank air coupled buted
- 72 +  73 +  100 +  472 +  511 +   = 1228  ->  13  ->  4 
- abode call brake coupled buted
- 72 +  64 +  118 +  472 +  511 +   = 1237  ->  13  ->  4 
- abode bank brake coupled buted
- 72 +  73 +  118 +  472 +  511 +   = 1246  ->  13  ->  4 
- nahaka bank brake coupled emitting
- 81 +  73 +  118 +  472 +  520 +   = 1264  ->  13  ->  4 
- nahaka bank brake coupled emitting
- 81 +  73 +  118 +  472 +  520 +   = 1264  ->  13  ->  4 
- nahaka bank brake coupled buted
- 81 +  73 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- abode bank brake coupled buted
- 72 +  73 +  118 +  472 +  511 +   = 1246  ->  13  ->  4 
- abode bank brake coupled buted
- 72 +  73 +  118 +  472 +  511 +   = 1246  ->  13  ->  4 
- abode bank brake coupled buted
- 72 +  73 +  118 +  472 +  511 +   = 1246  ->  13  ->  4 
- abode bank brake coupled buted
- 72 +  73 +  118 +  472 +  511 +   = 1246  ->  13  ->  4 
- ball bank brake coupled buted
- 63 +  73 +  118 +  472 +  511 +   = 1237  ->  13  ->  4 
- ball bank adds coupled buted
- 63 +  73 +  109 +  472 +  511 +   = 1228  ->  13  ->  4 
- ball bank adds coupled buted
- 63 +  73 +  109 +  472 +  511 +   = 1228  ->  13  ->  4 
- ball call adds coupled buted
- 63 +  64 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- ball call adds coupled guards
- 63 +  64 +  109 +  472 +  502 +   = 1210  ->  4 
- ball call adds coupled better
- 63 +  64 +  109 +  472 +  502 +   = 1210  ->  4 
- can call adds coupled buted
- 54 +  64 +  109 +  472 +  511 +   = 1210  ->  4 
- can call adds coupled but
- 54 +  64 +  109 +  472 +  502 +   = 1201  ->  4 
- can call adds coupled buted
- 54 +  64 +  109 +  472 +  511 +   = 1210  ->  4 
- adm call adds coupled buted
- 45 +  64 +  109 +  472 +  511 +   = 1201  ->  4 
- ball call adds coupled buted
- 63 +  64 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- abode call adds coupled buted
- 72 +  64 +  109 +  472 +  511 +   = 1228  ->  13  ->  4 
- abode call adds coupled buted
- 72 +  64 +  109 +  472 +  511 +   = 1228  ->  13  ->  4 
- can bank adds coupled buted
- 54 +  73 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- can bank adds evidence buted
- 54 +  73 +  109 +  481 +  511 +   = 1228  ->  13  ->  4 
- can bank adds coupled buted
- 54 +  73 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- can bank adds coupled buted
- 54 +  73 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- can bank adds coupled buted
- 54 +  73 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- can bank adds coupled buted
- 54 +  73 +  109 +  472 +  511 +   = 1219  ->  13  ->  4 
- ball bank adds coupled better
- 63 +  73 +  109 +  472 +  502 +   = 1219  ->  13  ->  4 
- ball bank adds coupled better
- 63 +  73 +  109 +  472 +  502 +   = 1219  ->  13  ->  4 
- ball bank brake coupled better
- 63 +  73 +  118 +  472 +  502 +   = 1228  ->  13  ->  4 
- ball call adds coupled better
- 63 +  64 +  109 +  472 +  502 +   = 1210  ->  4 
- ball bank adds coupled buted
- 63 +  73 +  109 +  472 +  511 +   = 1228  ->  13  ->  4 
- ball bank adds coupled better
- 63 +  73 +  109 +  472 +  502 +   = 1219  ->  13  ->  4 
- can gimel brake coupled better
- 54 +  91 +  118 +  472 +  502 +   = 1237  ->  13  ->  4 
- can air brake coupled better
- 54 +  100 +  118 +  472 +  502 +   = 1246  ->  13  ->  4 
- can air brake coupled better
- 54 +  100 +  118 +  472 +  502 +   = 1246  ->  13  ->  4 
- can air brake coupled better
- 54 +  100 +  118 +  472 +  502 +   = 1246  ->  13  ->  4 
- can air brake evidence better
- 54 +  100 +  118 +  481 +  502 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled better
- 54 +  100 +  118 +  472 +  502 +   = 1246  ->  13  ->  4 
- can air brake admitted better
- 54 +  100 +  118 +  463 +  502 +   = 1237  ->  13  ->  4 
- can air brake admitted better
- 54 +  100 +  118 +  463 +  502 +   = 1237  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- can air brake coupled buted
- 54 +  100 +  118 +  472 +  511 +   = 1255  ->  13  ->  4 
- ball air brake coupled buted
- 63 +  100 +  118 +  472 +  511 +   = 1264  ->  13  ->  4 
- ball air brake coupled buted
- 63 +  100 +  118 +  472 +  511 +   = 1264  ->  13  ->  4 
- ball adds brake coupled emitting
- 63 +  109 +  118 +  472 +  520 +   = 1282  ->  13  ->  4 
- ball adds brake coupled emitting
- 63 +  109 +  118 +  472 +  520 +   = 1282  ->  13  ->  4 
- ball adds brake coupled better
- 63 +  109 +  118 +  472 +  502 +   = 1264  ->  13  ->  4 
- ball brake brake coupled buted
- 63 +  118 +  118 +  472 +  511 +   = 1282  ->  13  ->  4 
- ball brake brake coupled buted
- 63 +  118 +  118 +  472 +  511 +   = 1282  ->  13  ->  4 
- ball brake brake coupled buted
- 63 +  118 +  118 +  472 +  511 +   = 1282  ->  13  ->  4 
- ball adds brake evidence emitting
- 63 +  109 +  118 +  481 +  520 +   = 1291  ->  13  ->  4 
- can adds brake evidence emitting
- 54 +  109 +  118 +  481 +  520 +   = 1282  ->  13  ->  4 
- ball adds brake evidence emitting
- 63 +  109 +  118 +  481 +  520 +   = 1291  ->  13  ->  4 
- can adds adds evidence emitting
- 54 +  109 +  109 +  481 +  520 +   = 1273  ->  13  ->  4 
- can adds adds evidence emitting
- 54 +  109 +  109 +  481 +  520 +   = 1273  ->  13  ->  4 
- adm ash adds alvin emitting
- 45 +  109 +  109 +  490 +  520 +   = 1273  ->  13  ->  4 
- adm adds adds alvin emitting
- 45 +  109 +  109 +  490 +  520 +   = 1273  ->  13  ->  4 
- can adds adds evidence emitting
- 54 +  109 +  109 +  481 +  520 +   = 1273  ->  13  ->  4 
- abode adds adds coupled emitting
- 72 +  109 +  109 +  472 +  520 +   = 1282  ->  13  ->  4 
- can adds adds coupled emitting
- 54 +  109 +  109 +  472 +  520 +   = 1264  ->  13  ->  4 
- can goes adds coupled emitting
- 54 +  172 +  109 +  472 +  520 +   = 1327  ->  13  ->  4 
- can carries carries coupled leaving
- 54 +  298 +  298 +  472 +  502 +   = 1624  ->  13  ->  4 
- can carries adds coupled leaving
- 54 +  298 +  109 +  472 +  502 +   = 1435  ->  13  ->  4 
- can adds adds coupled contacting
- 54 +  109 +  109 +  472 +  583 +   = 1327  ->  13  ->  4 
- can adds comes coupled contacting
- 54 +  109 +  208 +  472 +  583 +   = 1426  ->  13  ->  4 
- can adds comes contained divining
- 54 +  109 +  208 +  382 +  538 +   = 1291  ->  13  ->  4 
- can adds adds deluged divining
- 54 +  109 +  109 +  355 +  538 +   = 1165  ->  13  ->  4 
- can has adds deluged running
- 54 +  109 +  109 +  355 +  556 +   = 1183  ->  13  ->  4 
- can adds adds deluged running
- 54 +  109 +  109 +  355 +  556 +   = 1183  ->  13  ->  4 
- can adds adds liberated running
- 54 +  109 +  109 +  346 +  556 +   = 1174  ->  13  ->  4 
- can comes adds liberated running
- 54 +  208 +  109 +  346 +  556 +   = 1273  ->  13  ->  4 
- can comes adds liberated running
- 54 +  208 +  109 +  346 +  556 +   = 1273  ->  13  ->  4 
- can carries carries identified running
- 54 +  298 +  298 +  301 +  556 +   = 1507  ->  13  ->  4 
- can comes carries identified running
- 54 +  208 +  298 +  301 +  556 +   = 1417  ->  13  ->  4 
- can comes carries identified divining
- 54 +  208 +  298 +  301 +  538 +   = 1399  ->  22  ->  4 
- can goes goes denoted divining
- 54 +  172 +  172 +  328 +  538 +   = 1264  ->  13  ->  4 
- can adds adds denoted leaving
- 54 +  109 +  109 +  328 +  502 +   = 1102  ->  4 
- can says adds denoted leaving
- 54 +  901 +  109 +  328 +  502 +   = 1894  ->  22  ->  4 
- can adds comes deluged leaving
- 54 +  109 +  208 +  355 +  502 +   = 1228  ->  13  ->  4 
- can adds adds animated leaving
- 54 +  109 +  109 +  310 +  502 +   = 1084  ->  13  ->  4 
- can says says retained leaving
- 54 +  901 +  901 +  364 +  502 +   = 2722  ->  13  ->  4 
- can says says deluged leaving
- 54 +  901 +  901 +  355 +  502 +   = 2713  ->  13  ->  4 
- can says adds enlightened possessing
- 54 +  901 +  109 +  373 +  601 +   = 2038  ->  13  ->  4 
- can says adds occupied weeping
- 54 +  901 +  109 +  454 +  646 +   = 2164  ->  13  ->  4 
- can says adds possessed weeping
- 54 +  901 +  109 +  544 +  646 +   = 2254  ->  13  ->  4 
- can adds adds dilapidated consuming
- 54 +  109 +  109 +  337 +  619 +   = 1228  ->  13  ->  4 
- can adds adds dilapidated coupling
- 54 +  109 +  109 +  337 +  529 +   = 1138  ->  13  ->  4 
- can comes adds retained containing
- 54 +  208 +  109 +  364 +  439 +   = 1174  ->  13  ->  4 
- can comes adds contained containing
- 54 +  208 +  109 +  382 +  439 +   = 1192  ->  13  ->  4 
- can comes adds contained retaining
- 54 +  208 +  109 +  382 +  421 +   = 1174  ->  13  ->  4 
- can comes comes contained retaining
- 54 +  208 +  208 +  382 +  421 +   = 1273  ->  13  ->  4 
- can comes comes contained standing
- 54 +  208 +  208 +  382 +  421 +   = 1273  ->  13  ->  4 
- can comes comes contained marauding
- 54 +  208 +  208 +  382 +  502 +   = 1354  ->  13  ->  4 
- can comes carries dominated contacting
- 54 +  208 +  298 +  373 +  583 +   = 1516  ->  13  ->  4 
- can comes adds dominated contacting
- 54 +  208 +  109 +  373 +  583 +   = 1327  ->  13  ->  4 
- can adds adds dominated contacting
- 54 +  109 +  109 +  373 +  583 +   = 1228  ->  13  ->  4 
- can adds goes dominated contacting
- 54 +  109 +  172 +  373 +  583 +   = 1291  ->  13  ->  4 
- can goes goes dominated contacting
- 54 +  172 +  172 +  373 +  583 +   = 1354  ->  13  ->  4 
- can carries carries deluged howling
- 54 +  298 +  298 +  355 +  664 +   = 1669  ->  22  ->  4 
- can has adds retained weeping
- 54 +  109 +  109 +  364 +  646 +   = 1282  ->  13  ->  4 
- can comes carries deluged possessing
- 54 +  208 +  298 +  355 +  601 +   = 1516  ->  13  ->  4 
- can comes adds deluged consuming
- 54 +  208 +  109 +  355 +  619 +   = 1345  ->  13  ->  4 
- can comes adds dilapidated emitting
- 54 +  208 +  109 +  337 +  520 +   = 1228  ->  13  ->  4 
- can goes goes noted possessing
- 54 +  172 +  172 +  319 +  601 +   = 1318  ->  13  ->  4 
- can goes goes denoted possessing
- 54 +  172 +  172 +  328 +  601 +   = 1327  ->  13  ->  4 
- can says adds dominated possessing
- 54 +  901 +  109 +  373 +  601 +   = 2038  ->  13  ->  4 
- can adds says dominated possessing
- 54 +  109 +  901 +  373 +  601 +   = 2038  ->  13  ->  4 
- can adds says nighted divining
- 54 +  109 +  901 +  283 +  538 +   = 1885  ->  22  ->  4 
- can adds says nighted divining
- 54 +  109 +  901 +  283 +  538 +   = 1885  ->  22  ->  4 
- can adds carries commended divining
- 54 +  109 +  298 +  211 +  538 +   = 1210  ->  4 
- can adds says commended coupling
- 54 +  109 +  901 +  211 +  529 +   = 1804  ->  13  ->  4 
- can adds goes commended coupling
- 54 +  109 +  172 +  211 +  529 +   = 1075  ->  13  ->  4 
- can adds carries dappled weeping
- 54 +  109 +  298 +  184 +  646 +   = 1291  ->  13  ->  4 
- can comes carries dappled weeping
- 54 +  208 +  298 +  184 +  646 +   = 1390  ->  13  ->  4 
- can carries carries dappled weeping
- 54 +  298 +  298 +  184 +  646 +   = 1480  ->  13  ->  4 
- can comes carries identified weeping
- 54 +  208 +  298 +  301 +  646 +   = 1507  ->  13  ->  4 
- can comes carries retained running
- 54 +  208 +  298 +  364 +  556 +   = 1480  ->  13  ->  4 
- can comes carries dominated running
- 54 +  208 +  298 +  373 +  556 +   = 1489  ->  22  ->  4 
- ball beat carries aosssic arouse
- 63 +  208 +  298 +  373 +  556 +   = 1498  ->  22  ->  4 
- ball beat carries aosssic arouse
- 63 +  208 +  298 +  373 +  556 +   = 1498  ->  22  ->  4 
- ball beat carries cannot arouse
- 63 +  208 +  298 +  364 +  556 +   = 1489  ->  22  ->  4 
- ball beat carries cannot arouse
- 63 +  208 +  298 +  364 +  556 +   = 1489  ->  22  ->  4 
- abode beat beginnings cannot denudata
- 72 +  208 +  289 +  364 +  565 +   = 1498  ->  22  ->  4 
- abode beat beginnings cannot denudata
- 72 +  208 +  289 +  364 +  565 +   = 1498  ->  22  ->  4 
- ball beat adept aosssic denudata
- 63 +  208 +  280 +  373 +  565 +   = 1489  ->  22  ->  4 
- adm beat adept aosssic denudata
- 45 +  208 +  280 +  373 +  565 +   = 1471  ->  13  ->  4 
- can beat adept aosssic consonant
- 54 +  208 +  280 +  373 +  574 +   = 1489  ->  22  ->  4 
- can nism adept alive consonant
- 54 +  199 +  280 +  445 +  574 +   = 1552  ->  13  ->  4 
- can nism adept alive consonant
- 54 +  199 +  280 +  445 +  574 +   = 1552  ->  13  ->  4 
- can beat egress alive denudata
- 54 +  208 +  307 +  445 +  565 +   = 1579  ->  22  ->  4 
- can beat egress alive denudata
- 54 +  208 +  307 +  445 +  565 +   = 1579  ->  22  ->  4 
- can arr adept samual hinduism
- 54 +  181 +  280 +  472 +  520 +   = 1507  ->  13  ->  4 
- can brq dreamer alchemical hinduism
- 54 +  172 +  235 +  130 +  520 +   = 1111  ->  4 
- can brq dreamer akash emitting
- 54 +  172 +  235 +  130 +  520 +   = 1111  ->  4 
- can brq dreamer abides emitting
- 54 +  172 +  235 +  121 +  520 +   = 1102  ->  4 
- can brq cerebral abides emitting
- 54 +  172 +  226 +  121 +  520 +   = 1093  ->  13  ->  4 
- can brq cerebral abides emitting
- 54 +  172 +  226 +  121 +  520 +   = 1093  ->  13  ->  4 
- can brq cerebral abides buted
- 54 +  172 +  226 +  121 +  511 +   = 1084  ->  13  ->  4 
- can brq cerebral abides buted
- 54 +  172 +  226 +  121 +  511 +   = 1084  ->  13  ->  4 
- abode brq cerebral agreed buted
- 72 +  172 +  226 +  112 +  511 +   = 1093  ->  13  ->  4 
- abode brq cerebral agreed buted
- 72 +  172 +  226 +  112 +  511 +   = 1093  ->  13  ->  4 
- abode brq cerebral agreed buted
- 72 +  172 +  226 +  112 +  511 +   = 1093  ->  13  ->  4 
- abode brq comes agreed buted
- 72 +  172 +  208 +  112 +  511 +   = 1075  ->  13  ->  4 
- abode brq beat agreed buted
- 72 +  172 +  208 +  112 +  511 +   = 1075  ->  13  ->  4 
- abode ascend beat agreed buted
- 72 +  163 +  208 +  112 +  511 +   = 1066  ->  13  ->  4 
- ball ascend beat archa buted
- 63 +  163 +  208 +  103 +  511 +   = 1048  ->  13  ->  4 
- ball ascend beat archa buted
- 63 +  163 +  208 +  103 +  511 +   = 1048  ->  13  ->  4 
- ball ascend beat archa buted
- 63 +  163 +  208 +  103 +  511 +   = 1048  ->  13  ->  4 
- ball ascend beat archa buted
- 63 +  163 +  208 +  103 +  511 +   = 1048  ->  13  ->  4 
- ball ascend athh archa buted
- 63 +  163 +  217 +  103 +  511 +   = 1057  ->  13  ->  4 
- ball ascend athh agreed buted
- 63 +  163 +  217 +  112 +  511 +   = 1066  ->  13  ->  4 
- added ascend lte akash better
- 18 +  163 +  235 +  130 +  502 +   = 1048  ->  13  ->  4 
- add samadhi anahata capable cursed
- 9 +  163 +  262 +  112 +  502 +   = 1048  ->  13  ->  4 
- added samadhi anahata archa but
- 18 +  163 +  262 +  103 +  502 +   = 1048  ->  13  ->  4 
- added samadhi anahata abides guards
- 18 +  163 +  262 +  121 +  502 +   = 1066  ->  13  ->  4 
- added samadhi anahata abides but
- 18 +  163 +  262 +  121 +  502 +   = 1066  ->  13  ->  4 
- added samadhi anahata agreed efficacious
- 18 +  163 +  262 +  112 +  502 +   = 1057  ->  13  ->  4 
- added samadhi matici agreed buted
- 18 +  163 +  262 +  112 +  511 +   = 1066  ->  13  ->  4 
- headed hath seeps agreed buted
- 27 +  217 +  280 +  112 +  511 +   = 1147  ->  13  ->  4 
- headed hath adept agreed buted
- 27 +  217 +  280 +  112 +  511 +   = 1147  ->  13  ->  4 
- headed hath anahata agreed buted
- 27 +  217 +  262 +  112 +  511 +   = 1129  ->  13  ->  4 
- headed hath anahata chrb emitting
- 27 +  217 +  262 +  103 +  520 +   = 1129  ->  13  ->  4 
- headed hath adept com emitting
- 27 +  217 +  280 +  103 +  520 +   = 1147  ->  13  ->  4 
- ball hath less brief but
- 63 +  217 +  235 +  112 +  502 +   = 1129  ->  13  ->  4 
- ball hath meanings abides but
- 63 +  217 +  262 +  121 +  502 +   = 1165  ->  13  ->  4 
- ball hath meanings abides but
- 63 +  217 +  262 +  121 +  502 +   = 1165  ->  13  ->  4 
- hand cess cerebral cared cursed
- 63 +  208 +  226 +  103 +  502 +   = 1102  ->  4 
- ciple beat cerebral beads buted
- 117 +  208 +  226 +  112 +  511 +   = 1174  ->  13  ->  4 
- his beat adept com buted
- 117 +  208 +  280 +  103 +  511 +   = 1219  ->  13  ->  4 
- come horned adept com buted
- 108 +  217 +  280 +  103 +  511 +   = 1219  ->  13  ->  4 
- bridge athh adept com buted
- 117 +  217 +  280 +  103 +  511 +   = 1228  ->  13  ->  4 
- bridge athh adept com buted
- 117 +  217 +  280 +  103 +  511 +   = 1228  ->  13  ->  4 
- engine replaced anahata booh ground
- 126 +  208 +  262 +  130 +  511 +   = 1237  ->  13  ->  4 
- engine beat cerebral designed but
- 126 +  208 +  226 +  184 +  502 +   = 1246  ->  13  ->  4 
- backs beat eclipsed hangs ground
- 126 +  208 +  226 +  166 +  511 +   = 1237  ->  13  ->  4 
- heard deosil athh keeping emitting
- 108 +  208 +  217 +  166 +  520 +   = 1219  ->  13  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm aha aha fascinating control
+ 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
+ adm chdd chdd alive control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ babal chdd chdd alive combination
+ 36 +  19 +  19 +  445 +  484 +   = 1003  ->  4 
+ adm chdd chdd alive combination
+ 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
+ adm chdd chdd alive combination
+ 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
+ adm chdd chdd alive combination
+ 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
+ adm chdd chdd alive combination
+ 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
+ adm egg chdd alive combination
+ 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
+ adm chdd chdd alive combination
+ 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
+ adm chdd chdd alive control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ adm chdd chdd alive control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ adm chdd chdd alive control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ adm chdd chdd alive control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ adm chdd chdd alive control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ babal chdd chdd alive control
+ 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
+ adm chdd chdd oriental control
+ 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
+ add chdd aha alive disconnected
+ 9 +  19 +  10 +  445 +  493 +   = 976  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ cae chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ de chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add egg chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd aha alive control
+ 9 +  19 +  10 +  445 +  493 +   = 976  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd relation control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd relation control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd relation control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd relation combination
+ 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
+ add chdd chdd alive combination
+ 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
+ add aha chdd alive combination
+ 9 +  10 +  19 +  445 +  484 +   = 967  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive control
+ 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
+ add chdd chdd alive combination
+ 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
+ add chdd chdd alive combination
+ 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive persons
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd aha alive adoration
+ 9 +  19 +  10 +  445 +  475 +   = 958  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive having
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive having
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive ghosts
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd alive adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+ add chdd chdd dormant adoration
+ 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
  
