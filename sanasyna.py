@@ -4,27 +4,38 @@ import random
 import numpy as np
 import pygame
 
+try:
+    import pygame.mixer as pygame_mixer
+except Exception:
+    pygame_mixer = None
+
 
 _sample_rate = 44100
 _sound = None
 _channel = None
+_audio_available = pygame_mixer is not None
 
 
 def _ensure_audio(sample_rate=None, buffer_size=1024):
-    global _sample_rate
+    global _sample_rate, _audio_available
 
     if sample_rate is not None:
         _sample_rate = int(sample_rate)
 
+    if not _audio_available:
+        return False
+
     if not pygame.get_init():
         pygame.init()
 
-    if not pygame.mixer.get_init():
-        pygame.mixer.pre_init(_sample_rate, -16, 1, buffer_size)
-        pygame.mixer.init(_sample_rate, -16, 1, buffer_size)
+    if not pygame_mixer.get_init():
+        pygame_mixer.pre_init(_sample_rate, -16, 1, buffer_size)
+        pygame_mixer.init(_sample_rate, -16, 1, buffer_size)
     else:
-        mixer_rate, _, _ = pygame.mixer.get_init()
+        mixer_rate, _, _ = pygame_mixer.get_init()
         _sample_rate = mixer_rate
+
+    return True
 
 
 def _to_int16(samples):
@@ -38,7 +49,8 @@ def _create_timebase(duration):
 
 def _set_current_sound(samples):
     global _sound
-    _ensure_audio()
+    if not _ensure_audio():
+        return
     _sound = pygame.sndarray.make_sound(_to_int16(samples).copy())
 
 
@@ -68,8 +80,8 @@ def stop():
 
 def close():
     stop()
-    if pygame.mixer.get_init():
-        pygame.mixer.quit()
+    if pygame_mixer is not None and pygame_mixer.get_init():
+        pygame_mixer.quit()
 
 
 def generate_sine_wave(freq, amplitude, sample_rate, duration=0.25):
@@ -161,8 +173,9 @@ def set_buffer_from_samples(samples, sample_rate, channels):
 
 def set_buffer_from_file(filename):
     global _sound
-    _ensure_audio()
-    _sound = pygame.mixer.Sound(filename)
+    if not _ensure_audio():
+        return
+    _sound = pygame_mixer.Sound(filename)
 
 
 def set_sound_buffer_from_file(filename):

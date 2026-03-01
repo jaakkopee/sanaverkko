@@ -8,6 +8,11 @@ import threading
 import sys
 import sanasyna
 
+try:
+    import pygame.font as pygame_font
+except Exception:
+    pygame_font = None
+
 
 
 gematria_table = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10, "k": 20, "l": 30, "m": 40, "n": 50, "o": 60, "p": 70, "q": 80, "r": 90, "s": 100, "t": 200, "u": 300, "v": 400, "w": 500, "x": 600, "y": 700, "z": 800, "å": 900, "ä": 1000, "ö": 1100}
@@ -35,6 +40,9 @@ class SanaVerkkoKontrolleri:
         self.referenceWords = []
         self.wordsToChange = []
         self.wordsToChangeIndex = 0
+        self.running = True
+        self.closed = False
+        self.timer = None
 
         self.screen = None
         self.size = None
@@ -80,6 +88,7 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.word_change_threshold_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.zoom_ctrl, 0, wx.ALL, 5)
         panel.SetSizer(self.sizer)
+        self.app.SetTopWindow(self.frame)
         self.frame.Show()
 
     def OnSetWeightByGematria(self, event):
@@ -108,11 +117,23 @@ class SanaVerkkoKontrolleri:
         self.makeWordCircle(self.words)
 
     def OnClose(self, event):
+        if self.closed:
+            return
+
+        self.running = False
+        self.closed = True
+        if self.timer is not None:
+            self.timer.Stop()
+            self.timer = None
         sanasyna.stop()
         sanasyna.close()
         pygame.quit()
-        self.outfile.close()
-        self.frame.Destroy()
+        if hasattr(self, "outfile") and not self.outfile.closed:
+            self.outfile.close()
+        if self.frame is not None:
+            self.frame.Destroy()
+        if self.app is not None and self.app.IsMainLoopRunning():
+            self.app.ExitMainLoop()
 
     def getParam(self, param):
         return self.params[param]
@@ -162,8 +183,11 @@ class SanaVerkkoKontrolleri:
 
 
     def initWords(self):
-        self.words = self.parseText(sys.argv[1])
-        self.referenceWords = self.parseText(sys.argv[2])
+        input_filename = sys.argv[1] if len(sys.argv) > 1 else "input.txt"
+        reference_filename = sys.argv[2] if len(sys.argv) > 2 else input_filename
+
+        self.words = self.parseText(input_filename)
+        self.referenceWords = self.parseText(reference_filename)
 
         for word in self.words:
             self.referenceWords.append(word)
@@ -229,96 +253,106 @@ class SanaVerkkoKontrolleri:
     def writeToFile(self, word):
         self.outfile.write(word + " ")
 
+    def simulationStep(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+                self.OnClose(None)
+                return
+
+        self.screen.fill((0, 0, 0))
+        gematria = 0
+        sentence = ""
+        sentChanged = False
+
+        for word in self.words:
+            word.activate(math.sin(time.time()))
+            total_activation = 0
+            for connection in word.neuron.connections:
+                total_activation += connection[0].activation * connection[1]
+            total_activation /= len(word.neuron.connections)
+            word.neuron.backpropagate(target=0)
+
+            if word.neuron.activation < -2 or word.neuron.activation > 2:
+                word.neuron.activation = 1
+
+            if word.neuron.activation < -self.params["word_change_threshold"] or word.neuron.activation > self.params["word_change_threshold"]:
+                self.changeWord(word, self.referenceWords)
+                sentChanged = True
+
+            sentence += word.word + " "
+            gematria += word.gematria
+
+        self.updateAudio()
+
+        #draw connections
+        for word in self.words:
+            for connection in word.neuron.connections:
+                self.conn_color_r = int(255 * abs(connection[1]))
+                self.conn_color_g = connection[0].activation * 255
+                self.conn_color_b = -connection[0].activation * 255
+
+                if self.conn_color_r < 0:
+                    self.conn_color_r = 0
+                if self.conn_color_g < 0:
+                    self.conn_color_g = 0
+                if self.conn_color_b < 0:
+                    self.conn_color_b = 0
+                if self.conn_color_r > 255:
+                    self.conn_color_r = 255
+                if self.conn_color_g > 255:
+                    self.conn_color_g = 255
+                if self.conn_color_b > 255:
+                    self.conn_color_b = 255
+
+                pygame.draw.line(self.screen, (self.conn_color_r, self.conn_color_g, self.conn_color_b), (word.x, word.y), (connection[0].x, connection[0].y), 5)
+
+        for word in self.words:
+            word.draw(self.screen)
+
+        if (sentChanged):
+            self.writeToFile(sentence+"\n")
+            sentence_gematria = 0
+            word_gematria = 0
+            for word in sentence.split():
+                word_gematria = get_gematria(word)
+                sentence_gematria += word_gematria
+                self.writeToFile(str(word_gematria) + " + ")
+            self.writeToFile(" = " + str(sentence_gematria))
+            self.writeToFile(" -> ")
+            nr_reduction_array = []
+            while sentence_gematria >= 10:
+                sentence_gematria = numerological_reduction(sentence_gematria)
+                nr_reduction_array.append(sentence_gematria)
+
+            for i in range(len(nr_reduction_array)):
+                self.writeToFile(str(nr_reduction_array[i]))
+                if i < len(nr_reduction_array) - 1:
+                    self.writeToFile(" -> ")
+            self.writeToFile("\n")
+            self.outfile.flush()      
+
+            #draw sentence
+            draw_text_centered(self.screen, sentence, 18, (0, 255, 127), self.size[0]/2, 20)
+
+        pygame.display.flip()
+
     def testNeurons(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    return
+        while self.running:
+            self.simulationStep()
+            self.clock.tick(60)
 
-            self.screen.fill((0, 0, 0))
-            gematria = 0
-            sentence = ""
-            sentChanged = False
+    def OnTimer(self, event):
+        if not self.running:
+            self.OnClose(None)
+            return
+        self.simulationStep()
 
-            for word in self.words:
-                word.activate(math.sin(time.time()))
-                total_activation = 0
-                for connection in word.neuron.connections:
-                    total_activation += connection[0].activation * connection[1]
-                total_activation /= len(word.neuron.connections)
-                word.neuron.backpropagate(target=0)
-
-                if word.neuron.activation < -2 or word.neuron.activation > 2:
-                    word.neuron.activation = 1
-
-                if word.neuron.activation < -self.params["word_change_threshold"] or word.neuron.activation > self.params["word_change_threshold"]:
-                    self.changeWord(word, self.referenceWords)
-                    sentChanged = True
-
-                sentence += word.word + " "
-                gematria += word.gematria
-
-            self.updateAudio()
-
-            #draw connections
-            for word in self.words:
-                for connection in word.neuron.connections:
-                    self.conn_color_r = int(255 * abs(connection[1]))
-                    self.conn_color_g = connection[0].activation * 255
-                    self.conn_color_b = -connection[0].activation * 255
-
-                    if self.conn_color_r < 0:
-                        self.conn_color_r = 0
-                    if self.conn_color_g < 0:
-                        self.conn_color_g = 0
-                    if self.conn_color_b < 0:
-                        self.conn_color_b = 0
-                    if self.conn_color_r > 255:
-                        self.conn_color_r = 255
-                    if self.conn_color_g > 255:
-                        self.conn_color_g = 255
-                    if self.conn_color_b > 255:
-                        self.conn_color_b = 255
-
-
-                    pygame.draw.line(self.screen, (self.conn_color_r, self.conn_color_g, self.conn_color_b), (word.x, word.y), (connection[0].x, connection[0].y), 5)
-
-            for word in self.words:
-                #print words again and their gematria
-                word.draw(self.screen)
-                
-
-            if (sentChanged):
-                self.writeToFile(sentence+"\n")
-                print (sentence)
-                sentence_gematria = 0
-                word_gematria = 0
-                for word in sentence.split():
-                    word_gematria = get_gematria(word)
-                    sentence_gematria += word_gematria
-                    self.writeToFile(str(word_gematria) + " + ")
-                self.writeToFile(" = " + str(sentence_gematria))
-                self.writeToFile(" -> ")
-                nr_reduction_array = []
-                while sentence_gematria >= 10:
-                    sentence_gematria = numerological_reduction(sentence_gematria)
-                    nr_reduction_array.append(sentence_gematria)
-
-                for i in range(len(nr_reduction_array)):
-                    self.writeToFile(str(nr_reduction_array[i]))
-                    if i < len(nr_reduction_array) - 1:
-                        self.writeToFile(" -> ")
-                self.writeToFile("\n")
-                self.outfile.flush()      
-
-                #draw sentence
-                font = pygame.font.Font(None, 18)
-                text = font.render(sentence, 1, (0, 255, 127))
-                textpos = text.get_rect(centerx=self.size[0]/2, centery=20)
-                self.screen.blit(text, textpos)
-
-            pygame.display.flip()
+    def runMacMainLoop(self):
+        self.timer = wx.Timer(self.frame)
+        self.frame.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
+        self.timer.Start(16)
+        self.app.MainLoop()
         
 
 def get_gematria(word):
@@ -349,6 +383,21 @@ def get_activation_color(activation):
         return (0, 0, 255)
     else:
         return (255, 255, 255)
+
+
+def draw_text_centered(screen, text, size, color, x, y):
+    if pygame_font is None:
+        return
+
+    try:
+        if not pygame_font.get_init():
+            pygame_font.init()
+        font = pygame_font.Font(None, size)
+        rendered_text = font.render(str(text), 1, color)
+        textpos = rendered_text.get_rect(centerx=x, centery=y)
+        screen.blit(rendered_text, textpos)
+    except Exception:
+        return
     
 class Neuron:
     def __init__(self, x, y, radius, color):
@@ -366,10 +415,7 @@ class Neuron:
     def draw(self, screen):
         self.color = get_activation_color(self.activation)
         pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
-        font = pygame.font.Font(None, 16)
-        text = font.render(str(self.activation), 1, (255, 255, 255))
-        textpos = text.get_rect(centerx=self.x, centery=self.y)
-        screen.blit(text, textpos)
+        draw_text_centered(screen, self.activation, 16, (255, 255, 255), self.x, self.y)
 
     def move(self, dx, dy):
         self.x += dx
@@ -436,10 +482,7 @@ class Word:
 
     def draw(self, screen):
         self.neuron.draw(screen)
-        font = pygame.font.Font(None, 22)
-        text = font.render(self.word, 1, get_activation_color(self.neuron.activation))
-        textpos = text.get_rect(centerx=self.x, centery=self.y + 30)
-        screen.blit(text, textpos)
+        draw_text_centered(screen, self.word, 22, get_activation_color(self.neuron.activation), self.x, self.y + 30)
 
     def move(self, dx, dy):
         self.x += dx
@@ -464,8 +507,11 @@ class Word:
 
 if __name__ == "__main__":
     kontrol = SanaVerkkoKontrolleri()
-    kontrol_thread = threading.Thread(target=kontrol.testNeurons)
-    kontrol_thread.start()
-    kontrol.app.MainLoop()
-    kontrol_thread.join()
+    if sys.platform == "darwin":
+        kontrol.runMacMainLoop()
+    else:
+        kontrol_thread = threading.Thread(target=kontrol.testNeurons)
+        kontrol_thread.start()
+        kontrol.app.MainLoop()
+        kontrol_thread.join()
 
