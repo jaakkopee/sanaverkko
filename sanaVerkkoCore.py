@@ -31,6 +31,7 @@ class SanaVerkkoKontrolleri:
         self.params["word_change_threshold"] = 0.777
         self.params["zoom"]=0.1
         self.params["process_interval"] = 0.25
+        self.params["import_mode"] = "append"
 
         self.app = wx.App()
 
@@ -53,6 +54,9 @@ class SanaVerkkoKontrolleri:
         self.conn_color_g = 0
         self.conn_color_b = 0
         self.last_process_time = 0
+        self.last_result_sentence = ""
+        self.last_result_gematria_line = ""
+        self.last_result_reduction_line = ""
 
         self.initPygame()
         self.initAudio()
@@ -103,9 +107,15 @@ class SanaVerkkoKontrolleri:
         self.add_words_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnAddWords)
         self.add_words_button = wx.Button(panel, -1, "Add")
         self.add_words_button.Bind(wx.EVT_BUTTON, self.OnAddWords)
+        self.clear_sentence_button = wx.Button(panel, -1, "Clear sentence")
+        self.clear_sentence_button.Bind(wx.EVT_BUTTON, self.OnClearSentence)
         self.add_words_status = wx.StaticText(panel, -1, "")
 
         self.import_db_label = wx.StaticText(panel, -1, "Import database file")
+        self.import_mode_label = wx.StaticText(panel, -1, "Import mode")
+        self.import_mode_choice = wx.Choice(panel, -1, choices=["Append database", "Replace database"])
+        self.import_mode_choice.SetSelection(0)
+        self.import_mode_choice.Bind(wx.EVT_CHOICE, self.OnImportMode)
         self.import_db_button = wx.Button(panel, -1, "Import .txt")
         self.import_db_button.Bind(wx.EVT_BUTTON, self.OnImportDatabaseFile)
         self.import_db_status = wx.StaticText(panel, -1, "")
@@ -140,11 +150,14 @@ class SanaVerkkoKontrolleri:
         add_words_row = wx.BoxSizer(wx.HORIZONTAL)
         add_words_row.Add(self.add_words_ctrl, 1, wx.RIGHT, 5)
         add_words_row.Add(self.add_words_button, 0)
+        add_words_row.Add(self.clear_sentence_button, 0, wx.LEFT, 5)
         self.sizer.Add(self.add_words_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(add_words_row, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.add_words_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         self.sizer.Add(self.import_db_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.import_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.import_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.import_db_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.import_db_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
@@ -218,6 +231,14 @@ class SanaVerkkoKontrolleri:
             self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
         event.Skip()
 
+    def OnImportMode(self, event):
+        selected_mode = self.import_mode_choice.GetStringSelection()
+        if selected_mode == "Replace database":
+            self.params["import_mode"] = "replace"
+        else:
+            self.params["import_mode"] = "append"
+        event.Skip()
+
     def OnClose(self, event):
         if self.closed:
             return
@@ -285,14 +306,16 @@ class SanaVerkkoKontrolleri:
 
 
     def initWords(self):
-        input_filename = sys.argv[1] if len(sys.argv) > 1 else "input.txt"
-        reference_filename = sys.argv[2] if len(sys.argv) > 2 else input_filename
+        input_filename = sys.argv[1] if len(sys.argv) > 1 else None
+        reference_filename = sys.argv[2] if len(sys.argv) > 2 else None
 
-        self.words = self.parseText(input_filename)
-        self.referenceWords = self.parseText(reference_filename)
+        self.words = self.parseText(input_filename) if input_filename else []
+        self.referenceWords = self.parseText(reference_filename) if reference_filename else []
 
         for word in self.words:
             self.referenceWords.append(word)
+
+        self.referenceWords = self._uniqueWordObjects(self.referenceWords)
 
         #place words in a circle
         self.makeWordCircle(self.words)
@@ -327,12 +350,17 @@ class SanaVerkkoKontrolleri:
                 seen_words.add(word.word)
         return unique_words
 
-    def importReferenceDatabase(self, filename):
+    def importReferenceDatabase(self, filename, mode="append"):
         imported_words = self.parseText(filename)
         if not imported_words:
             return 0, len(self.referenceWords)
 
-        self.referenceWords = self._uniqueWordObjects(imported_words + self.words)
+        if mode == "replace":
+            self.referenceWords = self._uniqueWordObjects(imported_words)
+        else:
+            self.referenceWords = self._uniqueWordObjects(self.referenceWords + imported_words)
+
+        self.referenceWords = self._uniqueWordObjects(self.referenceWords + self.words)
         return len(imported_words), len(self.referenceWords)
 
     def OnImportDatabaseFile(self, event):
@@ -348,11 +376,12 @@ class SanaVerkkoKontrolleri:
             selected_path = file_dialog.GetPath()
 
         try:
-            imported_count, total_count = self.importReferenceDatabase(selected_path)
+            import_mode = self.params.get("import_mode", "append")
+            imported_count, total_count = self.importReferenceDatabase(selected_path, mode=import_mode)
             if imported_count == 0:
                 self.import_db_status.SetLabel("No valid words found in selected file")
             else:
-                self.import_db_status.SetLabel(f"Imported {imported_count} words, database size {total_count}")
+                self.import_db_status.SetLabel(f"Imported {imported_count} words ({import_mode}), database size {total_count}")
         except Exception as error:
             self.import_db_status.SetLabel(f"Import failed: {error}")
 
@@ -396,6 +425,17 @@ class SanaVerkkoKontrolleri:
                 self.add_words_status.SetLabel(f"Added {added_info}")
         else:
             self.add_words_status.SetLabel(f"Rejected (invalid chars): {' '.join(rejected_words)}")
+
+    def OnClearSentence(self, event):
+        removed_count = len(self.words)
+        removed_words = {word.word for word in self.words}
+        self.words = []
+        if removed_words:
+            self.referenceWords = [word for word in self.referenceWords if word.word not in removed_words]
+        self.last_audio_update = 0
+        sanasyna.stop()
+        self.audio_playing = False
+        self.add_words_status.SetLabel(f"Cleared sentence ({removed_count} words removed, refs updated)")
     
     def getGematriaDistance(self, gematria1, gematria2):
         return abs(gematria1 - gematria2) / 1000
@@ -425,8 +465,6 @@ class SanaVerkkoKontrolleri:
             word.gematria = refWord.gematria
             word.neuron.word = refWord.word
             for connection in word.neuron.connections:
-                connection[0].word = refWord.word
-                connection[0].gematria = refWord.gematria
                 if self.params["set_weight_by_gematria"] == True:
                     connection[1] = self.getGematriaDistance(word.gematria, connection[0].gematria)
                 
@@ -457,7 +495,9 @@ class SanaVerkkoKontrolleri:
             total_activation = 0
             for connection in word.neuron.connections:
                 total_activation += connection[0].activation * connection[1]
-            total_activation /= len(word.neuron.connections)
+            connection_count = len(word.neuron.connections)
+            if connection_count > 0:
+                total_activation /= connection_count
             word.neuron.backpropagate(target=0)
 
             if word.neuron.activation < -2 or word.neuron.activation > 2:
@@ -501,13 +541,16 @@ class SanaVerkkoKontrolleri:
             self.writeToFile(sentence+"\n")
             sentence_gematria = 0
             word_gematria = 0
+            gematria_terms = []
             for word in sentence.split():
                 word_gematria = get_gematria(word)
                 sentence_gematria += word_gematria
+                gematria_terms.append(f"{word}:{word_gematria}")
                 self.writeToFile(str(word_gematria) + " + ")
             self.writeToFile(" = " + str(sentence_gematria))
             self.writeToFile(" -> ")
             nr_reduction_array = []
+            starting_gematria = sentence_gematria
             while sentence_gematria >= 10:
                 sentence_gematria = numerological_reduction(sentence_gematria)
                 nr_reduction_array.append(sentence_gematria)
@@ -519,8 +562,20 @@ class SanaVerkkoKontrolleri:
             self.writeToFile("\n")
             self.outfile.flush()      
 
-            #draw sentence
-            draw_text_centered(self.screen, sentence, 18, (0, 255, 127), self.size[0]/2, 20)
+            self.last_result_sentence = sentence.strip()
+            self.last_result_gematria_line = " + ".join(gematria_terms) + f" = {starting_gematria}"
+            if nr_reduction_array:
+                reduction_chain = " -> ".join(str(value) for value in nr_reduction_array)
+                self.last_result_reduction_line = f"Reduction: {starting_gematria} -> {reduction_chain}"
+            else:
+                self.last_result_reduction_line = f"Reduction: {starting_gematria}"
+
+        if self.last_result_sentence != "":
+            draw_text_centered(self.screen, self.last_result_sentence, 18, (0, 255, 127), self.size[0]/2, 20)
+        if self.last_result_gematria_line != "":
+            draw_text_centered(self.screen, self.last_result_gematria_line, 14, (180, 230, 255), self.size[0]/2, 40)
+        if self.last_result_reduction_line != "":
+            draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
 
         pygame.display.flip()
 
