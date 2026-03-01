@@ -10,6 +10,11 @@ import os
 import sanasyna
 
 try:
+    import nltk
+except Exception:
+    nltk = None
+
+try:
     import pygame.font as pygame_font
 except Exception:
     pygame_font = None
@@ -90,6 +95,7 @@ class SanaVerkkoKontrolleri:
     def __init__(self):
         self.params = {}
         self.params["set_weight_by_gematria"] = False
+        self.params["use_pos_matching"] = False
         self.params["learning_rate"] = 0.1
         self.params["error"] = 0
         self.params["target"] = 0
@@ -135,6 +141,9 @@ class SanaVerkkoKontrolleri:
         self.output_text_ctrl = None
         self.output_timer = None
         self.last_output_content = ""
+        self.pos_tag_cache = {}
+        self.nltk_pos_ready = False
+        self.nltk_pos_init_attempted = False
 
         self.initPygame()
         self.initAudio()
@@ -148,6 +157,10 @@ class SanaVerkkoKontrolleri:
         self.set_weight_by_gematria_checkbox = wx.CheckBox(panel, -1, "Set weight by gematria")
         self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
         self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.OnSetWeightByGematria)
+
+        self.use_pos_matching_checkbox = wx.CheckBox(panel, -1, "Use POS matching")
+        self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
+        self.use_pos_matching_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUsePOSMatching)
 
         self.learning_rate_label = wx.StaticText(panel, -1, "Learning rate")
         self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]), style=wx.TE_PROCESS_ENTER)
@@ -221,6 +234,7 @@ class SanaVerkkoKontrolleri:
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
 
         self.sizer.Add(self.learning_rate_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.learning_rate_ctrl, 0, wx.ALL, 5)
@@ -348,6 +362,69 @@ class SanaVerkkoKontrolleri:
 
     def OnSetWeightByGematria(self, event):
         self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
+
+    def OnUsePOSMatching(self, event):
+        self.params["use_pos_matching"] = self.use_pos_matching_checkbox.GetValue()
+
+    def _ensure_nltk_pos_tagger(self):
+        if nltk is None:
+            return False
+
+        if self.nltk_pos_ready:
+            return True
+
+        if self.nltk_pos_init_attempted:
+            return False
+
+        self.nltk_pos_init_attempted = True
+        try:
+            nltk.pos_tag(["word"])
+            self.nltk_pos_ready = True
+            return True
+        except LookupError:
+            for resource in ["averaged_perceptron_tagger_eng", "averaged_perceptron_tagger"]:
+                try:
+                    nltk.download(resource, quiet=True)
+                except Exception:
+                    pass
+            try:
+                nltk.pos_tag(["word"])
+                self.nltk_pos_ready = True
+                return True
+            except Exception:
+                return False
+        except Exception:
+            return False
+
+    def _heuristic_pos_tag(self, word_text):
+        text = word_text.lower()
+        if text.endswith("ly"):
+            return "RB"
+        if text.endswith("ing") or text.endswith("ed"):
+            return "VB"
+        if text.endswith(("ous", "ful", "ive", "al", "ic", "ish", "less")):
+            return "JJ"
+        if text.endswith(("ness", "tion", "sion", "ment", "ity", "ism", "ship")):
+            return "NN"
+        return "NN"
+
+    def getWordPOS(self, word_text):
+        key = word_text.lower().strip()
+        if key in self.pos_tag_cache:
+            return self.pos_tag_cache[key]
+
+        pos_tag = None
+        if self._ensure_nltk_pos_tagger():
+            try:
+                pos_tag = nltk.pos_tag([key])[0][1]
+            except Exception:
+                pos_tag = None
+
+        if pos_tag is None:
+            pos_tag = self._heuristic_pos_tag(key)
+
+        self.pos_tag_cache[key] = pos_tag
+        return pos_tag
 
     def _bindNumericCtrl(self, ctrl, handler):
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
@@ -708,14 +785,30 @@ class SanaVerkkoKontrolleri:
     
     def findWord(self, word, referenceWords):
         retwords = []
+        use_pos = self.params.get("use_pos_matching", False)
+        source_pos = self.getWordPOS(word.word) if use_pos else None
 
         for refWord in referenceWords:
+            if use_pos:
+                ref_pos = self.getWordPOS(refWord.word)
+                if source_pos != ref_pos:
+                    continue
+
             if word.gematria == refWord.gematria:
                 retwords += [refWord]
             if numerological_reduction(word.gematria) == numerological_reduction(refWord.gematria):
                 retwords += [refWord]
             if digital_root(word.gematria) == digital_root(refWord.gematria):
                 retwords += [refWord]
+
+        if use_pos and retwords == []:
+            for refWord in referenceWords:
+                if word.gematria == refWord.gematria:
+                    retwords += [refWord]
+                if numerological_reduction(word.gematria) == numerological_reduction(refWord.gematria):
+                    retwords += [refWord]
+                if digital_root(word.gematria) == digital_root(refWord.gematria):
+                    retwords += [refWord]
             
         if retwords != []:
             return random.choice(retwords)
