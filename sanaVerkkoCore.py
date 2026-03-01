@@ -429,6 +429,9 @@ class SanaVerkkoKontrolleri:
         return "NN"
 
     def getWordPOS(self, word_text):
+        if not self.params.get("use_pos_matching", False):
+            return ""
+
         key = word_text.lower().strip()
         if key in self.pos_tag_cache:
             return self.pos_tag_cache[key]
@@ -1347,6 +1350,8 @@ class Word:
 
     def getPOSLabel(self):
         if self.controller is None:
+            return ""
+        if not self.controller.getParam("use_pos_matching"):
             return ""
         try:
             return self.controller.getWordPOS(self.word)
