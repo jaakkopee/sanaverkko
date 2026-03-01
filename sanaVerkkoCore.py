@@ -6,6 +6,7 @@ import math
 import wx
 import threading
 import sys
+import os
 import sanasyna
 
 try:
@@ -109,7 +110,7 @@ class SanaVerkkoKontrolleri:
 
         self.frame = wx.Frame(None, -1, "SanaVerkko")
         self.frame.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.frame.SetSize(760, 1080)
+        self.frame.SetSize(760, 900)
         self.words = []
         self.referenceWords = []
         self.wordsToChange = []
@@ -129,15 +130,21 @@ class SanaVerkkoKontrolleri:
         self.last_result_sentence = ""
         self.last_result_gematria_line = ""
         self.last_result_reduction_line = ""
+        self.output_file_path = os.path.abspath("output.txt")
+        self.output_frame = None
+        self.output_text_ctrl = None
+        self.output_timer = None
+        self.last_output_content = ""
 
         self.initPygame()
         self.initAudio()
         self.initWords()
+        self.outfile = open(self.output_file_path, "w")
         self.widgetSetup()
-        self.outfile = open("output.txt", "w")
 
     def widgetSetup(self):
-        panel = wx.Panel(self.frame, -1)
+        panel = wx.ScrolledWindow(self.frame, -1, style=wx.VSCROLL)
+        panel.SetScrollRate(10, 10)
         self.set_weight_by_gematria_checkbox = wx.CheckBox(panel, -1, "Set weight by gematria")
         self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
         self.set_weight_by_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.OnSetWeightByGematria)
@@ -271,9 +278,64 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.import_db_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         panel.SetSizer(self.sizer)
+        panel.FitInside()
+        self.sizer.Fit(self.frame)
+
+        best_width, best_height = self.frame.GetBestSize()
+        display_width, display_height = wx.GetDisplaySize()
+        target_width = min(max(760, best_width + 20), max(500, display_width - 80))
+        target_height = min(max(900, best_height + 20), max(500, display_height - 80))
+
+        self.frame.SetSize(target_width, target_height)
+        self.frame.SetMinSize((min(target_width, 760), min(target_height, 700)))
+        self.frame.Layout()
         self.app.SetTopWindow(self.frame)
         self.frame.Show()
+        self.setupOutputWindow()
         self._applyADSRToAudio()
+
+    def setupOutputWindow(self):
+        self.output_frame = wx.Frame(None, -1, "SanaVerkko Output", size=(760, 420))
+        output_panel = wx.Panel(self.output_frame, -1)
+        output_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.output_text_ctrl = wx.TextCtrl(
+            output_panel,
+            -1,
+            "",
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL,
+        )
+        output_sizer.Add(self.output_text_ctrl, 1, wx.EXPAND | wx.ALL, 6)
+        output_panel.SetSizer(output_sizer)
+
+        frame_x, frame_y = self.frame.GetPosition()
+        frame_w, _ = self.frame.GetSize()
+        self.output_frame.SetPosition((frame_x + frame_w + 10, frame_y))
+        self.output_frame.Show()
+
+        self.output_timer = wx.Timer(self.frame)
+        self.frame.Bind(wx.EVT_TIMER, self.OnOutputTimer, self.output_timer)
+        self.output_timer.Start(300)
+        self.refreshOutputWindow()
+
+    def OnOutputTimer(self, event):
+        self.refreshOutputWindow()
+
+    def refreshOutputWindow(self):
+        if self.output_text_ctrl is None:
+            return
+
+        try:
+            with open(self.output_file_path, "r") as infile:
+                content = infile.read()
+        except Exception:
+            content = ""
+
+        if content == self.last_output_content:
+            return
+
+        self.last_output_content = content
+        self.output_text_ctrl.SetValue(content)
+        self.output_text_ctrl.ShowPosition(self.output_text_ctrl.GetLastPosition())
 
     def OnSetWeightByGematria(self, event):
         self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
@@ -403,6 +465,9 @@ class SanaVerkkoKontrolleri:
 
         self.running = False
         self.closed = True
+        if self.output_timer is not None:
+            self.output_timer.Stop()
+            self.output_timer = None
         if self.timer is not None:
             self.timer.Stop()
             self.timer = None
@@ -411,6 +476,9 @@ class SanaVerkkoKontrolleri:
         pygame.quit()
         if hasattr(self, "outfile") and not self.outfile.closed:
             self.outfile.close()
+        if self.output_frame is not None:
+            self.output_frame.Destroy()
+            self.output_frame = None
         if self.frame is not None:
             self.frame.Destroy()
         if self.app is not None and self.app.IsMainLoopRunning():
