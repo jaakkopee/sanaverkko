@@ -1,201 +1,73 @@
-jake a a master programmer
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
- babal a a fascinating control
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
- babal a a fascinating control
- 36 +  1 +  1 +  436 +  493 +   = 967  ->  22  ->  4 
- babal a aha fascinating control
- 36 +  1 +  10 +  436 +  493 +   = 976  ->  22  ->  4 
- babal a aha fascinating control
- 36 +  1 +  10 +  436 +  493 +   = 976  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha imagination control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha imagination control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha imagination control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha imagination control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm aha aha fascinating control
- 45 +  10 +  10 +  436 +  493 +   = 994  ->  22  ->  4 
- adm chdd chdd alive control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- babal chdd chdd alive combination
- 36 +  19 +  19 +  445 +  484 +   = 1003  ->  4 
- adm chdd chdd alive combination
- 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
- adm chdd chdd alive combination
- 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
- adm chdd chdd alive combination
- 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
- adm chdd chdd alive combination
- 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
- adm egg chdd alive combination
- 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
- adm chdd chdd alive combination
- 45 +  19 +  19 +  445 +  484 +   = 1012  ->  4 
- adm chdd chdd alive control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- adm chdd chdd alive control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- adm chdd chdd alive control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- adm chdd chdd alive control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- adm chdd chdd alive control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- babal chdd chdd alive control
- 36 +  19 +  19 +  445 +  493 +   = 1012  ->  4 
- adm chdd chdd oriental control
- 45 +  19 +  19 +  445 +  493 +   = 1021  ->  4 
- add chdd aha alive disconnected
- 9 +  19 +  10 +  445 +  493 +   = 976  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- cae chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- de chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add egg chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd aha alive control
- 9 +  19 +  10 +  445 +  493 +   = 976  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd relation control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd relation control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd relation control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd relation combination
- 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
- add chdd chdd alive combination
- 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
- add aha chdd alive combination
- 9 +  10 +  19 +  445 +  484 +   = 967  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive control
- 9 +  19 +  19 +  445 +  493 +   = 985  ->  22  ->  4 
- add chdd chdd alive combination
- 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
- add chdd chdd alive combination
- 9 +  19 +  19 +  445 +  484 +   = 976  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive persons
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd aha alive adoration
- 9 +  19 +  10 +  445 +  475 +   = 958  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive having
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive having
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive ghosts
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd alive adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
- add chdd chdd dormant adoration
- 9 +  19 +  19 +  445 +  475 +   = 967  ->  22  ->  4 
+mummoni oli kotirouva ja niin mummoni
+ 539 +  99 +  1140 +  11 +  118 +  539 +   = 2446  ->  16  ->  7 
+ mummoni oli exponents ja niin conceived
+ 539 +  99 +  1140 +  11 +  118 +  539 +   = 2446  ->  16  ->  7 
+ conceived har exponents ja niin conceived
+ 539 +  99 +  1140 +  11 +  118 +  539 +   = 2446  ->  16  ->  7 
+ conceived har exponents b brake conceived
+ 539 +  99 +  1140 +  2 +  118 +  539 +   = 2437  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
+ conceived har exponents feed brake conceived
+ 539 +  99 +  1140 +  20 +  118 +  539 +   = 2455  ->  16  ->  7 
  

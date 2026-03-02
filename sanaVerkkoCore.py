@@ -384,7 +384,15 @@ class SanaVerkkoKontrolleri:
         self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
 
     def OnUsePOSMatching(self, event):
-        self.params["use_pos_matching"] = self.use_pos_matching_checkbox.GetValue()
+        self.params["use_pos_matching"] = self._is_pos_matching_enabled()
+
+    def _is_pos_matching_enabled(self):
+        try:
+            if hasattr(self, "use_pos_matching_checkbox") and self.use_pos_matching_checkbox is not None:
+                return bool(self.use_pos_matching_checkbox.GetValue())
+        except Exception:
+            pass
+        return bool(self.params.get("use_pos_matching", False))
 
     def _ensure_nltk_pos_tagger(self):
         if nltk is None:
@@ -428,8 +436,8 @@ class SanaVerkkoKontrolleri:
             return "NN"
         return "NN"
 
-    def getWordPOS(self, word_text):
-        if not self.params.get("use_pos_matching", False):
+    def getWordPOS(self, word_text, force=False):
+        if not force and not self._is_pos_matching_enabled():
             return ""
 
         key = word_text.lower().strip()
@@ -761,7 +769,7 @@ class SanaVerkkoKontrolleri:
             by_root.setdefault(root_value, []).append(ref_word)
 
             if include_pos:
-                pos_value = self.getWordPOS(ref_word.word)
+                pos_value = self.getWordPOS(ref_word.word, force=True)
                 by_pos_gematria.setdefault((pos_value, gematria_value), []).append(ref_word)
                 by_pos_reduction.setdefault((pos_value, reduction_value), []).append(ref_word)
                 by_pos_root.setdefault((pos_value, root_value), []).append(ref_word)
@@ -910,7 +918,7 @@ class SanaVerkkoKontrolleri:
         if not referenceWords:
             return None
 
-        use_pos = self.params.get("use_pos_matching", False)
+        use_pos = self._is_pos_matching_enabled()
         source_gematria = word.gematria
         source_reduction = numerological_reduction(source_gematria)
         source_root = digital_root(source_gematria)
@@ -925,7 +933,7 @@ class SanaVerkkoKontrolleri:
                 candidate_map[id(candidate)] = candidate
 
         if use_pos:
-            source_pos = self.getWordPOS(word.word)
+            source_pos = self.getWordPOS(word.word, force=True)
             _add_candidates(index["pos_gematria"].get((source_pos, source_gematria), []))
             _add_candidates(index["pos_reduction"].get((source_pos, source_reduction), []))
             _add_candidates(index["pos_root"].get((source_pos, source_root), []))
@@ -1351,7 +1359,7 @@ class Word:
     def getPOSLabel(self):
         if self.controller is None:
             return ""
-        if not self.controller.getParam("use_pos_matching"):
+        if not self.controller._is_pos_matching_enabled():
             return ""
         try:
             return self.controller.getWordPOS(self.word)
