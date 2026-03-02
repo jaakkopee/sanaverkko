@@ -104,7 +104,7 @@ class SanaVerkkoKontrolleri:
         self.params["sigmoid_scale"] = 2
         self.params["word_change_threshold"] = 0.777
         self.params["zoom"]=0.1
-        self.params["process_interval"] = 0.25
+        self.params["process_interval"] = 0.08
         self.params["logic_iteration_limit"] = 48
         self.params["selection_exploration"] = 0.18
         self.params["selection_top_k"] = 4
@@ -191,6 +191,8 @@ class SanaVerkkoKontrolleri:
         self.word_change_threshold_label = wx.StaticText(panel, -1, "Word change threshold")
         self.word_change_threshold_ctrl = wx.TextCtrl(panel, -1, str(self.params["word_change_threshold"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.word_change_threshold_ctrl, self.OnWordChangeThreshold)
+        self.word_change_threshold_ctrl.Bind(wx.EVT_TEXT, self.OnWordChangeThresholdLive)
+        self.word_change_threshold_ctrl.Bind(wx.EVT_KILL_FOCUS, self.OnWordChangeThresholdFocus)
 
         self.zoom_label = wx.StaticText(panel, -1, "Zoom")
         self.zoom_ctrl = wx.TextCtrl(panel, -1, str(self.params["zoom"]), style=wx.TE_PROCESS_ENTER)
@@ -199,6 +201,8 @@ class SanaVerkkoKontrolleri:
         self.process_interval_label = wx.StaticText(panel, -1, "Process interval (s)")
         self.process_interval_ctrl = wx.TextCtrl(panel, -1, str(self.params["process_interval"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.process_interval_ctrl, self.OnProcessInterval)
+        self.process_interval_ctrl.Bind(wx.EVT_TEXT, self.OnProcessIntervalLive)
+        self.process_interval_ctrl.Bind(wx.EVT_KILL_FOCUS, self.OnProcessIntervalFocus)
 
         self.selection_exploration_label = wx.StaticText(panel, -1, "Selection exploration (0-1)")
         self.selection_exploration_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_exploration"]), style=wx.TE_PROCESS_ENTER)
@@ -514,6 +518,20 @@ class SanaVerkkoKontrolleri:
             self.params["word_change_threshold"] = value
         event.Skip()
 
+    def OnWordChangeThresholdLive(self, event):
+        value = self._readFloat(self.word_change_threshold_ctrl)
+        if value is not None:
+            self.params["word_change_threshold"] = value
+        event.Skip()
+
+    def OnWordChangeThresholdFocus(self, event):
+        value = self._readFloat(self.word_change_threshold_ctrl)
+        if value is not None:
+            self.params["word_change_threshold"] = value
+        else:
+            self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
+        event.Skip()
+
     def OnZoom(self, event):
         value = self._readFloat(self.zoom_ctrl)
         if value is not None:
@@ -526,6 +544,19 @@ class SanaVerkkoKontrolleri:
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
             self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+        event.Skip()
+
+    def OnProcessIntervalLive(self, event):
+        value = self._readFloat(self.process_interval_ctrl)
+        if value is not None:
+            self.params["process_interval"] = max(0.01, value)
+        event.Skip()
+
+    def OnProcessIntervalFocus(self, event):
+        value = self._readFloat(self.process_interval_ctrl)
+        if value is not None:
+            self.params["process_interval"] = max(0.01, value)
+        self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
         event.Skip()
 
     def OnSelectionExploration(self, event):
