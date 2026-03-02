@@ -512,19 +512,27 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.word_change_threshold_ctrl)
         if value is not None:
             self.params["word_change_threshold"] = value
+            self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
+        else:
+            self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
         event.Skip()
 
     def OnZoom(self, event):
         value = self._readFloat(self.zoom_ctrl)
         if value is not None:
-            self.params["zoom"] = value
+            self.params["zoom"] = max(0.001, value)
+            self.zoom_ctrl.SetValue(str(self.params["zoom"]))
             self.makeWordCircle(self.words)
+        else:
+            self.zoom_ctrl.SetValue(str(self.params["zoom"]))
         event.Skip()
 
     def OnProcessInterval(self, event):
         value = self._readFloat(self.process_interval_ctrl)
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
+            self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+        else:
             self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
         event.Skip()
 
