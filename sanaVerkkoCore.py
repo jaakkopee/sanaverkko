@@ -108,6 +108,8 @@ class SanaVerkkoKontrolleri:
         self.params["logic_iteration_limit"] = 48
         self.params["selection_exploration"] = 0.18
         self.params["selection_top_k"] = 4
+        self.params["jump_probability"] = 0.08
+        self.params["jump_radius"] = 120
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
         self.params["adsr_attack"] = 0.01
@@ -208,6 +210,14 @@ class SanaVerkkoKontrolleri:
         self.selection_top_k_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_top_k"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.selection_top_k_ctrl, self.OnSelectionTopK)
 
+        self.jump_probability_label = wx.StaticText(panel, -1, "Jump probability (0-1)")
+        self.jump_probability_ctrl = wx.TextCtrl(panel, -1, str(self.params["jump_probability"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.jump_probability_ctrl, self.OnJumpProbability)
+
+        self.jump_radius_label = wx.StaticText(panel, -1, "Jump radius (gematria)")
+        self.jump_radius_ctrl = wx.TextCtrl(panel, -1, str(self.params["jump_radius"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.jump_radius_ctrl, self.OnJumpRadius)
+
         self.audio_wave_mode_label = wx.StaticText(panel, -1, "Audio waveform mode")
         self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=["Dynamic", "Pure sine", "Noise-heavy", "Classic analog"])
         self.audio_wave_mode_choice.SetSelection(0)
@@ -279,6 +289,12 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.selection_top_k_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.selection_top_k_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.jump_probability_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.jump_probability_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.jump_radius_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.jump_radius_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -550,6 +566,24 @@ class SanaVerkkoKontrolleri:
             self.selection_top_k_ctrl.SetValue(str(self.params["selection_top_k"]))
         event.Skip()
 
+    def OnJumpProbability(self, event):
+        value = self._readFloat(self.jump_probability_ctrl)
+        if value is not None:
+            self.params["jump_probability"] = min(1.0, max(0.0, value))
+            self.jump_probability_ctrl.SetValue(str(self.params["jump_probability"]))
+        else:
+            self.jump_probability_ctrl.SetValue(str(self.params["jump_probability"]))
+        event.Skip()
+
+    def OnJumpRadius(self, event):
+        value = self._readInt(self.jump_radius_ctrl)
+        if value is not None:
+            self.params["jump_radius"] = max(0, value)
+            self.jump_radius_ctrl.SetValue(str(self.params["jump_radius"]))
+        else:
+            self.jump_radius_ctrl.SetValue(str(self.params["jump_radius"]))
+        event.Skip()
+
     def OnImportMode(self, event):
         selected_mode = self.import_mode_choice.GetStringSelection()
         if selected_mode == "Replace database":
@@ -801,7 +835,7 @@ class SanaVerkkoKontrolleri:
         if include_pos and not self.reference_index_has_pos:
             self._rebuildReferenceIndex(include_pos=True)
 
-    def _selectBestReference(self, source_word, candidates):
+    def _selectBestReference(self, source_word, candidates, force_jump=False):
         if not candidates:
             return None
 
@@ -821,6 +855,12 @@ class SanaVerkkoKontrolleri:
 
         exploration = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
         top_k = max(1, int(self.params.get("selection_top_k", 4)))
+
+        if force_jump and len(ranked_candidates) > 1:
+            jump_span = min(len(ranked_candidates), max(6, top_k * 3))
+            jump_pool = ranked_candidates[1:jump_span]
+            if jump_pool:
+                return random.choice(jump_pool)
 
         if len(ranked_candidates) > 1 and random.random() < exploration:
             top_candidates = ranked_candidates[:min(top_k, len(ranked_candidates))]
@@ -951,8 +991,25 @@ class SanaVerkkoKontrolleri:
             _add_candidates(index["reduction"].get(source_reduction, []))
             _add_candidates(index["root"].get(source_root, []))
 
+        jump_probability = min(1.0, max(0.0, float(self.params.get("jump_probability", 0.08))))
+        jump_radius = max(0, int(self.params.get("jump_radius", 120)))
+        should_jump = random.random() < jump_probability
+
+        if should_jump:
+            gematria_keys = list(index["gematria"].keys())
+            if gematria_keys:
+                nearest_keys = sorted(gematria_keys, key=lambda key: abs(key - source_gematria))
+                max_jump_buckets = max(6, int(self.params.get("selection_top_k", 4)) * 3)
+
+                selected_keys = [key for key in nearest_keys if abs(key - source_gematria) <= jump_radius][:max_jump_buckets]
+                if not selected_keys:
+                    selected_keys = nearest_keys[:max_jump_buckets]
+
+                for key in selected_keys:
+                    _add_candidates(index["gematria"].get(key, []))
+
         candidates = list(candidate_map.values())
-        return self._selectBestReference(word, candidates)
+        return self._selectBestReference(word, candidates, force_jump=should_jump)
         
     def changeWord(self, word, referenceWords):
         refWord = self.findWord(word, referenceWords)

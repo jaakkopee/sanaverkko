@@ -1,361 +1,321 @@
-jake pii pii is is great magus
- 36 +  88 +  88 +  109 +  109 +  303 +  448 +   = 1181  ->  11  ->  2 
- jake pii magus is is great magus
- 36 +  88 +  448 +  109 +  109 +  303 +  448 +   = 1541  ->  11  ->  2 
- jake magus magus is is great magus
- 36 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1901  ->  11  ->  2 
- babal cleaved cleaved adds adds appearing cleaved
- 36 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1901  ->  11  ->  2 
- babal cleaved cleaved adds adds appearing cleaved
- 36 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1901  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm deposit cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved ash adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds approach cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm devil cleaved adds adds appearing devil
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm devil cleaved adds adds appearing devil
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm devil devil adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved ash adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved ash adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved deposit adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- adm cleaved cleaved adds adds appearing cleaved
- 45 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1910  ->  11  ->  2 
- ii cleaved cleaved adds adds appearing cleaved
- 18 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1883  ->  20  ->  2 
- added cleaved cleaved adds adds appearing cleaved
- 18 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1883  ->  20  ->  2 
- added cleaved cleaved adds adds appearing cleaved
- 18 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1883  ->  20  ->  2 
- add cleaved cleaved adds adds appearing cleaved
- 9 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1874  ->  20  ->  2 
- ah acceleration acceleration adds adds appearing elementals
- 9 +  457 +  457 +  109 +  109 +  303 +  466 +   = 1910  ->  11  ->  2 
- add cleaved cleaved adds adds appearing elementals
- 9 +  448 +  448 +  109 +  109 +  303 +  466 +   = 1892  ->  20  ->  2 
- add cleaved cleaved adds adds appearing elementals
- 9 +  448 +  448 +  109 +  109 +  303 +  466 +   = 1892  ->  20  ->  2 
- add cleaved cleaved adds adds appearing elementals
- 9 +  448 +  448 +  109 +  109 +  303 +  466 +   = 1892  ->  20  ->  2 
- add cleaved acceleration adds adds appearing acceleration
- 9 +  448 +  457 +  109 +  109 +  303 +  457 +   = 1892  ->  20  ->  2 
- add cleaved posited breach adds aub cleaved
- 9 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1874  ->  20  ->  2 
- add cleaved posited adds adds approach cleaved
- 9 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1874  ->  20  ->  2 
- add cleaved posited adds adds appearing acceleration
- 9 +  448 +  448 +  109 +  109 +  303 +  457 +   = 1883  ->  20  ->  2 
- add cleaved cleaved adds adds appearing cleaved
- 9 +  448 +  448 +  109 +  109 +  303 +  448 +   = 1874  ->  20  ->  2 
- ah elementals cleaved adds adds appearing cleaved
- 9 +  466 +  448 +  109 +  109 +  303 +  448 +   = 1892  ->  20  ->  2 
- add elementals cleaved adds adds appearing repast
- 9 +  466 +  448 +  109 +  109 +  303 +  466 +   = 1910  ->  11  ->  2 
- ah elementals cleaved ash adds appearing repast
- 9 +  466 +  448 +  109 +  109 +  303 +  466 +   = 1910  ->  11  ->  2 
- ah elementals acceleration ash adds appearing elementals
- 9 +  466 +  457 +  109 +  109 +  303 +  466 +   = 1919  ->  20  ->  2 
- add cleaved cleaved case adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved case adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved cribe adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved cribe adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved cribe adds blessing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add acceleration cleaved adds adds appearing adoration
- 9 +  457 +  448 +  109 +  109 +  303 +  475 +   = 1910  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add devil acceleration breach adds appearing adoration
- 9 +  448 +  457 +  109 +  109 +  303 +  475 +   = 1910  ->  11  ->  2 
- add cleaved cleaved has adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds ash appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds ash appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved acceleration adds adds appearing adoration
- 9 +  448 +  457 +  109 +  109 +  303 +  475 +   = 1910  ->  11  ->  2 
- add cleaved acceleration adds adds appearing adoration
- 9 +  448 +  457 +  109 +  109 +  303 +  475 +   = 1910  ->  11  ->  2 
- add cleaved acceleration adds adds appearing adoration
- 9 +  448 +  457 +  109 +  109 +  303 +  475 +   = 1910  ->  11  ->  2 
- de cleaved acceleration adds adds appearing adoration
- 9 +  448 +  457 +  109 +  109 +  303 +  475 +   = 1910  ->  11  ->  2 
- de cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add cleaved cleaved adds adds appearing adoration
- 9 +  448 +  448 +  109 +  109 +  303 +  475 +   = 1901  ->  11  ->  2 
- add posited adoration adds adds approach adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add posited adoration cribe adds aub adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add posited adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add posited adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add posited fascinates adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add posited adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved adoration adds adds appearing adoration
- 9 +  448 +  475 +  109 +  109 +  303 +  475 +   = 1928  ->  20  ->  2 
- add cleaved clave adds adds sensing combination
- 9 +  448 +  439 +  109 +  109 +  321 +  484 +   = 1919  ->  20  ->  2 
- add deposited clave adds adds sensing combination
- 9 +  457 +  439 +  109 +  109 +  321 +  484 +   = 1928  ->  20  ->  2 
- say connnected clave adds adds appearing adoration
- 801 +  430 +  439 +  109 +  109 +  303 +  475 +   = 2666  ->  20  ->  2 
- allow annihilated clave carries comes foregoing control
- 621 +  367 +  439 +  298 +  208 +  294 +  493 +   = 2720  ->  11  ->  2 
- leave designated clave comes comes proceeding control
- 441 +  385 +  439 +  208 +  208 +  303 +  493 +   = 2477  ->  20  ->  2 
- have determined clave carries carries sleeping control
- 414 +  412 +  439 +  298 +  298 +  276 +  493 +   = 2630  ->  11  ->  2 
- come determined clave adds carries depicting seipent
- 108 +  412 +  439 +  109 +  298 +  357 +  439 +   = 2162  ->  11  ->  2 
- reify obsessed clave carries goes appearing adoration
- 810 +  376 +  439 +  298 +  172 +  303 +  475 +   = 2873  ->  20  ->  2 
- reify obsessed clave goes adds appearing adoration
- 810 +  376 +  439 +  172 +  109 +  303 +  475 +   = 2684  ->  20  ->  2 
- allow annihilated deposit comes comes sensing adoration
- 621 +  367 +  448 +  208 +  208 +  321 +  475 +   = 2648  ->  20  ->  2 
- say plicated clave comes carries foregoing acceleration
- 801 +  322 +  439 +  208 +  298 +  294 +  457 +   = 2819  ->  20  ->  2 
- say annihilated deposit comes comes sleeping clave
- 801 +  367 +  448 +  208 +  208 +  276 +  439 +   = 2747  ->  20  ->  2 
- say annihilated deposit comes goes sleeping clave
- 801 +  367 +  448 +  208 +  172 +  276 +  439 +   = 2711  ->  11  ->  2 
- say obsessed leister comes goes sleeping clave
- 801 +  376 +  439 +  208 +  172 +  276 +  439 +   = 2711  ->  11  ->  2 
- know earthed devil comes comes accepting deposit
- 630 +  313 +  448 +  208 +  208 +  348 +  448 +   = 2603  ->  11  ->  2 
- leave noticed sterile comes adds accepting deposit
- 441 +  331 +  439 +  208 +  109 +  348 +  448 +   = 2324  ->  11  ->  2 
- reify earthed clave adds comes seething clave
- 810 +  313 +  439 +  109 +  208 +  384 +  439 +   = 2702  ->  11  ->  2 
- say annihilated deposit carries comes sensing clave
- 801 +  367 +  448 +  298 +  208 +  321 +  439 +   = 2882  ->  20  ->  2 
- have annihilated deposit carries comes sensing clave
- 414 +  367 +  448 +  298 +  208 +  321 +  439 +   = 2495  ->  20  ->  2 
- leave annihilated deposit comes comes sensing clave
- 441 +  367 +  448 +  208 +  208 +  321 +  439 +   = 2432  ->  11  ->  2 
- say annihilated deposit says comes scorching clave
- 801 +  367 +  448 +  901 +  208 +  330 +  439 +   = 3494  ->  20  ->  2 
- say determined deposit comes comes sleeping clave
- 801 +  412 +  448 +  208 +  208 +  276 +  439 +   = 2792  ->  20  ->  2 
- say porated deposit comes comes sleeping clave
- 801 +  430 +  448 +  208 +  208 +  276 +  439 +   = 2810  ->  11  ->  2 
- say determined deposit goes carries sleeping leister
- 801 +  412 +  448 +  172 +  298 +  276 +  439 +   = 2846  ->  20  ->  2 
- say connnected posit carries carries sensing leister
- 801 +  430 +  439 +  298 +  298 +  321 +  439 +   = 3026  ->  11  ->  2 
- come connnected clave carries carries appearing leister
- 108 +  430 +  439 +  298 +  298 +  303 +  439 +   = 2315  ->  11  ->  2 
- allow obsessed clave comes carries scorching clave
- 621 +  376 +  439 +  208 +  298 +  330 +  439 +   = 2711  ->  11  ->  2 
- reify obsessed clave comes says scorching clave
- 810 +  376 +  439 +  208 +  901 +  330 +  439 +   = 3503  ->  11  ->  2 
- reify secreted repast comes carries scorching acceleration
- 810 +  412 +  466 +  208 +  298 +  330 +  457 +   = 2981  ->  20  ->  2 
- leave determined repast comes carries scorching acceleration
- 441 +  412 +  466 +  208 +  298 +  330 +  457 +   = 2612  ->  11  ->  2 
- leave determined adoration adds goes appearing clave
- 441 +  412 +  475 +  109 +  172 +  303 +  439 +   = 2351  ->  11  ->  2 
- allow prolonged clave goes goes sleeping adoration
- 621 +  376 +  439 +  172 +  172 +  276 +  475 +   = 2531  ->  11  ->  2 
- have cleaved sterile goes comes foregoing adoration
- 414 +  448 +  439 +  172 +  208 +  294 +  475 +   = 2450  ->  11  ->  2 
- leave cleaved clave carries says foregoing control
- 441 +  448 +  439 +  298 +  901 +  294 +  493 +   = 3314  ->  11  ->  2 
- come annihilated seipent comes says reforming leister
- 108 +  367 +  439 +  208 +  901 +  357 +  439 +   = 2819  ->  20  ->  2 
- have obtained clave comes carries depicting deposit
- 414 +  331 +  439 +  208 +  298 +  357 +  448 +   = 2495  ->  20  ->  2 
- leave noticed clave comes carries scorching clave
- 441 +  331 +  439 +  208 +  298 +  330 +  439 +   = 2486  ->  20  ->  2 
- allow earthed clave comes carries scorching deposit
- 621 +  313 +  439 +  208 +  298 +  330 +  448 +   = 2657  ->  20  ->  2 
- have plicated leister says comes depicting deposit
- 414 +  322 +  439 +  901 +  208 +  357 +  448 +   = 3089  ->  20  ->  2 
- say designated devil comes goes accepting rcv
- 801 +  385 +  448 +  208 +  172 +  348 +  493 +   = 2855  ->  20  ->  2 
- know cleaved clave goes adds accepting control
- 630 +  448 +  439 +  172 +  109 +  348 +  493 +   = 2639  ->  20  ->  2 
- leave obsessed posit adds says appearing clave
- 441 +  376 +  439 +  109 +  901 +  303 +  439 +   = 3008  ->  11  ->  2 
- leave obsessed clave adds says appearing clave
- 441 +  376 +  439 +  109 +  901 +  303 +  439 +   = 3008  ->  11  ->  2 
- leave annihilated clave adds adds scorching clave
- 441 +  367 +  439 +  109 +  109 +  330 +  439 +   = 2234  ->  11  ->  2 
- leave annihilated clave adds adds scorching clave
- 441 +  367 +  439 +  109 +  109 +  330 +  439 +   = 2234  ->  11  ->  2 
- leave annihilated clave adds adds scorching clave
- 441 +  367 +  439 +  109 +  109 +  330 +  439 +   = 2234  ->  11  ->  2 
- know annihilated clave has adds scorching clave
- 630 +  367 +  439 +  109 +  109 +  330 +  439 +   = 2423  ->  11  ->  2 
- say connnected clave comes comes accepting deposit
- 801 +  430 +  439 +  208 +  208 +  348 +  448 +   = 2882  ->  20  ->  2 
- say cleaved clave adds carries foregoing deposit
- 801 +  448 +  439 +  109 +  298 +  294 +  448 +   = 2837  ->  20  ->  2 
- say cleaved clave comes carries appearing deposit
- 801 +  448 +  439 +  208 +  298 +  303 +  448 +   = 2945  ->  20  ->  2 
- say connnected clave comes comes appearing deposit
- 801 +  430 +  439 +  208 +  208 +  303 +  448 +   = 2837  ->  20  ->  2 
- say cleaved clave adds says foregoing deposit
- 801 +  448 +  439 +  109 +  901 +  294 +  448 +   = 3440  ->  11  ->  2 
- leave cleaved clave adds says commencing deposit
- 441 +  448 +  439 +  109 +  901 +  267 +  448 +   = 3053  ->  11  ->  2 
- leave designated deposit adds adds reckoning deposit
- 441 +  385 +  448 +  109 +  109 +  294 +  448 +   = 2234  ->  11  ->  2 
- leave designated deposit carries adds foregoing deposit
- 441 +  385 +  448 +  298 +  109 +  294 +  448 +   = 2423  ->  11  ->  2 
- know annihilated acceleration comes goes depicting deposit
- 630 +  367 +  457 +  208 +  172 +  357 +  448 +   = 2639  ->  20  ->  2 
- say annihilated adoration adds says sleeping clave
- 801 +  367 +  475 +  109 +  901 +  276 +  439 +   = 3368  ->  20  ->  2 
- say determined adoration adds carries sensing clave
- 801 +  412 +  475 +  109 +  298 +  321 +  439 +   = 2855  ->  20  ->  2 
- come determined adoration goes adds appearing clave
- 108 +  412 +  475 +  172 +  109 +  303 +  439 +   = 2018  ->  11  ->  2 
- leave determined control carries adds foregoing clave
- 441 +  412 +  493 +  298 +  109 +  294 +  439 +   = 2486  ->  20  ->  2 
- reify obsessed combination goes adds appearing clave
- 810 +  376 +  484 +  172 +  109 +  303 +  439 +   = 2693  ->  20  ->  2 
- come obsessed rcv adds adds foregoing clave
- 108 +  376 +  493 +  109 +  109 +  294 +  439 +   = 1928  ->  20  ->  2 
- come earthed lemuria goes comes sensing clave
- 108 +  313 +  475 +  172 +  208 +  321 +  439 +   = 2036  ->  11  ->  2 
- come objectified lemuria goes goes appearing deposit
- 108 +  313 +  475 +  172 +  172 +  303 +  448 +   = 1991  ->  20  ->  2 
- come earthed combination goes goes appearing deposit
- 108 +  313 +  484 +  172 +  172 +  303 +  448 +   = 2000  ->  2 
+jake pii is a great jake
+ 36 +  88 +  109 +  1 +  303 +  36 +   = 573  ->  15  ->  6 
+ a pii is a great jake
+ 1 +  88 +  109 +  1 +  303 +  36 +   = 538  ->  16  ->  7 
+ a pii is a great pii
+ 1 +  88 +  109 +  1 +  303 +  88 +   = 590  ->  14  ->  5 
+ is pii is is great pii
+ 109 +  88 +  109 +  109 +  303 +  88 +   = 806  ->  14  ->  5 
+ is pii is pii great pii
+ 109 +  88 +  109 +  88 +  303 +  88 +   = 785  ->  20  ->  2 
+ is pii is is great pii
+ 109 +  88 +  109 +  109 +  303 +  88 +   = 806  ->  14  ->  5 
+ is pii pii is great pii
+ 109 +  88 +  88 +  109 +  303 +  88 +   = 785  ->  20  ->  2 
+ is pii pii pii great pii
+ 109 +  88 +  88 +  88 +  303 +  88 +   = 764  ->  17  ->  8 
+ pii pii pii pii great pii
+ 88 +  88 +  88 +  88 +  303 +  88 +   = 743  ->  14  ->  5 
+ choice biblical biblical choice appearing choice
+ 88 +  86 +  86 +  88 +  303 +  88 +   = 739  ->  19  ->  10  ->  1 
+ allied biblical biblical choice appearing choice
+ 79 +  86 +  86 +  88 +  303 +  88 +   = 730  ->  10  ->  1 
+ allied biblical agape bpahh appearing choice
+ 79 +  86 +  84 +  89 +  303 +  88 +   = 729  ->  18  ->  9 
+ allied biblical agape bpahh appearing choice
+ 79 +  86 +  84 +  89 +  303 +  88 +   = 729  ->  18  ->  9 
+ allied agape agape bpahh appearing allied
+ 79 +  84 +  84 +  89 +  303 +  79 +   = 718  ->  16  ->  7 
+ allied agape abiegni lo appearing allied
+ 79 +  84 +  83 +  90 +  303 +  79 +   = 718  ->  16  ->  7 
+ allied agape abiegni lo appearing allied
+ 79 +  84 +  83 +  90 +  303 +  79 +   = 718  ->  16  ->  7 
+ allied agape abiegni lo appearing allied
+ 79 +  84 +  83 +  90 +  303 +  79 +   = 718  ->  16  ->  7 
+ behind agape abiegni lo appearing allied
+ 78 +  84 +  83 +  90 +  303 +  79 +   = 717  ->  15  ->  6 
+ behind agape abiegni nahaka appearing allied
+ 78 +  84 +  83 +  81 +  303 +  79 +   = 708  ->  15  ->  6 
+ behind abiegni abiegni nahaka appearing allied
+ 78 +  83 +  83 +  81 +  303 +  79 +   = 707  ->  14  ->  5 
+ behind abiegni abiegni nahaka appearing allied
+ 78 +  83 +  83 +  81 +  303 +  79 +   = 707  ->  14  ->  5 
+ behind abiegni agape abode appearing allied
+ 78 +  83 +  84 +  72 +  303 +  79 +   = 699  ->  24  ->  6 
+ behind abiegni agape abode appearing allied
+ 78 +  83 +  84 +  72 +  303 +  79 +   = 699  ->  24  ->  6 
+ behind abiegni agape abode appearing behind
+ 78 +  83 +  84 +  72 +  303 +  78 +   = 698  ->  23  ->  5 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind acceding abiegni abode appearing behind
+ 78 +  82 +  83 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
+ behind acceding abiegni abode appearing behind
+ 78 +  82 +  83 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind abiegni abiegni abode appearing behind
+ 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
+ behind abiegni acceding abode appearing behind
+ 78 +  83 +  82 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
+ behind abiegni acceding abode appearing behind
+ 78 +  83 +  82 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank acceding abode appearing behind
+ 78 +  73 +  82 +  72 +  303 +  78 +   = 686  ->  20  ->  2 
+ behind bank acceding abode appearing behind
+ 78 +  73 +  82 +  72 +  303 +  78 +   = 686  ->  20  ->  2 
+ behind bank acceding abode appearing behind
+ 78 +  73 +  82 +  72 +  303 +  78 +   = 686  ->  20  ->  2 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank abiegni abode appearing behind
+ 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank agape abode appearing allied
+ 79 +  73 +  84 +  72 +  303 +  79 +   = 690  ->  15  ->  6 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank biblical chain appearing behind
+ 79 +  73 +  86 +  71 +  303 +  78 +   = 690  ->  15  ->  6 
+ allied bank abiegni chain appearing behind
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank abiegni chain appearing allied
+ 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ allied bank abiegni chain appearing allied
+ 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ allied bank abiegni chain appearing allied
+ 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ allied bank acceding chain appearing behind
+ 79 +  73 +  82 +  71 +  303 +  78 +   = 686  ->  20  ->  2 
+ allied bank acceding chain appearing allied
+ 79 +  73 +  82 +  71 +  303 +  79 +   = 687  ->  21  ->  3 
+ allied bank acceding chain appearing allied
+ 79 +  73 +  82 +  71 +  303 +  79 +   = 687  ->  21  ->  3 
+ allied bank abiegni china appearing behind
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank abiegni chain appearing gap
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank abiegni chain appearing behind
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied hell abiegni chain appearing behind
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank abiegni chain appearing behind
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank abiegni chain appearing behind
+ 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ behind bank abiegni abode appearing allied
+ 78 +  73 +  83 +  72 +  303 +  79 +   = 688  ->  22  ->  4 
+ behind bank abiegni chain appearing allied
+ 78 +  73 +  83 +  71 +  303 +  79 +   = 687  ->  21  ->  3 
+ behind bank acceding chain appearing allied
+ 78 +  73 +  82 +  71 +  303 +  79 +   = 686  ->  20  ->  2 
+ allied bank abiegni chain appearing allied
+ 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ allied bank abiegni chain appearing allied
+ 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ behind bidden abiegni chain appearing behind
+ 78 +  74 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ behind bank agape chain appearing allied
+ 78 +  73 +  84 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ behind bank agape chain appearing allied
+ 78 +  73 +  84 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank agape chain appearing allied
+ 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
+ allied bank abiegni chain appearing allied
+ 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
+ behind bank defined abode appearing allied
+ 78 +  73 +  83 +  72 +  303 +  79 +   = 688  ->  22  ->  4 
+ behind michad abiegni chain appearing again
+ 78 +  65 +  83 +  71 +  303 +  68 +   = 668  ->  20  ->  2 
+ allied michad abiegni chain appearing agni
+ 79 +  65 +  83 +  71 +  303 +  67 +   = 668  ->  20  ->  2 
+ behind agni chain chain appearing again
+ 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ behind agni chain chain appearing again
+ 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ behind agni chain chain appearing again
+ 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ behind agni chain chain appearing again
+ 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ behind agni chain chain appearing again
+ 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ behind agni chain chain appearing dangbe
+ 78 +  67 +  71 +  71 +  303 +  69 +   = 659  ->  20  ->  2 
+ behind dangbe chain chain appearing again
+ 78 +  69 +  71 +  71 +  303 +  68 +   = 660  ->  12  ->  3 
+ behind again chain chain appearing agni
+ 78 +  68 +  71 +  71 +  303 +  67 +   = 658  ->  19  ->  10  ->  1 
+ behind again chain chain appearing academic
+ 78 +  68 +  71 +  71 +  303 +  66 +   = 657  ->  18  ->  9 
+ behind again abode chain appearing academic
+ 78 +  68 +  72 +  71 +  303 +  66 +   = 658  ->  19  ->  10  ->  1 
+ behind again abode chain appearing academic
+ 78 +  68 +  72 +  71 +  303 +  66 +   = 658  ->  19  ->  10  ->  1 
+ behind again abode chain appearing academic
+ 78 +  68 +  72 +  71 +  303 +  66 +   = 658  ->  19  ->  10  ->  1 
+ allied bind chain chain appearing academic
+ 79 +  65 +  71 +  71 +  303 +  66 +   = 655  ->  16  ->  7 
+ behind ado chain chain appearing again
+ 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
+ behind ado chain chain appearing again
+ 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
+ behind ado chain chain appearing again
+ 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
+ allied ado chain chain appearing dagdagiel
+ 79 +  65 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
+ allied academic chain chain appearing agni
+ 79 +  66 +  71 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
+ behind academic chain chain appearing agni
+ 78 +  66 +  71 +  71 +  303 +  67 +   = 656  ->  17  ->  8 
+ canidia agni chain chain appearing agni
+ 77 +  67 +  71 +  71 +  303 +  67 +   = 656  ->  17  ->  8 
+ canidia agni chain chain appearing academic
+ 77 +  67 +  71 +  71 +  303 +  66 +   = 655  ->  16  ->  7 
+ canidia agni chain chain appearing academic
+ 77 +  67 +  71 +  71 +  303 +  66 +   = 655  ->  16  ->  7 
+ ape again chain chain appearing ado
+ 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
+ ape again chain chain appearing ado
+ 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
+ ape again chain chain appearing call
+ 76 +  68 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
+ ape again chain chain appearing call
+ 76 +  68 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
+ ape again chain chain appearing call
+ 76 +  68 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
+ ape again chain chain appearing ado
+ 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
+ ape again chain chain appearing ado
+ 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
+ canidia agni chain chain appearing call
+ 77 +  67 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
+ canidia agni hod chain appearing call
+ 77 +  67 +  72 +  71 +  303 +  64 +   = 654  ->  15  ->  6 
+ canidia agni hod chain appearing call
+ 77 +  67 +  72 +  71 +  303 +  64 +   = 654  ->  15  ->  6 
+ behind again chain chain appearing call
+ 78 +  68 +  71 +  71 +  303 +  64 +   = 655  ->  16  ->  7 
+ behind again chain chain appearing call
+ 78 +  68 +  71 +  71 +  303 +  64 +   = 655  ->  16  ->  7 
+ behind dangbe abode chain appearing make
+ 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
+ behind dangbe abode chain appearing academic
+ 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
+ behind dangbe abode chain appearing academic
+ 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
+ behind dangbe abode chain appearing academic
+ 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
+ behind agni chain chain appearing again
+ 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ behind agni chain chain appearing agni
+ 78 +  67 +  71 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
+ behind agni chain chain appearing agni
+ 78 +  67 +  71 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
+ cape agni chain chain appearing agni
+ 79 +  67 +  71 +  71 +  303 +  67 +   = 658  ->  19  ->  10  ->  1 
+ canidia agni abode imbibed located agni
+ 77 +  67 +  72 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
+ canidia alhik dog hence located odd
+ 77 +  68 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ canidia alhik dog hence located again
+ 77 +  68 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
+ canidia go abode abode located again
+ 77 +  67 +  72 +  72 +  303 +  68 +   = 659  ->  20  ->  2 
+ behind do dog chain appearing call
+ 78 +  64 +  71 +  71 +  303 +  64 +   = 651  ->  12  ->  3 
+ behind do chain chain appearing call
+ 78 +  64 +  71 +  71 +  303 +  64 +   = 651  ->  12  ->  3 
+ behind ado fell imbibed appearing again
+ 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
+ behind call abode chain appearing again
+ 78 +  64 +  72 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
+ neck label hind china blessing again
+ 78 +  68 +  71 +  71 +  303 +  68 +   = 659  ->  20  ->  2 
+ janice again chain gende traced again
+ 78 +  68 +  71 +  71 +  303 +  68 +   = 659  ->  20  ->  2 
+ janice again chain gende appearing agni
+ 78 +  68 +  71 +  71 +  303 +  67 +   = 658  ->  19  ->  10  ->  1 
+ ape label chain gende appearing dangbe
+ 76 +  68 +  71 +  71 +  303 +  69 +   = 658  ->  19  ->  10  ->  1 
+ gained label chain gende appearing again
+ 76 +  68 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
+ gained label chain gende appearing again
+ 76 +  68 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
+ gained label chain gende appearing again
+ 76 +  68 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
+ gained label chain chain appearing agni
+ 76 +  68 +  71 +  71 +  303 +  67 +   = 656  ->  17  ->  8 
+ cape of chain abode bast do
+ 79 +  66 +  71 +  72 +  303 +  64 +   = 655  ->  16  ->  7 
+ cape of abode hod approach call
+ 79 +  66 +  72 +  72 +  303 +  64 +   = 656  ->  17  ->  8 
+ behind label abode chain macgregor dence
+ 78 +  68 +  72 +  71 +  303 +  67 +   = 659  ->  20  ->  2 
+ behind label chain chain appearing again
+ 78 +  68 +  71 +  71 +  303 +  68 +   = 659  ->  20  ->  2 
+ behind gain chain chain appearing ado
+ 78 +  67 +  71 +  71 +  303 +  65 +   = 655  ->  16  ->  7 
+ camel alhik china calendar stic embodied
+ 79 +  68 +  71 +  184 +  312 +  129 +   = 843  ->  15  ->  6 
+ did kehkeh gende abrahadabra dragons clear
+ 17 +  66 +  71 +  201 +  312 +  129 +   = 796  ->  22  ->  4 
+ bebi kehkeh gende abrahadabra regions map
+ 18 +  66 +  71 +  201 +  321 +  111 +   = 788  ->  23  ->  5 
+ head began gende abrahadabra consider ark
+ 18 +  65 +  71 +  201 +  321 +  111 +   = 787  ->  22  ->  4 
+ bebi began gende abrahadabra consider ark
+ 18 +  65 +  71 +  201 +  321 +  111 +   = 787  ->  22  ->  4 
+ bebi began gende abrahadabra consider agreed
+ 18 +  65 +  71 +  201 +  321 +  112 +   = 788  ->  23  ->  5 
+ bebi began gende abrahadabra consider beads
+ 18 +  65 +  71 +  201 +  321 +  112 +   = 788  ->  23  ->  5 
+ bebi began gende major consider calendar
+ 18 +  65 +  71 +  201 +  321 +  184 +   = 860  ->  14  ->  5 
+ bebi began gende major consider calendar
+ 18 +  65 +  71 +  201 +  321 +  184 +   = 860  ->  14  ->  5 
+ added him fell abrahadabra immobile dappled
+ 18 +  57 +  71 +  201 +  195 +  184 +   = 726  ->  15  ->  6 
+ added him fell abrahadabra remain dappled
+ 18 +  57 +  71 +  201 +  195 +  184 +   = 726  ->  15  ->  6 
+ bebi him chain abrahadabra joining calendar
+ 18 +  57 +  71 +  201 +  195 +  184 +   = 726  ->  15  ->  6 
+ each himself chain pelling gested deeps
+ 17 +  198 +  71 +  201 +  321 +  184 +   = 992  ->  20  ->  2 
+ each speak abode sees regions phase
+ 17 +  196 +  72 +  210 +  321 +  184 +   = 1000  ->  1 
+ ah himself chain sees regions shall
+ 9 +  198 +  71 +  210 +  321 +  169 +   = 978  ->  24  ->  6 
  
