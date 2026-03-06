@@ -278,12 +278,25 @@ def generate_melody(melody, amplitude, sample_rate, duration_per_note=0.1, wavef
 
     chunks = []
     for note in notes:
-        freq = float(note)
+        note_duration = float(duration_per_note)
+        note_freq = note
+
+        if isinstance(note, dict):
+            note_freq = note.get("freq", note.get("frequency", 0.0))
+            if "duration" in note:
+                note_duration = float(note["duration"])
+        elif isinstance(note, (tuple, list)) and len(note) > 0:
+            note_freq = note[0]
+            if len(note) > 1:
+                note_duration = float(note[1])
+
+        note_duration = max(0.01, note_duration)
+        freq = float(note_freq)
         if freq <= 0:
-            sample_count = max(1, int(_sample_rate * duration_per_note))
+            sample_count = max(1, int(_sample_rate * note_duration))
             chunks.append(np.zeros(sample_count, dtype=np.float32))
             continue
-        raw_wave = _wave_from_freq(freq, duration_per_note, waveform)
+        raw_wave = _wave_from_freq(freq, note_duration, waveform)
         chunks.append(_build_wave(raw_wave, amplitude))
 
     _set_current_sound(np.concatenate(chunks))

@@ -736,7 +736,7 @@ class SanaVerkkoKontrolleri:
         self.audio_wave_index = (self.audio_wave_index + 1 + dynamic_offset) % len(self.audio_waveforms)
         return self.audio_waveforms[self.audio_wave_index]
 
-    def _word_melody_from_gematria(self, word_text):
+    def _word_melody_from_gematria(self, word_text, activation_value=0.0):
         letter_values = [gematria_table[letter] for letter in word_text if letter in gematria_table]
         if not letter_values:
             return []
@@ -744,12 +744,23 @@ class SanaVerkkoKontrolleri:
         total = sum(letter_values)
         base_freq = 120.0 + float(total % 540)
         pattern = []
+        max_activation = max(0.001, float(self.params.get("activation_limit", 2.0)))
+        activation_norm = min(1.0, max(0.0, abs(float(activation_value)) / max_activation))
 
         for index, value in enumerate(letter_values):
             step = (float(value) % 240.0) * 1.35
             direction = 1.0 if index % 2 == 0 else -1.0
             frequency = max(80.0, min(1400.0, base_freq + direction * step))
-            pattern.append(frequency)
+            if index == 0:
+                step_delta = abs(float(value) - float(letter_values[-1]))
+            else:
+                step_delta = abs(float(value) - float(letter_values[index - 1]))
+
+            pattern_norm = min(1.0, step_delta / 200.0)
+            base_duration = 0.07 + (1.0 - pattern_norm) * 0.08
+            duration = base_duration * (1.0 - 0.45 * activation_norm)
+            duration = min(0.2, max(0.03, duration))
+            pattern.append((frequency, duration))
 
         reflected = pattern + list(reversed(pattern))
         return reflected
@@ -757,7 +768,7 @@ class SanaVerkkoKontrolleri:
     def _sentence_melody(self):
         melody = []
         for word in self.words:
-            melody.extend(self._word_melody_from_gematria(word.word))
+            melody.extend(self._word_melody_from_gematria(word.word, activation_value=word.neuron.activation))
         return melody
 
     def updateAudio(self):
@@ -785,11 +796,11 @@ class SanaVerkkoKontrolleri:
         if not melody:
             return
 
-        signature = (tuple(word.word for word in self.words), waveform, len(melody))
+        activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
+        signature = (tuple(word.word for word in self.words), waveform, len(melody), activation_signature)
         if signature == self.last_audio_sentence_signature and self.audio_playing:
             return
 
-        note_duration = min(0.14, max(0.04, 0.1 - min(0.05, activation_spread / 8.0)))
         melody_amplitude = amplitude
         if waveform == "square":
             melody_amplitude = amplitude * 0.80
@@ -804,7 +815,7 @@ class SanaVerkkoKontrolleri:
             melody,
             melody_amplitude,
             self.audio_sample_rate,
-            duration_per_note=note_duration,
+            duration_per_note=0.09,
             waveform=waveform,
         )
 
