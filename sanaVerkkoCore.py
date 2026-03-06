@@ -7,6 +7,7 @@ import wx
 import threading
 import sys
 import os
+import json
 import sanasyna
 
 try:
@@ -261,6 +262,13 @@ class SanaVerkkoKontrolleri:
         self.import_db_button.Bind(wx.EVT_BUTTON, self.OnImportDatabaseFile)
         self.import_db_status = wx.StaticText(panel, -1, "")
 
+        self.preset_label = wx.StaticText(panel, -1, "Presets (.json)")
+        self.preset_save_button = wx.Button(panel, -1, "Save preset")
+        self.preset_save_button.Bind(wx.EVT_BUTTON, self.OnSavePreset)
+        self.preset_load_button = wx.Button(panel, -1, "Load preset")
+        self.preset_load_button.Bind(wx.EVT_BUTTON, self.OnLoadPreset)
+        self.preset_status = wx.StaticText(panel, -1, "")
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
@@ -332,6 +340,13 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.import_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.import_db_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.import_db_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+
+        preset_row = wx.BoxSizer(wx.HORIZONTAL)
+        preset_row.Add(self.preset_save_button, 0, wx.RIGHT, 5)
+        preset_row.Add(self.preset_load_button, 0)
+        self.sizer.Add(self.preset_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(preset_row, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.preset_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         panel.SetSizer(self.sizer)
         panel.FitInside()
@@ -969,6 +984,134 @@ class SanaVerkkoKontrolleri:
         except Exception as error:
             self.import_db_status.SetLabel(f"Import failed: {error}")
 
+    def _normalize_params(self):
+        self.params["set_weight_by_gematria"] = bool(self.params.get("set_weight_by_gematria", False))
+        self.params["use_pos_matching"] = bool(self.params.get("use_pos_matching", False))
+        self.params["fluid_root"] = bool(self.params.get("fluid_root", False))
+
+        self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
+        self.params["error"] = float(self.params.get("error", 0))
+        self.params["target"] = float(self.params.get("target", 0))
+        self.params["activation_increase"] = float(self.params.get("activation_increase", 0.0001))
+        self.params["activation_limit"] = float(self.params.get("activation_limit", 2))
+        self.params["sigmoid_scale"] = float(self.params.get("sigmoid_scale", 2))
+        self.params["word_change_threshold"] = float(self.params.get("word_change_threshold", 0.777))
+        self.params["zoom"] = max(0.001, float(self.params.get("zoom", 0.1)))
+        self.params["process_interval"] = max(0.01, float(self.params.get("process_interval", 0.08)))
+        self.params["logic_iteration_limit"] = max(1, int(float(self.params.get("logic_iteration_limit", 48))))
+        self.params["selection_exploration"] = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
+        self.params["selection_top_k"] = max(1, int(float(self.params.get("selection_top_k", 4))))
+        self.params["jump_probability"] = min(1.0, max(0.0, float(self.params.get("jump_probability", 0.08))))
+        self.params["jump_radius"] = max(0, int(float(self.params.get("jump_radius", 120))))
+
+        import_mode = str(self.params.get("import_mode", "append"))
+        if import_mode not in {"append", "replace"}:
+            import_mode = "append"
+        self.params["import_mode"] = import_mode
+
+        audio_wave_mode = str(self.params.get("audio_wave_mode", "dynamic"))
+        if audio_wave_mode not in {"dynamic", "pure_sine", "noise_heavy", "classic_analog"}:
+            audio_wave_mode = "dynamic"
+        self.params["audio_wave_mode"] = audio_wave_mode
+
+        self.params["adsr_attack"] = max(0.0, float(self.params.get("adsr_attack", 0.01)))
+        self.params["adsr_decay"] = max(0.0, float(self.params.get("adsr_decay", 0.04)))
+        self.params["adsr_sustain"] = min(1.0, max(0.0, float(self.params.get("adsr_sustain", 0.85))))
+        self.params["adsr_release"] = max(0.0, float(self.params.get("adsr_release", 0.03)))
+
+    def _sync_controls_from_params(self):
+        self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
+        self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
+        self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
+
+        self.learning_rate_ctrl.SetValue(str(self.params["learning_rate"]))
+        self.error_ctrl.SetValue(str(self.params["error"]))
+        self.activation_increase_ctrl.SetValue(str(self.params["activation_increase"]))
+        self.activation_limit_ctrl.SetValue(str(self.params["activation_limit"]))
+        self.sigmoid_scale_ctrl.SetValue(str(self.params["sigmoid_scale"]))
+        self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
+        self.zoom_ctrl.SetValue(str(self.params["zoom"]))
+        self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+        self.selection_exploration_ctrl.SetValue(str(self.params["selection_exploration"]))
+        self.selection_top_k_ctrl.SetValue(str(self.params["selection_top_k"]))
+        self.jump_probability_ctrl.SetValue(str(self.params["jump_probability"]))
+        self.jump_radius_ctrl.SetValue(str(self.params["jump_radius"]))
+
+        if self.params["audio_wave_mode"] == "pure_sine":
+            self.audio_wave_mode_choice.SetStringSelection("Pure sine")
+        elif self.params["audio_wave_mode"] == "noise_heavy":
+            self.audio_wave_mode_choice.SetStringSelection("Noise-heavy")
+        elif self.params["audio_wave_mode"] == "classic_analog":
+            self.audio_wave_mode_choice.SetStringSelection("Classic analog")
+        else:
+            self.audio_wave_mode_choice.SetStringSelection("Dynamic")
+
+        if self.params["import_mode"] == "replace":
+            self.import_mode_choice.SetStringSelection("Replace database")
+        else:
+            self.import_mode_choice.SetStringSelection("Append database")
+
+        self.adsr_attack_ctrl.SetValue(str(self.params["adsr_attack"]))
+        self.adsr_decay_ctrl.SetValue(str(self.params["adsr_decay"]))
+        self.adsr_sustain_ctrl.SetValue(str(self.params["adsr_sustain"]))
+        self.adsr_release_ctrl.SetValue(str(self.params["adsr_release"]))
+
+    def _apply_loaded_preset(self):
+        self._normalize_params()
+        self._sync_controls_from_params()
+        self._applyADSRToAudio()
+        self.makeWordCircle(self.words)
+        self.last_audio_sentence_signature = None
+
+    def OnSavePreset(self, event):
+        with wx.FileDialog(
+            self.frame,
+            "Save preset JSON",
+            wildcard="JSON files (*.json)|*.json|All files (*.*)|*.*",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            defaultFile="sanaverkko_preset.json",
+        ) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            selected_path = file_dialog.GetPath()
+
+        try:
+            self._normalize_params()
+            with open(selected_path, "w", encoding="utf-8") as outfile:
+                json.dump(self.params, outfile, ensure_ascii=False, indent=2)
+            self.preset_status.SetLabel(f"Preset saved: {os.path.basename(selected_path)}")
+        except Exception as error:
+            self.preset_status.SetLabel(f"Preset save failed: {error}")
+
+    def OnLoadPreset(self, event):
+        with wx.FileDialog(
+            self.frame,
+            "Load preset JSON",
+            wildcard="JSON files (*.json)|*.json|All files (*.*)|*.*",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        ) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            selected_path = file_dialog.GetPath()
+
+        try:
+            with open(selected_path, "r", encoding="utf-8") as infile:
+                loaded_data = json.load(infile)
+
+            if not isinstance(loaded_data, dict):
+                raise ValueError("Preset JSON must be an object")
+
+            for key, value in loaded_data.items():
+                if key in self.params:
+                    self.params[key] = value
+
+            self._apply_loaded_preset()
+            self.preset_status.SetLabel(f"Preset loaded: {os.path.basename(selected_path)}")
+        except Exception as error:
+            self.preset_status.SetLabel(f"Preset load failed: {error}")
+
     def addWordToNetwork(self, word_text):
         new_word = Word(word_text, 0, 0, (255, 255, 255), self)
 
@@ -1102,10 +1245,20 @@ class SanaVerkkoKontrolleri:
             word.word = refWord.word
             word.gematria = refWord.gematria
             word.neuron.word = refWord.word
+            word.neuron.gematria = refWord.gematria
             self._markReferenceIndexDirty()
             for connection in word.neuron.connections:
                 if self.params["set_weight_by_gematria"] == True:
-                    connection[1] = self.getGematriaDistance(word.gematria, connection[0].gematria)
+                    target_neuron = connection[0]
+                    target_gematria = getattr(target_neuron, "gematria", None)
+                    if target_gematria is None:
+                        target_word = getattr(target_neuron, "word", "")
+                        if isinstance(target_word, str) and target_word != "":
+                            target_gematria = get_gematria(target_word)
+                            target_neuron.gematria = target_gematria
+                        else:
+                            target_gematria = word.gematria
+                    connection[1] = self.getGematriaDistance(word.gematria, target_gematria)
             return old_word != word.word or old_gematria != word.gematria
 
     def iterateSentenceToLogic(self, max_iterations):
@@ -1473,6 +1626,7 @@ class Word:
         self.y = y
         self.neuron = Neuron(x, y, 20, color)
         self.neuron.word = word
+        self.neuron.gematria = self.gematria
         self.neuron.setController(controller)
 
     def getConnectedWordsLabel(self, max_words=4):

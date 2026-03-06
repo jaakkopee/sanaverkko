@@ -19,6 +19,7 @@ You can add words, import a text database, mutate words by gematria relations, a
 - Optional POS-aware word matching (toggle in UI)
 - Add words directly from UI
 - Import text files as reference database (append/replace mode)
+- JSON preset system (save/load from native file picker)
 - Clear current sentence/network words
 - Live result display in network view:
   - sentence,
@@ -48,6 +49,7 @@ You can add words, import a text database, mutate words by gematria relations, a
 - `sanasyna.py` – audio synthesis backend
 - `requirements.txt` – Python dependencies
 - `output.txt` – generated sentence/gematria output
+- `presets/` – example JSON presets from ordered to chaotic
 - sample text files (`input.txt`, `kalevala.txt`, etc.) for experimentation
 
 ## Requirements
@@ -122,6 +124,22 @@ The control window is adaptive and scrollable.
   - Append database
   - Replace database
 - **Import .txt**: load reference words from file
+
+### Preset controls
+- **Save preset**: save current parameters to a `.json` file
+- **Load preset**: load parameters from a `.json` file
+- Uses native file dialogs (same style as database import)
+
+## Preset system
+
+Presets serialize parameter values from the control window to JSON. Loading a preset updates the UI controls and applies the values immediately.
+
+Bundled presets in `presets/`:
+- `01_very_ordered.json` – highly stable, low exploration, no jumps
+- `02_ordered_balanced.json` – mostly ordered with light variation
+- `03_balanced_dynamic.json` – balanced default-style exploratory behavior
+- `04_exploratory.json` – wider search and faster mutation
+- `05_chaotic.json` – aggressive exploration/jumps and highly dynamic behavior
 
 ### Audio controls
 - **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
