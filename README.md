@@ -25,6 +25,10 @@ You can add words, import a text database, mutate words by gematria relations, a
   - gematria totals,
   - numerological reduction chain to digital root
 - Real-time synthesized audio (sounddevice backend)
+- Sentence melody synthesis from gematria patterns:
+  - each word is converted to a per-letter gematria note pattern,
+  - pattern is reflected on time axis,
+  - all word patterns are concatenated and played as one looping melody
 - Audio waveform modes:
   - Dynamic
   - Pure sine
@@ -32,6 +36,10 @@ You can add words, import a text database, mutate words by gematria relations, a
   - Classic analog
 - ADSR controls + graphical ADSR envelope display
 - Hybrid deterministic/random word selection (tunable exploration)
+- Jump search controls to escape local minima:
+  - Jump probability
+  - Jump radius
+  - Fluid root (on/off)
 - Separate output window showing `output.txt` updates live
 
 ## Repository layout
@@ -102,7 +110,10 @@ The control window is adaptive and scrollable.
 - Process interval (seconds)
 - Selection exploration (0-1)
 - Selection top-k
+- Jump probability (0-1)
+- Jump radius (gematria)
 - Use POS matching (checkbox)
+- Fluid root (checkbox)
 
 ### Word/database controls
 - **Add word(s)**: add one or many words (space-separated)
@@ -138,6 +149,10 @@ When sentence changes, app writes:
 - Candidate selection is hybrid:
   - deterministic best match by default,
   - with configurable exploration over top-ranked candidates.
+- Jump mode can broaden candidate search:
+  - `jump_probability` controls how often jump logic is used,
+  - `jump_radius` controls gematria-distance search radius,
+  - `fluid_root` controls whether jumps may cross digital roots.
 
 This prevents getting stuck in one fixed sentence while keeping transformations mostly logical.
 
