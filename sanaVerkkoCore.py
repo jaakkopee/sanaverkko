@@ -188,6 +188,7 @@ class SanaVerkkoKontrolleri:
         self.use_pos_matching_checkbox = wx.CheckBox(panel, -1, "Use POS matching")
         self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
         self.use_pos_matching_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUsePOSMatching)
+        self.pos_backend_status_label = wx.StaticText(panel, -1, "POS backend: heuristic")
 
         self.fluid_root_checkbox = wx.CheckBox(panel, -1, "Fluid root")
         self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
@@ -302,6 +303,7 @@ class SanaVerkkoKontrolleri:
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.pos_backend_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         self.sizer.Add(self.fluid_root_checkbox, 0, wx.ALL, 5)
 
         self.sizer.Add(self.learning_rate_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -401,6 +403,7 @@ class SanaVerkkoKontrolleri:
         self.frame.Show()
         self.setupOutputWindow()
         self._applyADSRToAudio()
+        self._updatePOSBackendStatusLabel(check_nltk=False)
 
     def setupOutputWindow(self):
         self.output_frame = wx.Frame(None, -1, "SanaVerkko Output", size=(760, 420))
@@ -469,6 +472,7 @@ class SanaVerkkoKontrolleri:
 
     def OnUsePOSMatching(self, event):
         self.params["use_pos_matching"] = self._is_pos_matching_enabled()
+        self._updatePOSBackendStatusLabel(check_nltk=self.params["use_pos_matching"])
 
     def OnFluidRoot(self, event):
         self.params["fluid_root"] = self._is_fluid_root_enabled()
@@ -491,18 +495,22 @@ class SanaVerkkoKontrolleri:
 
     def _ensure_nltk_pos_tagger(self):
         if nltk is None:
+            self._updatePOSBackendStatusLabel(check_nltk=False)
             return False
 
         if self.nltk_pos_ready:
+            self._updatePOSBackendStatusLabel(check_nltk=False)
             return True
 
         if self.nltk_pos_init_attempted:
+            self._updatePOSBackendStatusLabel(check_nltk=False)
             return False
 
         self.nltk_pos_init_attempted = True
         try:
             nltk.pos_tag(["word"])
             self.nltk_pos_ready = True
+            self._updatePOSBackendStatusLabel(check_nltk=False)
             return True
         except LookupError:
             for resource in ["averaged_perceptron_tagger_eng", "averaged_perceptron_tagger"]:
@@ -513,11 +521,35 @@ class SanaVerkkoKontrolleri:
             try:
                 nltk.pos_tag(["word"])
                 self.nltk_pos_ready = True
+                self._updatePOSBackendStatusLabel(check_nltk=False)
                 return True
             except Exception:
+                self._updatePOSBackendStatusLabel(check_nltk=False)
                 return False
         except Exception:
+            self._updatePOSBackendStatusLabel(check_nltk=False)
             return False
+
+    def _updatePOSBackendStatusLabel(self, check_nltk=False):
+        if not hasattr(self, "pos_backend_status_label") or self.pos_backend_status_label is None:
+            return
+
+        pos_enabled = self._is_pos_matching_enabled()
+        if not pos_enabled:
+            self.pos_backend_status_label.SetLabel("POS backend: disabled")
+            return
+
+        if check_nltk:
+            nltk_ready = self._ensure_nltk_pos_tagger()
+        else:
+            nltk_ready = bool(self.nltk_pos_ready)
+
+        if nltk_ready:
+            self.pos_backend_status_label.SetLabel("POS backend: NLTK")
+        elif nltk is None:
+            self.pos_backend_status_label.SetLabel("POS backend: heuristic (NLTK missing)")
+        else:
+            self.pos_backend_status_label.SetLabel("POS backend: heuristic (NLTK unavailable)")
 
     def _heuristic_pos_tag(self, word_text):
         text = word_text.lower()
@@ -1160,6 +1192,7 @@ class SanaVerkkoKontrolleri:
         self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
         self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
         self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
+        self._updatePOSBackendStatusLabel(check_nltk=False)
 
         self.learning_rate_ctrl.SetValue(str(self.params["learning_rate"]))
         self.error_ctrl.SetValue(str(self.params["error"]))
