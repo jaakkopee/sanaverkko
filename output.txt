@@ -1,321 +1,347 @@
-jake pii is a great jake
- 36 +  88 +  109 +  1 +  303 +  36 +   = 573  ->  15  ->  6 
- a pii is a great jake
- 1 +  88 +  109 +  1 +  303 +  36 +   = 538  ->  16  ->  7 
- a pii is a great pii
- 1 +  88 +  109 +  1 +  303 +  88 +   = 590  ->  14  ->  5 
- is pii is is great pii
- 109 +  88 +  109 +  109 +  303 +  88 +   = 806  ->  14  ->  5 
- is pii is pii great pii
- 109 +  88 +  109 +  88 +  303 +  88 +   = 785  ->  20  ->  2 
- is pii is is great pii
- 109 +  88 +  109 +  109 +  303 +  88 +   = 806  ->  14  ->  5 
- is pii pii is great pii
- 109 +  88 +  88 +  109 +  303 +  88 +   = 785  ->  20  ->  2 
- is pii pii pii great pii
- 109 +  88 +  88 +  88 +  303 +  88 +   = 764  ->  17  ->  8 
- pii pii pii pii great pii
- 88 +  88 +  88 +  88 +  303 +  88 +   = 743  ->  14  ->  5 
- choice biblical biblical choice appearing choice
- 88 +  86 +  86 +  88 +  303 +  88 +   = 739  ->  19  ->  10  ->  1 
- allied biblical biblical choice appearing choice
- 79 +  86 +  86 +  88 +  303 +  88 +   = 730  ->  10  ->  1 
- allied biblical agape bpahh appearing choice
- 79 +  86 +  84 +  89 +  303 +  88 +   = 729  ->  18  ->  9 
- allied biblical agape bpahh appearing choice
- 79 +  86 +  84 +  89 +  303 +  88 +   = 729  ->  18  ->  9 
- allied agape agape bpahh appearing allied
- 79 +  84 +  84 +  89 +  303 +  79 +   = 718  ->  16  ->  7 
- allied agape abiegni lo appearing allied
- 79 +  84 +  83 +  90 +  303 +  79 +   = 718  ->  16  ->  7 
- allied agape abiegni lo appearing allied
- 79 +  84 +  83 +  90 +  303 +  79 +   = 718  ->  16  ->  7 
- allied agape abiegni lo appearing allied
- 79 +  84 +  83 +  90 +  303 +  79 +   = 718  ->  16  ->  7 
- behind agape abiegni lo appearing allied
- 78 +  84 +  83 +  90 +  303 +  79 +   = 717  ->  15  ->  6 
- behind agape abiegni nahaka appearing allied
- 78 +  84 +  83 +  81 +  303 +  79 +   = 708  ->  15  ->  6 
- behind abiegni abiegni nahaka appearing allied
- 78 +  83 +  83 +  81 +  303 +  79 +   = 707  ->  14  ->  5 
- behind abiegni abiegni nahaka appearing allied
- 78 +  83 +  83 +  81 +  303 +  79 +   = 707  ->  14  ->  5 
- behind abiegni agape abode appearing allied
- 78 +  83 +  84 +  72 +  303 +  79 +   = 699  ->  24  ->  6 
- behind abiegni agape abode appearing allied
- 78 +  83 +  84 +  72 +  303 +  79 +   = 699  ->  24  ->  6 
- behind abiegni agape abode appearing behind
- 78 +  83 +  84 +  72 +  303 +  78 +   = 698  ->  23  ->  5 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind acceding abiegni abode appearing behind
- 78 +  82 +  83 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
- behind acceding abiegni abode appearing behind
- 78 +  82 +  83 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind abiegni abiegni abode appearing behind
- 78 +  83 +  83 +  72 +  303 +  78 +   = 697  ->  22  ->  4 
- behind abiegni acceding abode appearing behind
- 78 +  83 +  82 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
- behind abiegni acceding abode appearing behind
- 78 +  83 +  82 +  72 +  303 +  78 +   = 696  ->  21  ->  3 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank acceding abode appearing behind
- 78 +  73 +  82 +  72 +  303 +  78 +   = 686  ->  20  ->  2 
- behind bank acceding abode appearing behind
- 78 +  73 +  82 +  72 +  303 +  78 +   = 686  ->  20  ->  2 
- behind bank acceding abode appearing behind
- 78 +  73 +  82 +  72 +  303 +  78 +   = 686  ->  20  ->  2 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank abiegni abode appearing behind
- 78 +  73 +  83 +  72 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank agape abode appearing allied
- 79 +  73 +  84 +  72 +  303 +  79 +   = 690  ->  15  ->  6 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank biblical chain appearing behind
- 79 +  73 +  86 +  71 +  303 +  78 +   = 690  ->  15  ->  6 
- allied bank abiegni chain appearing behind
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank abiegni chain appearing allied
- 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- allied bank abiegni chain appearing allied
- 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- allied bank abiegni chain appearing allied
- 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- allied bank acceding chain appearing behind
- 79 +  73 +  82 +  71 +  303 +  78 +   = 686  ->  20  ->  2 
- allied bank acceding chain appearing allied
- 79 +  73 +  82 +  71 +  303 +  79 +   = 687  ->  21  ->  3 
- allied bank acceding chain appearing allied
- 79 +  73 +  82 +  71 +  303 +  79 +   = 687  ->  21  ->  3 
- allied bank abiegni china appearing behind
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank abiegni chain appearing gap
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank abiegni chain appearing behind
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied hell abiegni chain appearing behind
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank abiegni chain appearing behind
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank abiegni chain appearing behind
- 79 +  73 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- behind bank abiegni abode appearing allied
- 78 +  73 +  83 +  72 +  303 +  79 +   = 688  ->  22  ->  4 
- behind bank abiegni chain appearing allied
- 78 +  73 +  83 +  71 +  303 +  79 +   = 687  ->  21  ->  3 
- behind bank acceding chain appearing allied
- 78 +  73 +  82 +  71 +  303 +  79 +   = 686  ->  20  ->  2 
- allied bank abiegni chain appearing allied
- 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- allied bank abiegni chain appearing allied
- 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- behind bidden abiegni chain appearing behind
- 78 +  74 +  83 +  71 +  303 +  78 +   = 687  ->  21  ->  3 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- behind bank agape chain appearing allied
- 78 +  73 +  84 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- behind bank agape chain appearing allied
- 78 +  73 +  84 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank agape chain appearing allied
- 79 +  73 +  84 +  71 +  303 +  79 +   = 689  ->  23  ->  5 
- allied bank abiegni chain appearing allied
- 79 +  73 +  83 +  71 +  303 +  79 +   = 688  ->  22  ->  4 
- behind bank defined abode appearing allied
- 78 +  73 +  83 +  72 +  303 +  79 +   = 688  ->  22  ->  4 
- behind michad abiegni chain appearing again
- 78 +  65 +  83 +  71 +  303 +  68 +   = 668  ->  20  ->  2 
- allied michad abiegni chain appearing agni
- 79 +  65 +  83 +  71 +  303 +  67 +   = 668  ->  20  ->  2 
- behind agni chain chain appearing again
- 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- behind agni chain chain appearing again
- 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- behind agni chain chain appearing again
- 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- behind agni chain chain appearing again
- 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- behind agni chain chain appearing again
- 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- behind agni chain chain appearing dangbe
- 78 +  67 +  71 +  71 +  303 +  69 +   = 659  ->  20  ->  2 
- behind dangbe chain chain appearing again
- 78 +  69 +  71 +  71 +  303 +  68 +   = 660  ->  12  ->  3 
- behind again chain chain appearing agni
- 78 +  68 +  71 +  71 +  303 +  67 +   = 658  ->  19  ->  10  ->  1 
- behind again chain chain appearing academic
- 78 +  68 +  71 +  71 +  303 +  66 +   = 657  ->  18  ->  9 
- behind again abode chain appearing academic
- 78 +  68 +  72 +  71 +  303 +  66 +   = 658  ->  19  ->  10  ->  1 
- behind again abode chain appearing academic
- 78 +  68 +  72 +  71 +  303 +  66 +   = 658  ->  19  ->  10  ->  1 
- behind again abode chain appearing academic
- 78 +  68 +  72 +  71 +  303 +  66 +   = 658  ->  19  ->  10  ->  1 
- allied bind chain chain appearing academic
- 79 +  65 +  71 +  71 +  303 +  66 +   = 655  ->  16  ->  7 
- behind ado chain chain appearing again
- 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
- behind ado chain chain appearing again
- 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
- behind ado chain chain appearing again
- 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
- allied ado chain chain appearing dagdagiel
- 79 +  65 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
- allied academic chain chain appearing agni
- 79 +  66 +  71 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
- behind academic chain chain appearing agni
- 78 +  66 +  71 +  71 +  303 +  67 +   = 656  ->  17  ->  8 
- canidia agni chain chain appearing agni
- 77 +  67 +  71 +  71 +  303 +  67 +   = 656  ->  17  ->  8 
- canidia agni chain chain appearing academic
- 77 +  67 +  71 +  71 +  303 +  66 +   = 655  ->  16  ->  7 
- canidia agni chain chain appearing academic
- 77 +  67 +  71 +  71 +  303 +  66 +   = 655  ->  16  ->  7 
- ape again chain chain appearing ado
- 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
- ape again chain chain appearing ado
- 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
- ape again chain chain appearing call
- 76 +  68 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
- ape again chain chain appearing call
- 76 +  68 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
- ape again chain chain appearing call
- 76 +  68 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
- ape again chain chain appearing ado
- 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
- ape again chain chain appearing ado
- 76 +  68 +  71 +  71 +  303 +  65 +   = 654  ->  15  ->  6 
- canidia agni chain chain appearing call
- 77 +  67 +  71 +  71 +  303 +  64 +   = 653  ->  14  ->  5 
- canidia agni hod chain appearing call
- 77 +  67 +  72 +  71 +  303 +  64 +   = 654  ->  15  ->  6 
- canidia agni hod chain appearing call
- 77 +  67 +  72 +  71 +  303 +  64 +   = 654  ->  15  ->  6 
- behind again chain chain appearing call
- 78 +  68 +  71 +  71 +  303 +  64 +   = 655  ->  16  ->  7 
- behind again chain chain appearing call
- 78 +  68 +  71 +  71 +  303 +  64 +   = 655  ->  16  ->  7 
- behind dangbe abode chain appearing make
- 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
- behind dangbe abode chain appearing academic
- 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
- behind dangbe abode chain appearing academic
- 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
- behind dangbe abode chain appearing academic
- 78 +  69 +  72 +  71 +  303 +  66 +   = 659  ->  20  ->  2 
- behind agni chain chain appearing again
- 78 +  67 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- behind agni chain chain appearing agni
- 78 +  67 +  71 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
- behind agni chain chain appearing agni
- 78 +  67 +  71 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
- cape agni chain chain appearing agni
- 79 +  67 +  71 +  71 +  303 +  67 +   = 658  ->  19  ->  10  ->  1 
- canidia agni abode imbibed located agni
- 77 +  67 +  72 +  71 +  303 +  67 +   = 657  ->  18  ->  9 
- canidia alhik dog hence located odd
- 77 +  68 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- canidia alhik dog hence located again
- 77 +  68 +  71 +  71 +  303 +  68 +   = 658  ->  19  ->  10  ->  1 
- canidia go abode abode located again
- 77 +  67 +  72 +  72 +  303 +  68 +   = 659  ->  20  ->  2 
- behind do dog chain appearing call
- 78 +  64 +  71 +  71 +  303 +  64 +   = 651  ->  12  ->  3 
- behind do chain chain appearing call
- 78 +  64 +  71 +  71 +  303 +  64 +   = 651  ->  12  ->  3 
- behind ado fell imbibed appearing again
- 78 +  65 +  71 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
- behind call abode chain appearing again
- 78 +  64 +  72 +  71 +  303 +  68 +   = 656  ->  17  ->  8 
- neck label hind china blessing again
- 78 +  68 +  71 +  71 +  303 +  68 +   = 659  ->  20  ->  2 
- janice again chain gende traced again
- 78 +  68 +  71 +  71 +  303 +  68 +   = 659  ->  20  ->  2 
- janice again chain gende appearing agni
- 78 +  68 +  71 +  71 +  303 +  67 +   = 658  ->  19  ->  10  ->  1 
- ape label chain gende appearing dangbe
- 76 +  68 +  71 +  71 +  303 +  69 +   = 658  ->  19  ->  10  ->  1 
- gained label chain gende appearing again
- 76 +  68 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
- gained label chain gende appearing again
- 76 +  68 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
- gained label chain gende appearing again
- 76 +  68 +  71 +  71 +  303 +  68 +   = 657  ->  18  ->  9 
- gained label chain chain appearing agni
- 76 +  68 +  71 +  71 +  303 +  67 +   = 656  ->  17  ->  8 
- cape of chain abode bast do
- 79 +  66 +  71 +  72 +  303 +  64 +   = 655  ->  16  ->  7 
- cape of abode hod approach call
- 79 +  66 +  72 +  72 +  303 +  64 +   = 656  ->  17  ->  8 
- behind label abode chain macgregor dence
- 78 +  68 +  72 +  71 +  303 +  67 +   = 659  ->  20  ->  2 
- behind label chain chain appearing again
- 78 +  68 +  71 +  71 +  303 +  68 +   = 659  ->  20  ->  2 
- behind gain chain chain appearing ado
- 78 +  67 +  71 +  71 +  303 +  65 +   = 655  ->  16  ->  7 
- camel alhik china calendar stic embodied
- 79 +  68 +  71 +  184 +  312 +  129 +   = 843  ->  15  ->  6 
- did kehkeh gende abrahadabra dragons clear
- 17 +  66 +  71 +  201 +  312 +  129 +   = 796  ->  22  ->  4 
- bebi kehkeh gende abrahadabra regions map
- 18 +  66 +  71 +  201 +  321 +  111 +   = 788  ->  23  ->  5 
- head began gende abrahadabra consider ark
- 18 +  65 +  71 +  201 +  321 +  111 +   = 787  ->  22  ->  4 
- bebi began gende abrahadabra consider ark
- 18 +  65 +  71 +  201 +  321 +  111 +   = 787  ->  22  ->  4 
- bebi began gende abrahadabra consider agreed
- 18 +  65 +  71 +  201 +  321 +  112 +   = 788  ->  23  ->  5 
- bebi began gende abrahadabra consider beads
- 18 +  65 +  71 +  201 +  321 +  112 +   = 788  ->  23  ->  5 
- bebi began gende major consider calendar
- 18 +  65 +  71 +  201 +  321 +  184 +   = 860  ->  14  ->  5 
- bebi began gende major consider calendar
- 18 +  65 +  71 +  201 +  321 +  184 +   = 860  ->  14  ->  5 
- added him fell abrahadabra immobile dappled
- 18 +  57 +  71 +  201 +  195 +  184 +   = 726  ->  15  ->  6 
- added him fell abrahadabra remain dappled
- 18 +  57 +  71 +  201 +  195 +  184 +   = 726  ->  15  ->  6 
- bebi him chain abrahadabra joining calendar
- 18 +  57 +  71 +  201 +  195 +  184 +   = 726  ->  15  ->  6 
- each himself chain pelling gested deeps
- 17 +  198 +  71 +  201 +  321 +  184 +   = 992  ->  20  ->  2 
- each speak abode sees regions phase
- 17 +  196 +  72 +  210 +  321 +  184 +   = 1000  ->  1 
- ah himself chain sees regions shall
- 9 +  198 +  71 +  210 +  321 +  169 +   = 978  ->  24  ->  6 
+jake is acted cancer magus
+ 36 +  109 +  213 +  152 +  448 +   = 958  ->  22  ->  4 
+ jake is acted cancer cleaved
+ 36 +  109 +  213 +  152 +  448 +   = 958  ->  22  ->  4 
+ babal is acted cancer acceleration
+ 36 +  109 +  213 +  152 +  457 +   = 967  ->  22  ->  4 
+ babal adds acted cancer acceleration
+ 36 +  109 +  213 +  152 +  457 +   = 967  ->  22  ->  4 
+ headed adds acted cancer acceleration
+ 27 +  109 +  213 +  152 +  457 +   = 958  ->  22  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer cleaved
+ 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
+ added adds acted cancer clave
+ 18 +  109 +  213 +  152 +  439 +   = 931  ->  13  ->  4 
+ added adds acted cancer clave
+ 18 +  109 +  213 +  152 +  439 +   = 931  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds affairs accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds affairs accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds affairs accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord elementals
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add ash acted accord integers
+ 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
+ add adds acted accord acceleration
+ 9 +  109 +  213 +  161 +  457 +   = 949  ->  22  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord acceleration
+ 9 +  109 +  213 +  161 +  457 +   = 949  ->  22  ->  4 
+ add adds acted accord acceleration
+ 9 +  109 +  213 +  161 +  457 +   = 949  ->  22  ->  4 
+ add adds acted accord cleaved
+ 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ add adds acted accord clave
+ 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord cleaved
+ 18 +  109 +  213 +  161 +  448 +   = 949  ->  22  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ added adds acted accord clave
+ 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ achad adds acted accord clave
+ 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
+ achad adds acted accord alcister
+ 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
+ achad adds acted accord alcister
+ 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
+ achad adds acted accord alcister
+ 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
+ achad adds acted accord alcister
+ 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
+ added adds acted accord alcister
+ 18 +  109 +  213 +  161 +  438 +   = 939  ->  21  ->  3 
+ added adds acted accord connecting
+ 18 +  109 +  213 +  161 +  437 +   = 938  ->  20  ->  2 
+ added adds acted accord connecting
+ 18 +  109 +  213 +  161 +  437 +   = 938  ->  20  ->  2 
+ achad adds acted accord connecting
+ 17 +  109 +  213 +  161 +  437 +   = 937  ->  19  ->  10  ->  1 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds asherah accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ ad adds acted accord alcister
+ 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
+ be adds acted accord alcister
+ 7 +  109 +  213 +  161 +  438 +   = 928  ->  19  ->  10  ->  1 
+ be adds acted accord alcister
+ 7 +  109 +  213 +  161 +  438 +   = 928  ->  19  ->  10  ->  1 
+ baba adds acted accord alcister
+ 6 +  109 +  213 +  161 +  438 +   = 927  ->  18  ->  9 
+ baba adds acted accord alcister
+ 6 +  109 +  213 +  161 +  438 +   = 927  ->  18  ->  9 
+ ca adds acted accord connecting
+ 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
+ ca adds acted accord connecting
+ 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
+ ca adds acted accord connecting
+ 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
+ ca adds acted accord connecting
+ 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
+ ca adds acted accord connecting
+ 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
+ ca adds acted accord connecting
+ 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord khus
+ 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
+ bibha adds acted accord khus
+ 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
+ bibha adds acted accord khus
+ 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
+ bibha adds acted accord khus
+ 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
+ bibha adds acted accord khus
+ 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
+ bibha adds acted accord khus
+ 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
+ bibha adds acted accord crossing
+ 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
+ bibha adds acted accord beguiling
+ 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
+ al adds acted accord beguiling
+ 31 +  109 +  213 +  161 +  419 +   = 933  ->  15  ->  6 
+ bibha adds acted accord beguiling
+ 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
+ bibha adds acted accord beguiling
+ 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
+ bibha adds acted accord beguiling
+ 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
+ chief adds acted blinding khus
+ 31 +  109 +  213 +  161 +  428 +   = 942  ->  15  ->  6 
+ al adds acted accord khus
+ 31 +  109 +  213 +  161 +  428 +   = 942  ->  15  ->  6 
+ al adds acted accord khus
+ 31 +  109 +  213 +  161 +  428 +   = 942  ->  15  ->  6 
+ al adds acted accord connecting
+ 31 +  109 +  213 +  161 +  437 +   = 951  ->  15  ->  6 
+ al adds acted accord connecting
+ 31 +  109 +  213 +  161 +  437 +   = 951  ->  15  ->  6 
+ al adds acted accord connecting
+ 31 +  109 +  213 +  161 +  437 +   = 951  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+ bibha adds acted accord connecting
+ 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
  

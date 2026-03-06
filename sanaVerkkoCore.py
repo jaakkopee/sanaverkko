@@ -110,6 +110,7 @@ class SanaVerkkoKontrolleri:
         self.params["selection_top_k"] = 4
         self.params["jump_probability"] = 0.08
         self.params["jump_radius"] = 120
+        self.params["fluid_root"] = False
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
         self.params["adsr_attack"] = 0.01
@@ -169,6 +170,10 @@ class SanaVerkkoKontrolleri:
         self.use_pos_matching_checkbox = wx.CheckBox(panel, -1, "Use POS matching")
         self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
         self.use_pos_matching_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUsePOSMatching)
+
+        self.fluid_root_checkbox = wx.CheckBox(panel, -1, "Fluid root")
+        self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
+        self.fluid_root_checkbox.Bind(wx.EVT_CHECKBOX, self.OnFluidRoot)
 
         self.learning_rate_label = wx.StaticText(panel, -1, "Learning rate")
         self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]), style=wx.TE_PROCESS_ENTER)
@@ -259,6 +264,7 @@ class SanaVerkkoKontrolleri:
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.fluid_root_checkbox, 0, wx.ALL, 5)
 
         self.sizer.Add(self.learning_rate_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.learning_rate_ctrl, 0, wx.ALL, 5)
@@ -402,6 +408,9 @@ class SanaVerkkoKontrolleri:
     def OnUsePOSMatching(self, event):
         self.params["use_pos_matching"] = self._is_pos_matching_enabled()
 
+    def OnFluidRoot(self, event):
+        self.params["fluid_root"] = self._is_fluid_root_enabled()
+
     def _is_pos_matching_enabled(self):
         try:
             if hasattr(self, "use_pos_matching_checkbox") and self.use_pos_matching_checkbox is not None:
@@ -409,6 +418,14 @@ class SanaVerkkoKontrolleri:
         except Exception:
             pass
         return bool(self.params.get("use_pos_matching", False))
+
+    def _is_fluid_root_enabled(self):
+        try:
+            if hasattr(self, "fluid_root_checkbox") and self.fluid_root_checkbox is not None:
+                return bool(self.fluid_root_checkbox.GetValue())
+        except Exception:
+            pass
+        return bool(self.params.get("fluid_root", False))
 
     def _ensure_nltk_pos_tagger(self):
         if nltk is None:
@@ -858,7 +875,9 @@ class SanaVerkkoKontrolleri:
 
         if force_jump and len(ranked_candidates) > 1:
             jump_span = min(len(ranked_candidates), max(6, top_k * 3))
-            jump_pool = ranked_candidates[1:jump_span]
+            jump_pool = [candidate for candidate in ranked_candidates[1:jump_span] if candidate.word != source_word.word]
+            if not jump_pool:
+                jump_pool = [candidate for candidate in ranked_candidates if candidate.word != source_word.word]
             if jump_pool:
                 return random.choice(jump_pool)
 
@@ -994,6 +1013,7 @@ class SanaVerkkoKontrolleri:
         jump_probability = min(1.0, max(0.0, float(self.params.get("jump_probability", 0.08))))
         jump_radius = max(0, int(self.params.get("jump_radius", 120)))
         should_jump = random.random() < jump_probability
+        fluid_root_enabled = self._is_fluid_root_enabled()
 
         if should_jump:
             gematria_keys = list(index["gematria"].keys())
@@ -1001,14 +1021,30 @@ class SanaVerkkoKontrolleri:
                 nearest_keys = sorted(gematria_keys, key=lambda key: abs(key - source_gematria))
                 max_jump_buckets = max(6, int(self.params.get("selection_top_k", 4)) * 3)
 
-                selected_keys = [key for key in nearest_keys if abs(key - source_gematria) <= jump_radius][:max_jump_buckets]
+                selected_keys = [key for key in nearest_keys if abs(key - source_gematria) <= jump_radius]
+                if not fluid_root_enabled:
+                    selected_keys = [key for key in selected_keys if digital_root(key) == source_root]
+
+                selected_keys = selected_keys[:max_jump_buckets]
                 if not selected_keys:
-                    selected_keys = nearest_keys[:max_jump_buckets]
+                    fallback_keys = nearest_keys
+                    if not fluid_root_enabled:
+                        fallback_keys = [key for key in fallback_keys if digital_root(key) == source_root]
+                    selected_keys = fallback_keys[:max_jump_buckets]
 
                 for key in selected_keys:
                     _add_candidates(index["gematria"].get(key, []))
 
         candidates = list(candidate_map.values())
+
+        if should_jump and not fluid_root_enabled:
+            has_same_root_alternative = any(
+                candidate.word != word.word and digital_root(candidate.gematria) == source_root
+                for candidate in candidates
+            )
+            if not has_same_root_alternative:
+                should_jump = False
+
         return self._selectBestReference(word, candidates, force_jump=should_jump)
         
     def changeWord(self, word, referenceWords):
