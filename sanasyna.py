@@ -264,7 +264,7 @@ def _direction_profile(base_motion, voice_count):
 
 
 def _spread_intervals(voice_count, spread):
-    spread = max(0.3, min(2.0, float(spread)))
+    spread = max(0.3, min(5.0, float(spread)))
     if voice_count == 1:
         semitone_offsets = [0.0]
     elif voice_count == 2:
@@ -305,7 +305,7 @@ def _build_counterpoint_voices(base_notes, voice_count=1, voice_spread=1.0):
             base_motion = 1 if base_freq > prev_base_freq else (-1 if base_freq < prev_base_freq else 0)
 
         semitone_step = abs(_semitone_distance(prev_base_freq, base_freq))
-        spread = max(0.3, min(2.0, float(voice_spread)))
+        spread = max(0.3, min(5.0, float(voice_spread)))
         semitone_step = max(1, min(7, semitone_step)) if base_motion != 0 else 0
         semitone_step = max(1, int(round(semitone_step * (0.85 + 0.35 * spread)))) if semitone_step > 0 else 0
 

@@ -726,7 +726,7 @@ class SanaVerkkoKontrolleri:
     def OnVoiceSpread(self, event):
         value = self._readFloat(self.voice_spread_ctrl)
         if value is not None:
-            self.params["voice_spread"] = min(2.0, max(0.3, value))
+            self.params["voice_spread"] = min(5.0, max(0.3, value))
             self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
         else:
             self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
@@ -1148,7 +1148,7 @@ class SanaVerkkoKontrolleri:
             audio_wave_mode = "dynamic"
         self.params["audio_wave_mode"] = audio_wave_mode
         self.params["voice_count"] = max(1, min(4, int(float(self.params.get("voice_count", 1)))))
-        self.params["voice_spread"] = min(2.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
+        self.params["voice_spread"] = min(5.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
         self.params["melody_speed"] = min(4.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
 
         self.params["adsr_attack"] = max(0.0, float(self.params.get("adsr_attack", 0.01)))
