@@ -141,6 +141,8 @@ Bundled presets in `presets/`:
 - `04_exploratory.json` – wider search and faster mutation
 - `05_chaotic.json` – aggressive exploration/jumps and highly dynamic behavior
 
+Preset scale is intended to move from conservative/consistent behavior to highly exploratory/chaotic behavior.
+
 ### Audio controls
 - **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
 - **ADSR envelope**:
@@ -174,6 +176,12 @@ When sentence changes, app writes:
 
 This prevents getting stuck in one fixed sentence while keeping transformations mostly logical.
 
+## Parameter commit behavior
+
+- Numeric text controls are **explicit commit** controls.
+- New values are applied when you press **Enter** in that field.
+- Invalid text is reverted to the last valid committed value.
+
 ## Troubleshooting
 
 ### No sound
@@ -191,6 +199,10 @@ Only words composed of letters in the gematria table are accepted (`a-z`, `å`, 
 ### POS behavior
 - If `nltk` tagger data is available, POS matching uses it.
 - If not, app falls back to an internal heuristic POS tagger.
+
+### Gematria weight crash (`Neuron` has no `gematria`)
+- The connection-weight update path now stores gematria on neuron objects and includes a safe fallback.
+- If you still see this error in an old run, restart the app to ensure the latest code is loaded.
 
 ## Notes
 
