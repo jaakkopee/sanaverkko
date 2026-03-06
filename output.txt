@@ -1,347 +1,163 @@
-jake is acted cancer magus
- 36 +  109 +  213 +  152 +  448 +   = 958  ->  22  ->  4 
- jake is acted cancer cleaved
- 36 +  109 +  213 +  152 +  448 +   = 958  ->  22  ->  4 
- babal is acted cancer acceleration
- 36 +  109 +  213 +  152 +  457 +   = 967  ->  22  ->  4 
- babal adds acted cancer acceleration
- 36 +  109 +  213 +  152 +  457 +   = 967  ->  22  ->  4 
- headed adds acted cancer acceleration
- 27 +  109 +  213 +  152 +  457 +   = 958  ->  22  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer cleaved
- 18 +  109 +  213 +  152 +  448 +   = 940  ->  13  ->  4 
- added adds acted cancer clave
- 18 +  109 +  213 +  152 +  439 +   = 931  ->  13  ->  4 
- added adds acted cancer clave
- 18 +  109 +  213 +  152 +  439 +   = 931  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds affairs accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds affairs accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds affairs accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord elementals
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add ash acted accord integers
- 9 +  109 +  213 +  161 +  466 +   = 958  ->  22  ->  4 
- add adds acted accord acceleration
- 9 +  109 +  213 +  161 +  457 +   = 949  ->  22  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord acceleration
- 9 +  109 +  213 +  161 +  457 +   = 949  ->  22  ->  4 
- add adds acted accord acceleration
- 9 +  109 +  213 +  161 +  457 +   = 949  ->  22  ->  4 
- add adds acted accord cleaved
- 9 +  109 +  213 +  161 +  448 +   = 940  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- add adds acted accord clave
- 9 +  109 +  213 +  161 +  439 +   = 931  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord cleaved
- 18 +  109 +  213 +  161 +  448 +   = 949  ->  22  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- added adds acted accord clave
- 18 +  109 +  213 +  161 +  439 +   = 940  ->  13  ->  4 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- achad adds acted accord clave
- 17 +  109 +  213 +  161 +  439 +   = 939  ->  21  ->  3 
- achad adds acted accord alcister
- 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
- achad adds acted accord alcister
- 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
- achad adds acted accord alcister
- 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
- achad adds acted accord alcister
- 17 +  109 +  213 +  161 +  438 +   = 938  ->  20  ->  2 
- added adds acted accord alcister
- 18 +  109 +  213 +  161 +  438 +   = 939  ->  21  ->  3 
- added adds acted accord connecting
- 18 +  109 +  213 +  161 +  437 +   = 938  ->  20  ->  2 
- added adds acted accord connecting
- 18 +  109 +  213 +  161 +  437 +   = 938  ->  20  ->  2 
- achad adds acted accord connecting
- 17 +  109 +  213 +  161 +  437 +   = 937  ->  19  ->  10  ->  1 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds asherah accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- ad adds acted accord alcister
- 5 +  109 +  213 +  161 +  438 +   = 926  ->  17  ->  8 
- be adds acted accord alcister
- 7 +  109 +  213 +  161 +  438 +   = 928  ->  19  ->  10  ->  1 
- be adds acted accord alcister
- 7 +  109 +  213 +  161 +  438 +   = 928  ->  19  ->  10  ->  1 
- baba adds acted accord alcister
- 6 +  109 +  213 +  161 +  438 +   = 927  ->  18  ->  9 
- baba adds acted accord alcister
- 6 +  109 +  213 +  161 +  438 +   = 927  ->  18  ->  9 
- ca adds acted accord connecting
- 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
- ca adds acted accord connecting
- 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
- ca adds acted accord connecting
- 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
- ca adds acted accord connecting
- 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
- ca adds acted accord connecting
- 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
- ca adds acted accord connecting
- 4 +  109 +  213 +  161 +  437 +   = 924  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord khus
- 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
- bibha adds acted accord khus
- 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
- bibha adds acted accord khus
- 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
- bibha adds acted accord khus
- 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
- bibha adds acted accord khus
- 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
- bibha adds acted accord khus
- 22 +  109 +  213 +  161 +  428 +   = 933  ->  15  ->  6 
- bibha adds acted accord crossing
- 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
- bibha adds acted accord beguiling
- 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
- al adds acted accord beguiling
- 31 +  109 +  213 +  161 +  419 +   = 933  ->  15  ->  6 
- bibha adds acted accord beguiling
- 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
- bibha adds acted accord beguiling
- 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
- bibha adds acted accord beguiling
- 22 +  109 +  213 +  161 +  419 +   = 924  ->  15  ->  6 
- chief adds acted blinding khus
- 31 +  109 +  213 +  161 +  428 +   = 942  ->  15  ->  6 
- al adds acted accord khus
- 31 +  109 +  213 +  161 +  428 +   = 942  ->  15  ->  6 
- al adds acted accord khus
- 31 +  109 +  213 +  161 +  428 +   = 942  ->  15  ->  6 
- al adds acted accord connecting
- 31 +  109 +  213 +  161 +  437 +   = 951  ->  15  ->  6 
- al adds acted accord connecting
- 31 +  109 +  213 +  161 +  437 +   = 951  ->  15  ->  6 
- al adds acted accord connecting
- 31 +  109 +  213 +  161 +  437 +   = 951  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
- bibha adds acted accord connecting
- 22 +  109 +  213 +  161 +  437 +   = 942  ->  15  ->  6 
+acted abraham devil band abandonment haaga
+ 213 +  143 +  448 +  57 +  463 +  18 +   = 1342  ->  10  ->  1 
+ acted abraham devil band abandonment acacia
+ 213 +  143 +  448 +  57 +  463 +  18 +   = 1342  ->  10  ->  1 
+ acted abraham cattle band abandonment acacia
+ 213 +  143 +  439 +  57 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted abraham cattle band abandonment acacia
+ 213 +  143 +  439 +  57 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted abraham cattle band abandonment acacia
+ 213 +  143 +  439 +  57 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted abraham cattle band abandonment acacia
+ 213 +  143 +  439 +  57 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted affirm cattle acle abandonment acacia
+ 213 +  152 +  439 +  39 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted affirm cattle acle abandonment acacia
+ 213 +  152 +  439 +  39 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm notifies alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted affirm cattle alice abandonment acacia
+ 213 +  152 +  439 +  48 +  463 +  18 +   = 1333  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment acacia
+ 213 +  143 +  439 +  48 +  463 +  18 +   = 1324  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted coincide cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment add
+ 213 +  143 +  439 +  48 +  463 +  9 +   = 1315  ->  10  ->  1 
+ acted abraham cattle alice abandonment af
+ 213 +  143 +  439 +  48 +  463 +  7 +   = 1313  ->  8 
+ acted abraham cattle alice abandonment af
+ 213 +  143 +  439 +  48 +  463 +  7 +   = 1313  ->  8 
+ acted abraham cattle alice abandonment af
+ 213 +  143 +  439 +  48 +  463 +  7 +   = 1313  ->  8 
+ acted abraham cattle alice abandonment af
+ 213 +  143 +  439 +  48 +  463 +  7 +   = 1313  ->  8 
+ acted abraham cattle alice abandonment af
+ 213 +  143 +  439 +  48 +  463 +  7 +   = 1313  ->  8 
+ acted basil cattle alice abandonment af
+ 213 +  142 +  439 +  48 +  463 +  7 +   = 1312  ->  7 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge band aspired extent blood binah affairs alliances
+ 134 +  685 +  57 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2883  ->  21  ->  3 
+ amenable acknowledge band aspired extent blood binah affairs alliances
+ 134 +  685 +  57 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2883  ->  21  ->  3 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge and aspired extent blood binah affairs alliances
+ 134 +  685 +  55 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ amenable acknowledge amid aspired extent blood binah affairs alliances
+ 134 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2880  ->  18  ->  9 
+ amenable acknowledge amid aspired extent blood binah affairs alliances
+ 134 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2880  ->  18  ->  9 
+ amenable acknowledge amid aspired extent blood binah affairs alliances
+ 134 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2880  ->  18  ->  9 
+ amenable acknowledge amid aspired extent blood binah affairs alliances
+ 134 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2880  ->  18  ->  9 
+ cakkra acknowledge amid aspired extent blood binah affairs alliances
+ 135 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ cakkra acknowledge amid aspired extent blood binah affairs alliances
+ 135 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ cakkra acknowledge amid aspired extent blood binah affairs alliances
+ 135 +  685 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2881  ->  19  ->  10  ->  1 
+ cakkra lovers amid despair surrounding blood bill affairs alliances
+ 135 +  685 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2882  ->  20  ->  2 
+ cakkra rivers amid despair surrounding for bill clasped ascending
+ 135 +  694 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2891  ->  20  ->  2 
+ cakkra possibilities amid despair surrounding for bill clasped ascending
+ 135 +  703 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2900  ->  11  ->  2 
+ cakkra crown amid clansmen you for bill clasped ascending
+ 135 +  703 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2900  ->  11  ->  2 
+ cakkra crown can clansmen you blood bill clasped ascending
+ 135 +  703 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2900  ->  11  ->  2 
+ coffin transforming beheld clansmen olympians blood bill clasped coherence
+ 134 +  703 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2899  ->  28  ->  10  ->  1 
+ cakkra possibilities beheld clansmen olympians blood bill clasped brilliance
+ 135 +  703 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2900  ->  11  ->  2 
+ cakkra possibilities beheld clansmen olympians blood bill clasped brilliance
+ 135 +  703 +  54 +  279 +  1060 +  156 +  71 +  213 +  229 +   = 2900  ->  11  ->  2 
+ cakkra possibilities beheld clansmen olympians blood binah clasped brilliance
+ 135 +  703 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2899  ->  28  ->  10  ->  1 
+ cakkra possibilities beheld clansmen olympians blood binah clasped brilliance
+ 135 +  703 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2899  ->  28  ->  10  ->  1 
+ cakkra crown beheld despair olympians blood binah clasped brilliance
+ 135 +  703 +  54 +  279 +  1060 +  156 +  70 +  213 +  229 +   = 2899  ->  28  ->  10  ->  1 
+ les transforming beheld despair instructs blood binah clasped brilliance
+ 135 +  703 +  54 +  279 +  1052 +  156 +  70 +  213 +  229 +   = 2891  ->  20  ->  2 
+ les crown beheld despair instructs blood binah clasped brilliance
+ 135 +  703 +  54 +  279 +  1052 +  156 +  70 +  213 +  229 +   = 2891  ->  20  ->  2 
+ les crown can despair instructs blood binah clasped brilliance
+ 135 +  703 +  54 +  279 +  1052 +  156 +  70 +  213 +  229 +   = 2891  ->  20  ->  2 
  

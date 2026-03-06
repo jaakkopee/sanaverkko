@@ -702,7 +702,48 @@ class SanaVerkkoKontrolleri:
         self.audio_playing = False
         self.audio_wave_index = 0
         self.audio_waveforms = ["sine", "triangle", "square", "sawtooth", "noise"]
+        self.last_audio_sentence_signature = None
         sanasyna.init_audio(self.audio_sample_rate)
+
+    def _waveform_from_mode(self, mode, signed_activation=0.0, activation_spread=0.0):
+        if mode == "pure_sine":
+            return "sine"
+        if mode == "noise_heavy":
+            noise_heavy_waves = ["noise", "square", "noise", "triangle", "noise", "sawtooth"]
+            self.audio_wave_index = (self.audio_wave_index + 1) % len(noise_heavy_waves)
+            return noise_heavy_waves[self.audio_wave_index]
+        if mode == "classic_analog":
+            classic_waves = ["triangle", "sawtooth", "triangle", "square", "sawtooth"]
+            self.audio_wave_index = (self.audio_wave_index + 1) % len(classic_waves)
+            return classic_waves[self.audio_wave_index]
+
+        dynamic_offset = int((abs(signed_activation) + activation_spread) * 10)
+        self.audio_wave_index = (self.audio_wave_index + 1 + dynamic_offset) % len(self.audio_waveforms)
+        return self.audio_waveforms[self.audio_wave_index]
+
+    def _word_melody_from_gematria(self, word_text):
+        letter_values = [gematria_table[letter] for letter in word_text if letter in gematria_table]
+        if not letter_values:
+            return []
+
+        total = sum(letter_values)
+        base_freq = 120.0 + float(total % 540)
+        pattern = []
+
+        for index, value in enumerate(letter_values):
+            step = (float(value) % 240.0) * 1.35
+            direction = 1.0 if index % 2 == 0 else -1.0
+            frequency = max(80.0, min(1400.0, base_freq + direction * step))
+            pattern.append(frequency)
+
+        reflected = pattern + list(reversed(pattern))
+        return reflected
+
+    def _sentence_melody(self):
+        melody = []
+        for word in self.words:
+            melody.extend(self._word_melody_from_gematria(word.word))
+        return melody
 
     def updateAudio(self):
         now = time.time()
@@ -711,46 +752,50 @@ class SanaVerkkoKontrolleri:
         self.last_audio_update = now
 
         if len(self.words) == 0:
+            if self.audio_playing:
+                sanasyna.stop()
+                self.audio_playing = False
+                self.last_audio_sentence_signature = None
             return
 
         average_activation = sum(abs(word.neuron.activation) for word in self.words) / len(self.words)
         signed_activation = sum(word.neuron.activation for word in self.words) / len(self.words)
-        gematria_total = sum(word.gematria for word in self.words)
-        frequency = 110 + (gematria_total % 770)
         amplitude = min(0.25, max(0.05, average_activation / 10))
 
         activation_spread = sum(abs(word.neuron.activation - signed_activation) for word in self.words) / len(self.words)
         mode = self.params.get("audio_wave_mode", "dynamic")
 
-        if mode == "pure_sine":
-            waveform = "sine"
-        elif mode == "noise_heavy":
-            noise_heavy_waves = ["noise", "square", "noise", "triangle", "noise", "sawtooth"]
-            self.audio_wave_index = (self.audio_wave_index + 1) % len(noise_heavy_waves)
-            waveform = noise_heavy_waves[self.audio_wave_index]
-        elif mode == "classic_analog":
-            classic_waves = ["triangle", "sawtooth", "triangle", "square", "sawtooth"]
-            self.audio_wave_index = (self.audio_wave_index + 1) % len(classic_waves)
-            waveform = classic_waves[self.audio_wave_index]
-        else:
-            dynamic_offset = int((abs(signed_activation) + activation_spread) * 10)
-            self.audio_wave_index = (self.audio_wave_index + 1 + dynamic_offset) % len(self.audio_waveforms)
-            waveform = self.audio_waveforms[self.audio_wave_index]
+        waveform = self._waveform_from_mode(mode, signed_activation=signed_activation, activation_spread=activation_spread)
+        melody = self._sentence_melody()
+        if not melody:
+            return
 
-        if waveform == "triangle":
-            sanasyna.generate_triangle_wave(frequency, amplitude * 0.95, self.audio_sample_rate)
-        elif waveform == "square":
-            sanasyna.generate_square_wave(frequency, amplitude * 0.80, self.audio_sample_rate)
+        signature = (tuple(word.word for word in self.words), waveform, len(melody))
+        if signature == self.last_audio_sentence_signature and self.audio_playing:
+            return
+
+        note_duration = min(0.14, max(0.04, 0.1 - min(0.05, activation_spread / 8.0)))
+        melody_amplitude = amplitude
+        if waveform == "square":
+            melody_amplitude = amplitude * 0.80
         elif waveform == "sawtooth":
-            sanasyna.generate_sawtooth_wave(frequency, amplitude * 0.85, self.audio_sample_rate)
+            melody_amplitude = amplitude * 0.85
+        elif waveform == "triangle":
+            melody_amplitude = amplitude * 0.95
         elif waveform == "noise":
-            noise_amplitude = max(0.03, amplitude * 0.55)
-            sanasyna.generate_noise_wave(frequency, noise_amplitude, self.audio_sample_rate)
-        else:
-            sanasyna.generate_sine_wave(frequency, amplitude, self.audio_sample_rate)
+            melody_amplitude = max(0.03, amplitude * 0.55)
+
+        sanasyna.generate_melody(
+            melody,
+            melody_amplitude,
+            self.audio_sample_rate,
+            duration_per_note=note_duration,
+            waveform=waveform,
+        )
 
         sanasyna.play(loop=True)
         self.audio_playing = True
+        self.last_audio_sentence_signature = signature
 
     def makeWordCircle(self, words):
         zoom = self.params["zoom"]

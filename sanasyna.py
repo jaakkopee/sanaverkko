@@ -207,6 +207,24 @@ def _build_wave(samples, amplitude):
     return float(amplitude) * samples
 
 
+def _wave_from_freq(freq, duration, waveform):
+    t = _create_timebase(duration)
+    wave_name = str(waveform or "sine").lower()
+
+    if wave_name == "triangle":
+        phase = (float(freq) * t) % 1.0
+        return 4.0 * np.abs(phase - 0.5) - 1.0
+    if wave_name == "square":
+        return np.where(np.sin(2.0 * math.pi * float(freq) * t) >= 0.0, 1.0, -1.0)
+    if wave_name == "sawtooth":
+        phase = (float(freq) * t) % 1.0
+        return 2.0 * phase - 1.0
+    if wave_name == "noise":
+        sample_count = max(1, int(_sample_rate * float(duration)))
+        return np.random.uniform(-1.0, 1.0, sample_count)
+    return np.sin(2.0 * math.pi * float(freq) * t)
+
+
 def generate_sine_wave(freq, amplitude, sample_rate, duration=0.25):
     _ensure_audio(sample_rate=sample_rate)
     t = _create_timebase(duration)
@@ -249,7 +267,7 @@ def generate_noise_wave(freq, amplitude, sample_rate, duration=0.25):
     _set_current_sound(samples)
 
 
-def generate_melody(melody, amplitude, sample_rate, duration_per_note=0.1):
+def generate_melody(melody, amplitude, sample_rate, duration_per_note=0.1, waveform="sine"):
     _ensure_audio(sample_rate=sample_rate)
     if melody is None:
         return
@@ -265,8 +283,8 @@ def generate_melody(melody, amplitude, sample_rate, duration_per_note=0.1):
             sample_count = max(1, int(_sample_rate * duration_per_note))
             chunks.append(np.zeros(sample_count, dtype=np.float32))
             continue
-        t = _create_timebase(duration_per_note)
-        chunks.append(_build_wave(np.sin(2.0 * math.pi * freq * t), amplitude))
+        raw_wave = _wave_from_freq(freq, duration_per_note, waveform)
+        chunks.append(_build_wave(raw_wave, amplitude))
 
     _set_current_sound(np.concatenate(chunks))
 
