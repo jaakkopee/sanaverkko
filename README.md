@@ -176,6 +176,16 @@ When sentence changes, app writes:
 
 This prevents getting stuck in one fixed sentence while keeping transformations mostly logical.
 
+## Gematria, numerology, and POS background
+
+Gematria maps letters to numbers and uses the resulting totals as symbolic features. Numerological reduction then repeatedly sums digits until a single-digit digital root is reached. In this project, those values are used as transformation signals and indexing keys for word replacement, not as scientific measurements of language truth.
+
+Historically, gematria- and numerology-like methods appear in multiple ancient and medieval traditions and were discussed by scholars, philosophers, and mystics of their time. In modern mainstream science, these systems are generally treated as non-empirical or pseudoscientific (often dismissed as "humbug"). They have still survived culturally, in part because they remain actively used in esoteric practice, including by magi and other practitioners of ritual magic.
+
+POS matching (part-of-speech matching) is a separate linguistic constraint. It tries to keep substitutions in roughly the same grammatical role (for example, noun-to-noun, verb-to-verb), which usually improves sentence structure compared with unconstrained replacement.
+
+In SanaVerkko, POS is optional and can be toggled in the UI. When enabled, candidate filtering uses POS tags (from NLTK when available, with a heuristic fallback), and when disabled the system relies purely on gematria/numerology similarity. This makes POS a practical language-shape control rather than a metaphysical one.
+
 ## Parameter commit behavior
 
 - Numeric text controls are **explicit commit** controls.
