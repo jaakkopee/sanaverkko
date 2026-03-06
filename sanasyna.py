@@ -225,6 +225,130 @@ def _wave_from_freq(freq, duration, waveform):
     return np.sin(2.0 * math.pi * float(freq) * t)
 
 
+def _parse_melody_notes(melody, default_duration, duration_coeff=1.0):
+    parsed_notes = []
+    coeff = max(0.05, float(duration_coeff))
+    for note in melody:
+        note_duration = float(default_duration)
+        note_freq = note
+
+        if isinstance(note, dict):
+            note_freq = note.get("freq", note.get("frequency", 0.0))
+            if "duration" in note:
+                note_duration = float(note["duration"])
+        elif isinstance(note, (tuple, list)) and len(note) > 0:
+            note_freq = note[0]
+            if len(note) > 1:
+                note_duration = float(note[1])
+
+        note_duration = max(0.01, note_duration * coeff)
+        parsed_notes.append((float(note_freq), note_duration))
+    return parsed_notes
+
+
+def _semitone_distance(freq_a, freq_b):
+    if freq_a <= 0.0 or freq_b <= 0.0:
+        return 0
+    return int(round(12.0 * math.log2(float(freq_b) / float(freq_a))))
+
+
+def _direction_profile(base_motion, voice_count):
+    motion = 1 if base_motion > 0 else (-1 if base_motion < 0 else 0)
+    if voice_count == 2:
+        return [motion, -motion]
+    if voice_count == 3:
+        return [motion, 0, -motion]
+    if voice_count >= 4:
+        return [motion, motion, -motion, -motion]
+    return [motion]
+
+
+def _spread_intervals(voice_count, spread):
+    spread = max(0.3, min(2.0, float(spread)))
+    if voice_count == 1:
+        semitone_offsets = [0.0]
+    elif voice_count == 2:
+        semitone_offsets = [-5.0 * spread, 5.0 * spread]
+    elif voice_count == 3:
+        semitone_offsets = [-6.0 * spread, 0.0, 6.0 * spread]
+    else:
+        semitone_offsets = [-9.0 * spread, -3.0 * spread, 3.0 * spread, 9.0 * spread]
+    return [2.0 ** (semitones / 12.0) for semitones in semitone_offsets]
+
+
+def _build_counterpoint_voices(base_notes, voice_count=1, voice_spread=1.0):
+    voice_count = max(1, min(4, int(voice_count)))
+    if voice_count <= 1:
+        return [list(base_notes)]
+
+    interval_ratios = _spread_intervals(voice_count, voice_spread)
+    voices = [[] for _ in range(voice_count)]
+    previous_freqs = [0.0] * voice_count
+
+    for note_index, (base_freq, note_duration) in enumerate(base_notes):
+        if base_freq <= 0.0:
+            for voice_idx in range(voice_count):
+                voices[voice_idx].append((0.0, note_duration))
+                previous_freqs[voice_idx] = 0.0
+            continue
+
+        if note_index == 0:
+            for voice_idx in range(voice_count):
+                voice_freq = base_freq * interval_ratios[voice_idx]
+                voices[voice_idx].append((voice_freq, note_duration))
+                previous_freqs[voice_idx] = voice_freq
+            continue
+
+        prev_base_freq = base_notes[note_index - 1][0]
+        base_motion = 0
+        if prev_base_freq > 0.0:
+            base_motion = 1 if base_freq > prev_base_freq else (-1 if base_freq < prev_base_freq else 0)
+
+        semitone_step = abs(_semitone_distance(prev_base_freq, base_freq))
+        spread = max(0.3, min(2.0, float(voice_spread)))
+        semitone_step = max(1, min(7, semitone_step)) if base_motion != 0 else 0
+        semitone_step = max(1, int(round(semitone_step * (0.85 + 0.35 * spread)))) if semitone_step > 0 else 0
+
+        direction_by_voice = _direction_profile(base_motion, voice_count)
+
+        for voice_idx in range(voice_count):
+            target_freq = base_freq * interval_ratios[voice_idx]
+            prev_voice_freq = previous_freqs[voice_idx]
+
+            if prev_voice_freq <= 0.0:
+                voice_freq = target_freq
+            else:
+                direction = direction_by_voice[voice_idx]
+                if direction == 0 or semitone_step == 0:
+                    moved_freq = prev_voice_freq
+                else:
+                    moved_freq = prev_voice_freq * (2.0 ** ((direction * semitone_step) / 12.0))
+
+                voice_freq = 0.68 * moved_freq + 0.32 * target_freq
+
+            voice_freq = max(70.0, min(2200.0, voice_freq))
+            voices[voice_idx].append((voice_freq, note_duration))
+            previous_freqs[voice_idx] = voice_freq
+
+    return voices
+
+
+def _render_note_sequence(note_sequence, amplitude, waveform):
+    chunks = []
+    for freq, note_duration in note_sequence:
+        if freq <= 0.0:
+            sample_count = max(1, int(_sample_rate * note_duration))
+            chunks.append(np.zeros(sample_count, dtype=np.float32))
+            continue
+
+        raw_wave = _wave_from_freq(freq, note_duration, waveform)
+        chunks.append(_build_wave(raw_wave, amplitude))
+
+    if not chunks:
+        return np.zeros(1, dtype=np.float32)
+    return np.concatenate(chunks)
+
+
 def generate_sine_wave(freq, amplitude, sample_rate, duration=0.25):
     _ensure_audio(sample_rate=sample_rate)
     t = _create_timebase(duration)
@@ -267,7 +391,17 @@ def generate_noise_wave(freq, amplitude, sample_rate, duration=0.25):
     _set_current_sound(samples)
 
 
-def generate_melody(melody, amplitude, sample_rate, duration_per_note=0.1, waveform="sine"):
+def generate_melody(
+    melody,
+    amplitude,
+    sample_rate,
+    duration_per_note=0.1,
+    waveform="sine",
+    voices=1,
+    counterpoint=True,
+    voice_spread=1.0,
+    duration_coeff=1.0,
+):
     _ensure_audio(sample_rate=sample_rate)
     if melody is None:
         return
@@ -276,30 +410,28 @@ def generate_melody(melody, amplitude, sample_rate, duration_per_note=0.1, wavef
     if not notes:
         return
 
-    chunks = []
-    for note in notes:
-        note_duration = float(duration_per_note)
-        note_freq = note
+    parsed_notes = _parse_melody_notes(notes, duration_per_note, duration_coeff=duration_coeff)
+    voice_count = max(1, min(4, int(voices)))
 
-        if isinstance(note, dict):
-            note_freq = note.get("freq", note.get("frequency", 0.0))
-            if "duration" in note:
-                note_duration = float(note["duration"])
-        elif isinstance(note, (tuple, list)) and len(note) > 0:
-            note_freq = note[0]
-            if len(note) > 1:
-                note_duration = float(note[1])
+    if voice_count == 1 or not counterpoint:
+        rendered = _render_note_sequence(parsed_notes, amplitude, waveform)
+        _set_current_sound(rendered)
+        return
 
-        note_duration = max(0.01, note_duration)
-        freq = float(note_freq)
-        if freq <= 0:
-            sample_count = max(1, int(_sample_rate * note_duration))
-            chunks.append(np.zeros(sample_count, dtype=np.float32))
-            continue
-        raw_wave = _wave_from_freq(freq, note_duration, waveform)
-        chunks.append(_build_wave(raw_wave, amplitude))
+    voice_sequences = _build_counterpoint_voices(parsed_notes, voice_count=voice_count, voice_spread=voice_spread)
+    voice_renders = [_render_note_sequence(sequence, amplitude, waveform) for sequence in voice_sequences]
 
-    _set_current_sound(np.concatenate(chunks))
+    min_length = min(render.shape[0] for render in voice_renders)
+    if min_length <= 0:
+        return
+
+    mixed = np.zeros(min_length, dtype=np.float32)
+    for render in voice_renders:
+        mixed += render[:min_length]
+
+    normalization = max(1.0, float(voice_count) * 0.9)
+    mixed /= normalization
+    _set_current_sound(mixed)
 
 
 def set_amplitude(amplitude):

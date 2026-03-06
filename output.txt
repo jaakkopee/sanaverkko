@@ -1,175 +1,155 @@
-jake pii pii
- 36 +  88 +  88 +   = 212  ->  5 
- fl alhim alhim
- 36 +  88 +  88 +   = 212  ->  5 
- em alhim alhim
- 45 +  88 +  88 +   = 221  ->  5 
- em alhim cold
- 45 +  88 +  97 +   = 230  ->  5 
- em alhim align
- 45 +  88 +  97 +   = 230  ->  5 
- half alhim align
- 45 +  88 +  97 +   = 230  ->  5 
- em alhim align
- 45 +  88 +  97 +   = 230  ->  5 
- em alhim bered
- 45 +  88 +  106 +   = 239  ->  14  ->  5 
- em alhim bered
- 45 +  88 +  106 +   = 239  ->  14  ->  5 
- ball alhim bered
- 63 +  88 +  106 +   = 257  ->  14  ->  5 
- ball alhim bered
- 63 +  88 +  106 +   = 257  ->  14  ->  5 
- ball alhim bered
- 63 +  88 +  106 +   = 257  ->  14  ->  5 
- ball alhim bered
- 63 +  88 +  106 +   = 257  ->  14  ->  5 
- ball align bered
- 63 +  97 +  106 +   = 266  ->  14  ->  5 
- ball align bered
- 63 +  97 +  106 +   = 266  ->  14  ->  5 
- adobe align bered
- 72 +  97 +  106 +   = 275  ->  14  ->  5 
- abode align bered
- 72 +  97 +  106 +   = 275  ->  14  ->  5 
- abode align archaic
- 72 +  97 +  115 +   = 284  ->  14  ->  5 
- abode bered archaic
- 72 +  106 +  115 +   = 293  ->  14  ->  5 
- abode bered bered
- 72 +  106 +  106 +   = 284  ->  14  ->  5 
- ball bered bered
- 63 +  106 +  106 +   = 275  ->  14  ->  5 
- ball bered bered
- 63 +  106 +  106 +   = 275  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered bered
- 63 +  106 +  106 +   = 275  ->  14  ->  5 
- ball bered bered
- 63 +  106 +  106 +   = 275  ->  14  ->  5 
- ball archaic bered
- 63 +  115 +  106 +   = 284  ->  14  ->  5 
- ball archaic bered
- 63 +  115 +  106 +   = 284  ->  14  ->  5 
- ball archaic bered
- 63 +  115 +  106 +   = 284  ->  14  ->  5 
- ball archaic bered
- 63 +  115 +  106 +   = 284  ->  14  ->  5 
- ball archaic bered
- 63 +  115 +  106 +   = 284  ->  14  ->  5 
- can archaic bered
- 54 +  115 +  106 +   = 275  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- adobe archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode archaic bered
- 72 +  115 +  106 +   = 293  ->  14  ->  5 
- abode bered bered
- 72 +  106 +  106 +   = 284  ->  14  ->  5 
- ball bered bered
- 63 +  106 +  106 +   = 275  ->  14  ->  5 
- ball bered bered
- 63 +  106 +  106 +   = 275  ->  14  ->  5 
- ball archaic bered
- 63 +  115 +  106 +   = 284  ->  14  ->  5 
- ball archaic archaic
- 63 +  115 +  115 +   = 293  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered become
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- ball bered archaic
- 63 +  106 +  115 +   = 284  ->  14  ->  5 
- child bered bered
- 54 +  106 +  106 +   = 266  ->  14  ->  5 
- child dealing bered
- 54 +  106 +  106 +   = 266  ->  14  ->  5 
- em dealing braid
- 45 +  106 +  106 +   = 257  ->  14  ->  5 
- em dealing archaic
- 45 +  106 +  115 +   = 266  ->  14  ->  5 
- em dealing archaic
- 45 +  106 +  115 +   = 266  ->  14  ->  5 
- em dancing archaic
- 45 +  124 +  115 +   = 284  ->  14  ->  5 
- em local braid
- 45 +  124 +  106 +   = 275  ->  14  ->  5 
- em local braid
- 45 +  124 +  106 +   = 275  ->  14  ->  5 
- half basic braid
- 45 +  115 +  106 +   = 266  ->  14  ->  5 
- em breed braid
- 45 +  106 +  106 +   = 257  ->  14  ->  5 
- em braid braid
- 45 +  106 +  106 +   = 257  ->  14  ->  5 
- em dealing braid
- 45 +  106 +  106 +   = 257  ->  14  ->  5 
- em dealing braid
- 45 +  106 +  106 +   = 257  ->  14  ->  5 
- em dealing dealing
- 45 +  106 +  106 +   = 257  ->  14  ->  5 
- em archaic decline
- 45 +  115 +  106 +   = 266  ->  14  ->  5 
- em archaic braid
- 45 +  115 +  106 +   = 266  ->  14  ->  5 
- child archaic braid
- 54 +  115 +  106 +   = 275  ->  14  ->  5 
- me archaic free
- 45 +  115 +  106 +   = 266  ->  14  ->  5 
- me faces archaic
- 45 +  115 +  115 +   = 275  ->  14  ->  5 
- me faces basic
- 45 +  115 +  115 +   = 275  ->  14  ->  5 
- me braided basic
- 45 +  115 +  115 +   = 275  ->  14  ->  5 
- me basic basic
- 45 +  115 +  115 +   = 275  ->  14  ->  5 
- child allah archaic
- 54 +  70 +  115 +   = 239  ->  14  ->  5 
- em enae faces
- 45 +  61 +  115 +   = 221  ->  5 
- child enae bered
- 54 +  61 +  106 +   = 221  ->  5 
- child enae bered
- 54 +  61 +  106 +   = 221  ->  5 
- child enae kicked
- 54 +  61 +  61 +   = 176  ->  14  ->  5 
- child bn kicked
- 54 +  52 +  61 +   = 167  ->  14  ->  5 
- child agiel engaged
- 54 +  52 +  79 +   = 185  ->  14  ->  5 
- child agiel braided
- 54 +  52 +  115 +   = 221  ->  5 
- child agiel bered
- 54 +  52 +  106 +   = 212  ->  5 
- child enae bered
- 54 +  61 +  106 +   = 221  ->  5 
- child enae braid
- 54 +  61 +  106 +   = 221  ->  5 
- em allah braid
- 45 +  70 +  106 +   = 221  ->  5 
- em allah braid
- 45 +  70 +  106 +   = 221  ->  5 
+jakke is is grand magus
+ 56 +  109 +  109 +  152 +  448 +   = 874  ->  19  ->  10  ->  1 
+ ane is adds grand magus
+ 56 +  109 +  109 +  152 +  448 +   = 874  ->  19  ->  10  ->  1 
+ ane is adds grand devil
+ 56 +  109 +  109 +  152 +  448 +   = 874  ->  19  ->  10  ->  1 
+ black is adds brain distilling
+ 56 +  109 +  109 +  152 +  448 +   = 874  ->  19  ->  10  ->  1 
+ black is has brain distilling
+ 56 +  109 +  109 +  152 +  448 +   = 874  ->  19  ->  10  ->  1 
+ aneed adds adds brain containing
+ 65 +  109 +  109 +  152 +  439 +   = 874  ->  19  ->  10  ->  1 
+ aneed adds adds brain devil
+ 65 +  109 +  109 +  152 +  448 +   = 883  ->  19  ->  10  ->  1 
+ aneed adds cians brain devil
+ 65 +  109 +  163 +  152 +  448 +   = 937  ->  19  ->  10  ->  1 
+ aneed adds cians diagram devil
+ 65 +  109 +  163 +  152 +  448 +   = 937  ->  19  ->  10  ->  1 
+ aneed abase cians brain freemasons
+ 65 +  109 +  163 +  152 +  457 +   = 946  ->  19  ->  10  ->  1 
+ aneed abase cians brain freemasons
+ 65 +  109 +  163 +  152 +  457 +   = 946  ->  19  ->  10  ->  1 
+ aneed abase cians blinding freemasons
+ 65 +  109 +  163 +  161 +  457 +   = 955  ->  19  ->  10  ->  1 
+ aneed abase cians blinding freemasons
+ 65 +  109 +  163 +  161 +  457 +   = 955  ->  19  ->  10  ->  1 
+ aneed abase cians blinding freemasons
+ 65 +  109 +  163 +  161 +  457 +   = 955  ->  19  ->  10  ->  1 
+ aneed abase cians blinding rearranges
+ 65 +  109 +  163 +  161 +  439 +   = 937  ->  19  ->  10  ->  1 
+ aneed abase cians blinding lements
+ 65 +  109 +  163 +  161 +  430 +   = 928  ->  19  ->  10  ->  1 
+ aneed abase cians blinding lements
+ 65 +  109 +  163 +  161 +  430 +   = 928  ->  19  ->  10  ->  1 
+ cap aces cians blinding direction
+ 74 +  109 +  163 +  161 +  430 +   = 937  ->  19  ->  10  ->  1 
+ cap aces cians oas direction
+ 74 +  109 +  163 +  161 +  430 +   = 937  ->  19  ->  10  ->  1 
+ cap aces cians blinding direction
+ 74 +  109 +  163 +  161 +  430 +   = 937  ->  19  ->  10  ->  1 
+ cap aces cians blinding direction
+ 74 +  109 +  163 +  161 +  430 +   = 937  ->  19  ->  10  ->  1 
+ cap aces cians carnegie direction
+ 74 +  109 +  163 +  170 +  430 +   = 946  ->  19  ->  10  ->  1 
+ cap abase cians carnegie barbecued
+ 74 +  109 +  163 +  170 +  412 +   = 928  ->  19  ->  10  ->  1 
+ cap abase cians carnegie barbecued
+ 74 +  109 +  163 +  170 +  412 +   = 928  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie barbecued
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie accuse
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie teachers
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie stabs
+ 92 +  109 +  163 +  170 +  403 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie barbecued
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie barbecued
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase ashmdai disbelief barbecued
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase ashmdai carnegie barbecued
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel adds ashmdai carnegie barbecued
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie barbecued
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ agimel abase belong carnegie barbecued
+ 92 +  109 +  154 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ defined abase belong carnegie barbecued
+ 83 +  109 +  154 +  170 +  412 +   = 928  ->  19  ->  10  ->  1 
+ kegan abase belong carnegie teachers
+ 83 +  109 +  154 +  170 +  412 +   = 928  ->  19  ->  10  ->  1 
+ kegan behold cians carnegie stabs
+ 83 +  109 +  163 +  170 +  403 +   = 928  ->  19  ->  10  ->  1 
+ kegan behold cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase belong carnegie figured
+ 83 +  109 +  154 +  170 +  421 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase belong carnegie figured
+ 83 +  109 +  154 +  170 +  421 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase belong carnegie figured
+ 83 +  109 +  154 +  170 +  421 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase belong carnegie figured
+ 83 +  109 +  154 +  170 +  421 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie ethiopian
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie argue
+ 83 +  109 +  163 +  170 +  403 +   = 928  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ agimel abase cians carnegie accuse
+ 92 +  109 +  163 +  170 +  412 +   = 946  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie argue
+ 83 +  109 +  163 +  170 +  403 +   = 928  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase cians carnegie accuse
+ 83 +  109 +  163 +  170 +  412 +   = 937  ->  19  ->  10  ->  1 
+ kegan abase belong carnegie accuse
+ 83 +  109 +  154 +  170 +  412 +   = 928  ->  19  ->  10  ->  1 
  

@@ -128,6 +128,9 @@ class SanaVerkkoKontrolleri:
         self.params["fluid_root"] = False
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
+        self.params["voice_count"] = 1
+        self.params["voice_spread"] = 1.0
+        self.params["melody_speed"] = 1.0
         self.params["adsr_attack"] = 0.01
         self.params["adsr_decay"] = 0.04
         self.params["adsr_sustain"] = 0.85
@@ -243,6 +246,19 @@ class SanaVerkkoKontrolleri:
         self.audio_wave_mode_choice.SetSelection(0)
         self.audio_wave_mode_choice.Bind(wx.EVT_CHOICE, self.OnAudioWaveMode)
 
+        self.voice_count_label = wx.StaticText(panel, -1, "Polyphony voices")
+        self.voice_count_choice = wx.Choice(panel, -1, choices=["1", "2", "3", "4"])
+        self.voice_count_choice.SetSelection(0)
+        self.voice_count_choice.Bind(wx.EVT_CHOICE, self.OnVoiceCount)
+
+        self.voice_spread_label = wx.StaticText(panel, -1, "Voice spread")
+        self.voice_spread_ctrl = wx.TextCtrl(panel, -1, str(self.params["voice_spread"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.voice_spread_ctrl, self.OnVoiceSpread)
+
+        self.melody_speed_label = wx.StaticText(panel, -1, "Melody speed coeff")
+        self.melody_speed_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_speed"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.melody_speed_ctrl, self.OnMelodySpeed)
+
         self.adsr_label = wx.StaticText(panel, -1, "ADSR envelope")
         self.adsr_display = ADSRDisplayPanel(panel)
         self.adsr_attack_label = wx.StaticText(panel, -1, "Attack (s)")
@@ -326,6 +342,12 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.voice_count_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.voice_count_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.voice_spread_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.voice_spread_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.melody_speed_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.adsr_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.adsr_display, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -691,6 +713,36 @@ class SanaVerkkoKontrolleri:
             self.params["audio_wave_mode"] = "dynamic"
         event.Skip()
 
+    def OnVoiceCount(self, event):
+        selected_voice_count = self.voice_count_choice.GetStringSelection()
+        try:
+            self.params["voice_count"] = max(1, min(4, int(selected_voice_count)))
+        except Exception:
+            self.params["voice_count"] = 1
+        self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
+        self.last_audio_sentence_signature = None
+        event.Skip()
+
+    def OnVoiceSpread(self, event):
+        value = self._readFloat(self.voice_spread_ctrl)
+        if value is not None:
+            self.params["voice_spread"] = min(2.0, max(0.3, value))
+            self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
+        else:
+            self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
+        self.last_audio_sentence_signature = None
+        event.Skip()
+
+    def OnMelodySpeed(self, event):
+        value = self._readFloat(self.melody_speed_ctrl)
+        if value is not None:
+            self.params["melody_speed"] = min(4.0, max(0.2, value))
+            self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
+        else:
+            self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
+        self.last_audio_sentence_signature = None
+        event.Skip()
+
     def _applyADSRToAudio(self):
         sanasyna.set_adsr(
             self.params["adsr_attack"],
@@ -851,8 +903,20 @@ class SanaVerkkoKontrolleri:
         if not melody:
             return
 
+        voice_count = max(1, min(4, int(self.params.get("voice_count", 1))))
+        voice_spread = float(self.params.get("voice_spread", 1.0))
+        melody_speed = float(self.params.get("melody_speed", 1.0))
+
         activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
-        signature = (tuple(word.word for word in self.words), waveform, len(melody), activation_signature)
+        signature = (
+            tuple(word.word for word in self.words),
+            waveform,
+            voice_count,
+            round(voice_spread, 2),
+            round(melody_speed, 2),
+            len(melody),
+            activation_signature,
+        )
         if signature == self.last_audio_sentence_signature and self.audio_playing:
             return
 
@@ -872,6 +936,10 @@ class SanaVerkkoKontrolleri:
             self.audio_sample_rate,
             duration_per_note=0.09,
             waveform=waveform,
+            voices=voice_count,
+            counterpoint=True,
+            voice_spread=voice_spread,
+            duration_coeff=melody_speed,
         )
 
         sanasyna.play(loop=True)
@@ -1079,6 +1147,9 @@ class SanaVerkkoKontrolleri:
         if audio_wave_mode not in {"dynamic", "pure_sine", "noise_heavy", "classic_analog"}:
             audio_wave_mode = "dynamic"
         self.params["audio_wave_mode"] = audio_wave_mode
+        self.params["voice_count"] = max(1, min(4, int(float(self.params.get("voice_count", 1)))))
+        self.params["voice_spread"] = min(2.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
+        self.params["melody_speed"] = min(4.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
 
         self.params["adsr_attack"] = max(0.0, float(self.params.get("adsr_attack", 0.01)))
         self.params["adsr_decay"] = max(0.0, float(self.params.get("adsr_decay", 0.04)))
@@ -1111,6 +1182,9 @@ class SanaVerkkoKontrolleri:
             self.audio_wave_mode_choice.SetStringSelection("Classic analog")
         else:
             self.audio_wave_mode_choice.SetStringSelection("Dynamic")
+        self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
+        self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
+        self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
 
         if self.params["import_mode"] == "replace":
             self.import_mode_choice.SetStringSelection("Replace database")
