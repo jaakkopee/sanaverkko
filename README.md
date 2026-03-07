@@ -17,6 +17,7 @@ You can add words, import a text database, mutate words by gematria relations, a
 - Dynamic word-neuron network (connections weighted by gematria distance)
 - Adjustable model parameters from UI
 - Optional POS-aware word matching (toggle in UI)
+- Optional long-term memory (LTM) guidance with external `.svltm` model
 - Add words directly from UI
 - Import text files as reference database (append/replace mode)
 - JSON preset system (save/load from native file picker)
@@ -35,18 +36,31 @@ You can add words, import a text database, mutate words by gematria relations, a
   - Pure sine
   - Noise-heavy
   - Classic analog
+- Frequency mapping modes for generated frequencies:
+  - Original notes
+  - Pythagorean pentatonic
+  - Pythagorean 8 note
+  - Equal tempered modal mappings (Ionian, Dorian, Frygian, Lydian, Mixolydian, Aeolian, Locrian)
+  - Equal tempered 12 / 24 / 36 / 48 note mappings
+- Polyphony controls:
+  - Polyphony voices (1-4)
+  - Voice spread
+- Melody speed coefficient
+- Minimum note duration with automatic duration scaling
 - ADSR controls + graphical ADSR envelope display
 - Hybrid deterministic/random word selection (tunable exploration)
 - Jump search controls to escape local minima:
   - Jump probability
   - Jump radius
   - Fluid root (on/off)
+- True connection-weight learning in backpropagation (learning rate / error / target driven)
 - Separate output window showing `output.txt` updates live
 
 ## Repository layout
 
 - `sanaVerkkoCore.py` – main app (UI + simulation + rendering)
 - `sanasyna.py` – audio synthesis backend
+- `sv_ltm.py` – long-term memory model training/loading CLI (`.svltm`)
 - `requirements.txt` – Python dependencies
 - `output.txt` – generated sentence/gematria output
 - `presets/` – example JSON presets from ordered to chaotic
@@ -104,6 +118,7 @@ The control window is adaptive and scrollable.
 ### Model controls
 - Learning rate
 - Error
+- Target
 - Activation increase
 - Activation limit
 - Sigmoid scale
@@ -115,6 +130,7 @@ The control window is adaptive and scrollable.
 - Jump probability (0-1)
 - Jump radius (gematria)
 - Use POS matching (checkbox)
+- Use long term memory (checkbox)
 - Fluid root (checkbox)
 
 ### Word/database controls
@@ -130,6 +146,25 @@ The control window is adaptive and scrollable.
 - **Load preset**: load parameters from a `.json` file
 - Uses native file dialogs (same style as database import)
 
+### LTM controls
+- **Use long term memory**: enables LTM-assisted candidate ranking
+- **Load long term memory**: loads an external `.svltm` model file
+- LTM status line shows disabled/enabled/model-loaded state
+
+### Audio controls
+- **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
+- **Frequency mapping**: choose mapping system for generated frequencies
+- **Polyphony voices**: 1-4 voices
+- **Voice spread**: detune/spread amount between voices
+- **Melody speed coeff**: scales note durations
+- **Minimum note duration (s)**: floor for shortest note; melody is scaled to respect this floor
+- **ADSR envelope**:
+  - Attack
+  - Decay
+  - Sustain
+  - Release
+  - plus graphical envelope preview
+
 ## Preset system
 
 Presets serialize parameter values from the control window to JSON. Loading a preset updates the UI controls and applies the values immediately.
@@ -140,17 +175,13 @@ Bundled presets in `presets/`:
 - `03_balanced_dynamic.json` – balanced default-style exploratory behavior
 - `04_exploratory.json` – wider search and faster mutation
 - `05_chaotic.json` – aggressive exploration/jumps and highly dynamic behavior
+- `06_crystal_ordered_polyphony.json` – ordered behavior with richer polyphony
+- `07_tight_balanced_triad.json` – balanced triad-like voice behavior
+- `08_dynamic_glide_quartet.json` – dynamic four-voice exploratory profile
+- `09_noisy_fractal_swarm.json` – high-motion, noisy exploratory profile
+- `10_resonant_pulse_duo.json` – two-voice resonant pulse profile
 
 Preset scale is intended to move from conservative/consistent behavior to highly exploratory/chaotic behavior.
-
-### Audio controls
-- **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
-- **ADSR envelope**:
-  - Attack
-  - Decay
-  - Sustain
-  - Release
-  - plus graphical envelope preview
 
 ## Output format (`output.txt`)
 
@@ -173,18 +204,36 @@ When sentence changes, app writes:
   - `jump_probability` controls how often jump logic is used,
   - `jump_radius` controls gematria-distance search radius,
   - `fluid_root` controls whether jumps may cross digital roots.
+- If LTM is enabled and model is loaded, candidate ranking is additionally guided by next-word probabilities from recent context.
 
 This prevents getting stuck in one fixed sentence while keeping transformations mostly logical.
+
+## Learning behavior
+
+- `Neuron.backpropagate` updates connection weights directly.
+- Weight updates are driven by:
+  - `learning_rate`
+  - `error`
+  - `target`
+  - local activation and connected neuron activation
+- Weight values are clamped to a safe range to avoid runaway growth.
+
+## Long-term memory model (`sv_ltm.py`)
+
+- LTM is optional and loaded as an external model file (`.svltm`).
+- The included implementation uses a Char-CNN + MLP with word-softmax next-word prediction.
+- Core app integration:
+  - load model from control window,
+  - toggle LTM on/off,
+  - re-rank replacement candidates by predicted probability.
+
+For CLI training and parameter reference, see [LTM_USAGE.md](LTM_USAGE.md).
 
 ## Gematria, numerology, and POS background
 
 Gematria maps letters to numbers and uses the resulting totals as symbolic features. Numerological reduction then repeatedly sums digits until a single-digit digital root is reached. In this project, those values are used as transformation signals and indexing keys for word replacement, not as scientific measurements of language truth.
 
-Historically, gematria- and numerology-like methods appear in multiple ancient and medieval traditions and were discussed by scholars, philosophers, and mystics of their time. In modern mainstream science, these systems are generally treated as non-empirical or pseudoscientific (often dismissed as "humbug"). They have still survived culturally, in part because they remain actively used in esoteric practice, including by magi and other practitioners of ritual magic.
-
-POS matching (part-of-speech matching) is a separate linguistic constraint. It tries to keep substitutions in roughly the same grammatical role (for example, noun-to-noun, verb-to-verb), which usually improves sentence structure compared with unconstrained replacement.
-
-In SanaVerkko, POS is optional and can be toggled in the UI. When enabled, candidate filtering uses POS tags (from NLTK when available, with a heuristic fallback), and when disabled the system relies purely on gematria/numerology similarity. This makes POS a practical language-shape control rather than a metaphysical one.
+Historically, gematria- and numerology-like methods appear in multiple ancient and medieval traditions and were discussed by scholars, philosophers, and mystics of their time. In modern mainstream science, these systems are generally treated as non-empirical or pseudoscientific. POS matching is a separate linguistic constraint intended to keep substitutions in roughly the same grammatical role.
 
 ## Parameter commit behavior
 
@@ -211,7 +260,7 @@ Only words composed of letters in the gematria table are accepted (`a-z`, `å`, 
 - If not, app falls back to an internal heuristic POS tagger.
 
 ### Gematria weight crash (`Neuron` has no `gematria`)
-- The connection-weight update path now stores gematria on neuron objects and includes a safe fallback.
+- The connection-weight update path stores gematria on neuron objects and includes a safe fallback.
 - If you still see this error in an old run, restart the app to ensure the latest code is loaded.
 
 ## Notes
