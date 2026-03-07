@@ -681,58 +681,38 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.word_change_threshold_ctrl)
         if value is not None:
             self.params["word_change_threshold"] = value
-            self.word_change_threshold_ctrl.ChangeValue(str(self.params["word_change_threshold"]))
-        else:
-            self.word_change_threshold_ctrl.ChangeValue(str(self.params["word_change_threshold"]))
 
     def OnZoom(self, event):
         value = self._readFloat(self.zoom_ctrl)
         if value is not None:
             self.params["zoom"] = max(0.001, value)
-            self.zoom_ctrl.ChangeValue(str(self.params["zoom"]))
             self.makeWordCircle(self.words)
-        else:
-            self.zoom_ctrl.ChangeValue(str(self.params["zoom"]))
 
     def OnProcessInterval(self, event):
         value = self._readFloat(self.process_interval_ctrl)
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
-            self.process_interval_ctrl.ChangeValue(str(self.params["process_interval"]))
-        else:
-            self.process_interval_ctrl.ChangeValue(str(self.params["process_interval"]))
 
     def OnSelectionExploration(self, event):
         value = self._readFloat(self.selection_exploration_ctrl)
         if value is not None:
             self.params["selection_exploration"] = min(1.0, max(0.0, value))
-            self.selection_exploration_ctrl.ChangeValue(str(self.params["selection_exploration"]))
 
     def OnSelectionTopK(self, event):
-        current_top_k = max(1, int(self.params.get("selection_top_k", 4)))
         value = self._readInt(self.selection_top_k_ctrl)
         if value is not None:
             normalized_value = max(1, value)
             self.params["selection_top_k"] = normalized_value
-            self.selection_top_k_ctrl.ChangeValue(str(normalized_value))
-        else:
-            self.selection_top_k_ctrl.ChangeValue(str(current_top_k))
 
     def OnJumpProbability(self, event):
         value = self._readFloat(self.jump_probability_ctrl)
         if value is not None:
             self.params["jump_probability"] = min(1.0, max(0.0, value))
-            self.jump_probability_ctrl.ChangeValue(str(self.params["jump_probability"]))
-        else:
-            self.jump_probability_ctrl.ChangeValue(str(self.params["jump_probability"]))
 
     def OnJumpRadius(self, event):
         value = self._readInt(self.jump_radius_ctrl)
         if value is not None:
             self.params["jump_radius"] = max(0, value)
-            self.jump_radius_ctrl.ChangeValue(str(self.params["jump_radius"]))
-        else:
-            self.jump_radius_ctrl.ChangeValue(str(self.params["jump_radius"]))
 
     def OnImportMode(self, event):
         selected_mode = self.import_mode_choice.GetStringSelection()
@@ -774,27 +754,18 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.voice_spread_ctrl)
         if value is not None:
             self.params["voice_spread"] = min(5.0, max(0.3, value))
-            self.voice_spread_ctrl.ChangeValue(str(self.params["voice_spread"]))
-        else:
-            self.voice_spread_ctrl.ChangeValue(str(self.params["voice_spread"]))
         self.last_audio_sentence_signature = None
 
     def OnMelodySpeed(self, event):
         value = self._readFloat(self.melody_speed_ctrl)
         if value is not None:
             self.params["melody_speed"] = min(6.0, max(0.2, value))
-            self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
-        else:
-            self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
         self.last_audio_sentence_signature = None
 
     def OnMinNoteDuration(self, event):
         value = self._readFloat(self.min_note_duration_ctrl)
         if value is not None:
             self.params["min_note_duration"] = min(1.0, max(0.01, value))
-            self.min_note_duration_ctrl.ChangeValue(str(self.params["min_note_duration"]))
-        else:
-            self.min_note_duration_ctrl.ChangeValue(str(self.params["min_note_duration"]))
         self.last_audio_sentence_signature = None
 
     def _applyADSRToAudio(self):
@@ -825,11 +796,6 @@ class SanaVerkkoKontrolleri:
             self.params["adsr_sustain"] = min(1.0, max(0.0, sustain_value))
         if release_value is not None:
             self.params["adsr_release"] = max(0.0, release_value)
-
-        self.adsr_attack_ctrl.ChangeValue(str(self.params["adsr_attack"]))
-        self.adsr_decay_ctrl.ChangeValue(str(self.params["adsr_decay"]))
-        self.adsr_sustain_ctrl.ChangeValue(str(self.params["adsr_sustain"]))
-        self.adsr_release_ctrl.ChangeValue(str(self.params["adsr_release"]))
         self._applyADSRToAudio()
 
     def OnClose(self, event):
@@ -1785,7 +1751,7 @@ class SanaVerkkoKontrolleri:
             connection_count = len(word.neuron.connections)
             if connection_count > 0:
                 total_activation /= connection_count
-            word.neuron.backpropagate(target=0)
+            word.neuron.backpropagate(target=float(self.params.get("target", 0.0)))
 
             if word.neuron.activation < -2 or word.neuron.activation > 2:
                 word.neuron.activation = 1
@@ -2084,10 +2050,29 @@ class Neuron:
 
 
     def backpropagate(self, target=0):
-        learning_rate = self.controller.params["learning_rate"]
-        error = (target - self.activation) * self.controller.params["error"]
+        if self.controller is None:
+            return
+
+        learning_rate = float(self.controller.params.get("learning_rate", 0.1))
+        error_gain = float(self.controller.params.get("error", 0.0))
+        target_value = float(target)
+
+        prediction_error = (target_value - self.activation) * error_gain
+        if prediction_error == 0.0:
+            return
+
+        sigmoid_scale = float(self.controller.params.get("sigmoid_scale", 2.0))
+        weight_limit = max(0.1, float(self.controller.params.get("activation_limit", 2.0)) * 4.0)
+
         for connection in self.connections:
-            connection[0].activation += connection[1] * error * learning_rate
+            input_neuron = connection[0]
+            input_signal = sigmoid(input_neuron.activation, sigmoid_scale, self.controller)
+            connection[1] += learning_rate * prediction_error * input_signal
+
+            if connection[1] > weight_limit:
+                connection[1] = weight_limit
+            elif connection[1] < -weight_limit:
+                connection[1] = -weight_limit
 
 def sigmoid(x, scale, controller=None):
     scale_start = -scale
