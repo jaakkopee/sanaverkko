@@ -586,6 +586,7 @@ class SanaVerkkoKontrolleri:
 
     def _bindNumericCtrl(self, ctrl, handler):
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
+        ctrl.Bind(wx.EVT_KILL_FOCUS, handler)
 
     def _getMonospaceWxFont(self, point_size=11):
         return wx.Font(
@@ -701,10 +702,14 @@ class SanaVerkkoKontrolleri:
         event.Skip()
 
     def OnSelectionTopK(self, event):
+        current_top_k = max(1, int(self.params.get("selection_top_k", 4)))
         value = self._readInt(self.selection_top_k_ctrl)
         if value is not None:
-            self.params["selection_top_k"] = max(1, value)
-            self.selection_top_k_ctrl.SetValue(str(self.params["selection_top_k"]))
+            normalized_value = max(1, value)
+            self.params["selection_top_k"] = normalized_value
+            self.selection_top_k_ctrl.ChangeValue(str(normalized_value))
+        else:
+            self.selection_top_k_ctrl.ChangeValue(str(current_top_k))
         event.Skip()
 
     def OnJumpProbability(self, event):
