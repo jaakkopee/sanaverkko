@@ -133,6 +133,7 @@ class SanaVerkkoKontrolleri:
         self.params["voice_count"] = 1
         self.params["voice_spread"] = 1.0
         self.params["melody_speed"] = 1.0
+        self.params["min_note_duration"] = 0.03
         self.params["adsr_attack"] = 0.01
         self.params["adsr_decay"] = 0.04
         self.params["adsr_sustain"] = 0.85
@@ -235,7 +236,6 @@ class SanaVerkkoKontrolleri:
         self.selection_top_k_label = wx.StaticText(panel, -1, "Selection top-k")
         self.selection_top_k_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_top_k"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.selection_top_k_ctrl, self.OnSelectionTopK)
-        self.selection_top_k_ctrl.Bind(wx.EVT_KILL_FOCUS, self.OnSelectionTopK)
 
         self.jump_probability_label = wx.StaticText(panel, -1, "Jump probability (0-1)")
         self.jump_probability_ctrl = wx.TextCtrl(panel, -1, str(self.params["jump_probability"]), style=wx.TE_PROCESS_ENTER)
@@ -267,6 +267,10 @@ class SanaVerkkoKontrolleri:
         self.melody_speed_label = wx.StaticText(panel, -1, "Melody speed coeff")
         self.melody_speed_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_speed"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.melody_speed_ctrl, self.OnMelodySpeed)
+
+        self.min_note_duration_label = wx.StaticText(panel, -1, "Minimum note duration (s)")
+        self.min_note_duration_ctrl = wx.TextCtrl(panel, -1, str(self.params["min_note_duration"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.min_note_duration_ctrl, self.OnMinNoteDuration)
 
         self.adsr_label = wx.StaticText(panel, -1, "ADSR envelope")
         self.adsr_display = ADSRDisplayPanel(panel)
@@ -360,6 +364,8 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.voice_spread_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.melody_speed_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.min_note_duration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.min_note_duration_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.adsr_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.adsr_display, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -595,6 +601,7 @@ class SanaVerkkoKontrolleri:
         return pos_tag
 
     def _bindNumericCtrl(self, ctrl, handler):
+        ctrl.Unbind(wx.EVT_TEXT_ENTER, handler=handler)
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
 
     def _getMonospaceWxFont(self, point_size=11):
@@ -649,31 +656,26 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.learning_rate_ctrl)
         if value is not None:
             self.params["learning_rate"] = value
-        event.Skip()
 
     def OnError(self, event):
         value = self._readFloat(self.error_ctrl)
         if value is not None:
             self.params["error"] = value
-        event.Skip()
 
     def OnActivationIncrease(self, event):
         value = self._readFloat(self.activation_increase_ctrl)
         if value is not None:
             self.params["activation_increase"] = value
-        event.Skip()
 
     def OnActivationLimit(self, event):
         value = self._readFloat(self.activation_limit_ctrl)
         if value is not None:
             self.params["activation_limit"] = value
-        event.Skip()
 
     def OnSigmoidScale(self, event):
         value = self._readFloat(self.sigmoid_scale_ctrl)
         if value is not None:
             self.params["sigmoid_scale"] = value
-        event.Skip()
 
     def OnWordChangeThreshold(self, event):
         value = self._readFloat(self.word_change_threshold_ctrl)
@@ -682,7 +684,6 @@ class SanaVerkkoKontrolleri:
             self.word_change_threshold_ctrl.ChangeValue(str(self.params["word_change_threshold"]))
         else:
             self.word_change_threshold_ctrl.ChangeValue(str(self.params["word_change_threshold"]))
-        event.Skip()
 
     def OnZoom(self, event):
         value = self._readFloat(self.zoom_ctrl)
@@ -692,7 +693,6 @@ class SanaVerkkoKontrolleri:
             self.makeWordCircle(self.words)
         else:
             self.zoom_ctrl.ChangeValue(str(self.params["zoom"]))
-        event.Skip()
 
     def OnProcessInterval(self, event):
         value = self._readFloat(self.process_interval_ctrl)
@@ -701,14 +701,12 @@ class SanaVerkkoKontrolleri:
             self.process_interval_ctrl.ChangeValue(str(self.params["process_interval"]))
         else:
             self.process_interval_ctrl.ChangeValue(str(self.params["process_interval"]))
-        event.Skip()
 
     def OnSelectionExploration(self, event):
         value = self._readFloat(self.selection_exploration_ctrl)
         if value is not None:
             self.params["selection_exploration"] = min(1.0, max(0.0, value))
             self.selection_exploration_ctrl.ChangeValue(str(self.params["selection_exploration"]))
-        event.Skip()
 
     def OnSelectionTopK(self, event):
         current_top_k = max(1, int(self.params.get("selection_top_k", 4)))
@@ -719,7 +717,6 @@ class SanaVerkkoKontrolleri:
             self.selection_top_k_ctrl.ChangeValue(str(normalized_value))
         else:
             self.selection_top_k_ctrl.ChangeValue(str(current_top_k))
-        event.Skip()
 
     def OnJumpProbability(self, event):
         value = self._readFloat(self.jump_probability_ctrl)
@@ -728,7 +725,6 @@ class SanaVerkkoKontrolleri:
             self.jump_probability_ctrl.ChangeValue(str(self.params["jump_probability"]))
         else:
             self.jump_probability_ctrl.ChangeValue(str(self.params["jump_probability"]))
-        event.Skip()
 
     def OnJumpRadius(self, event):
         value = self._readInt(self.jump_radius_ctrl)
@@ -737,7 +733,6 @@ class SanaVerkkoKontrolleri:
             self.jump_radius_ctrl.ChangeValue(str(self.params["jump_radius"]))
         else:
             self.jump_radius_ctrl.ChangeValue(str(self.params["jump_radius"]))
-        event.Skip()
 
     def OnImportMode(self, event):
         selected_mode = self.import_mode_choice.GetStringSelection()
@@ -783,7 +778,6 @@ class SanaVerkkoKontrolleri:
         else:
             self.voice_spread_ctrl.ChangeValue(str(self.params["voice_spread"]))
         self.last_audio_sentence_signature = None
-        event.Skip()
 
     def OnMelodySpeed(self, event):
         value = self._readFloat(self.melody_speed_ctrl)
@@ -793,7 +787,15 @@ class SanaVerkkoKontrolleri:
         else:
             self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
         self.last_audio_sentence_signature = None
-        event.Skip()
+
+    def OnMinNoteDuration(self, event):
+        value = self._readFloat(self.min_note_duration_ctrl)
+        if value is not None:
+            self.params["min_note_duration"] = min(1.0, max(0.01, value))
+            self.min_note_duration_ctrl.ChangeValue(str(self.params["min_note_duration"]))
+        else:
+            self.min_note_duration_ctrl.ChangeValue(str(self.params["min_note_duration"]))
+        self.last_audio_sentence_signature = None
 
     def _applyADSRToAudio(self):
         sanasyna.set_adsr(
@@ -829,7 +831,6 @@ class SanaVerkkoKontrolleri:
         self.adsr_sustain_ctrl.ChangeValue(str(self.params["adsr_sustain"]))
         self.adsr_release_ctrl.ChangeValue(str(self.params["adsr_release"]))
         self._applyADSRToAudio()
-        event.Skip()
 
     def OnClose(self, event):
         if self.closed:
@@ -1154,7 +1155,7 @@ class SanaVerkkoKontrolleri:
             pattern_norm = min(1.0, step_delta / 200.0)
             base_duration = 0.07 + (1.0 - pattern_norm) * 0.08
             duration = base_duration * (1.0 - 0.45 * activation_norm)
-            duration = min(0.2, max(0.03, duration))
+            duration = min(0.2, max(0.001, duration))
             pattern.append((frequency, duration))
 
         reflected = pattern + list(reversed(pattern))
@@ -1165,6 +1166,31 @@ class SanaVerkkoKontrolleri:
         for word in self.words:
             melody.extend(self._word_melody_from_gematria(word.word, activation_value=word.neuron.activation))
         return melody
+
+    def _apply_duration_policy(self, melody, speed_coeff=1.0):
+        if not melody:
+            return melody
+
+        duration_coeff = max(0.05, float(speed_coeff))
+        min_note_duration = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
+
+        adjusted = []
+        positive_durations = []
+        for frequency, duration in melody:
+            adjusted_duration = max(0.001, float(duration) * duration_coeff)
+            adjusted.append((frequency, adjusted_duration))
+            if adjusted_duration > 0.0:
+                positive_durations.append(adjusted_duration)
+
+        if not positive_durations:
+            return adjusted
+
+        current_min_duration = min(positive_durations)
+        if current_min_duration >= min_note_duration:
+            return adjusted
+
+        scale = min_note_duration / current_min_duration
+        return [(frequency, max(0.001, duration * scale)) for frequency, duration in adjusted]
 
     def updateAudio(self):
         now = time.time()
@@ -1196,6 +1222,9 @@ class SanaVerkkoKontrolleri:
         voice_count = max(1, min(4, int(self.params.get("voice_count", 1))))
         voice_spread = float(self.params.get("voice_spread", 1.0))
         melody_speed = float(self.params.get("melody_speed", 1.0))
+        min_note_duration = float(self.params.get("min_note_duration", 0.03))
+
+        melody = self._apply_duration_policy(melody, speed_coeff=melody_speed)
 
         activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
         signature = (
@@ -1205,6 +1234,7 @@ class SanaVerkkoKontrolleri:
             voice_count,
             round(voice_spread, 2),
             round(melody_speed, 2),
+            round(min_note_duration, 3),
             len(melody),
             activation_signature,
         )
@@ -1230,7 +1260,7 @@ class SanaVerkkoKontrolleri:
             voices=voice_count,
             counterpoint=True,
             voice_spread=voice_spread,
-            duration_coeff=melody_speed,
+            duration_coeff=1.0,
         )
 
         sanasyna.play(loop=True)
@@ -1447,7 +1477,8 @@ class SanaVerkkoKontrolleri:
 
         self.params["voice_count"] = max(1, min(4, int(float(self.params.get("voice_count", 1)))))
         self.params["voice_spread"] = min(5.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
-        self.params["melody_speed"] = min(4.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
+        self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
+        self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
 
         self.params["adsr_attack"] = max(0.0, float(self.params.get("adsr_attack", 0.01)))
         self.params["adsr_decay"] = max(0.0, float(self.params.get("adsr_decay", 0.04)))
@@ -1485,6 +1516,7 @@ class SanaVerkkoKontrolleri:
         self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
         self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
         self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
+        self.min_note_duration_ctrl.SetValue(str(self.params["min_note_duration"]))
 
         if self.params["import_mode"] == "replace":
             self.import_mode_choice.SetStringSelection("Replace database")

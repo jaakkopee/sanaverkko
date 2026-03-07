@@ -1,39 +1,5 @@
-jake taivossuora taivossuora a a grand wizard
- 36 +  1321 +  1321 +  1 +  1 +  152 +  1404 +   = 4236  ->  15  ->  6 
- jake taivossuora taivossuora a a grand jake
- 36 +  1321 +  1321 +  1 +  1 +  152 +  36 +   = 2868  ->  24  ->  6 
- fl taivossuora playground a a abraham fl
- 36 +  1321 +  1312 +  1 +  1 +  143 +  36 +   = 2850  ->  15  ->  6 
- fl playground faculty a a abraham fl
- 36 +  1312 +  1240 +  1 +  1 +  143 +  36 +   = 2769  ->  24  ->  6 
- em sssevveceeeeeoes mysteries ble bag adonai ball
- 45 +  1303 +  1249 +  37 +  10 +  125 +  63 +   = 2832  ->  15  ->  6 
- em community mysteries and ble adonai ball
- 45 +  1402 +  1249 +  55 +  37 +  125 +  63 +   = 2976  ->  24  ->  6 
- em abruptly mysteries adam ble adonai ball
- 45 +  1393 +  1249 +  46 +  37 +  125 +  63 +   = 2958  ->  24  ->  6 
- em abruptly mysteries adam ble adonai ball
- 45 +  1393 +  1249 +  46 +  37 +  125 +  63 +   = 2958  ->  24  ->  6 
- em traditionally mysteries adam egg adonai ball
- 45 +  1384 +  1249 +  46 +  19 +  125 +  63 +   = 2931  ->  15  ->  6 
- em traditionally duty adam bag adonai ball
- 45 +  1384 +  1204 +  46 +  10 +  125 +  63 +   = 2877  ->  24  ->  6 
- em traditionally drastically adam bag adonai ball
- 45 +  1384 +  1168 +  46 +  10 +  125 +  63 +   = 2841  ->  15  ->  6 
- em traditionally drastically adam bag adonai ball
- 45 +  1384 +  1168 +  46 +  10 +  125 +  63 +   = 2841  ->  15  ->  6 
- em traditionally sonality call egg adonai ball
- 45 +  1384 +  1150 +  64 +  19 +  125 +  63 +   = 2850  ->  15  ->  6 
- em traditionally sonality call egg adonai ball
- 45 +  1384 +  1150 +  64 +  19 +  125 +  63 +   = 2850  ->  15  ->  6 
- em traditionally sonality call ble abbsb ball
- 45 +  1384 +  1150 +  64 +  37 +  107 +  63 +   = 2850  ->  15  ->  6 
- can everything identity call adam abbsb ball
- 54 +  1474 +  1177 +  64 +  46 +  107 +  63 +   = 2985  ->  24  ->  6 
- can everything sonality call adam abbsb ball
- 54 +  1474 +  1150 +  64 +  46 +  107 +  63 +   = 2958  ->  24  ->  6 
- can authoritative sonality call adam abbsb ball
- 54 +  1483 +  1150 +  64 +  46 +  107 +  63 +   = 2967  ->  24  ->  6 
- can authoritative sonality call adam abbsb ball
- 54 +  1483 +  1150 +  64 +  46 +  107 +  63 +   = 2967  ->  24  ->  6 
+jake magus ativossuora is a grand magus
+ 36 +  448 +  1321 +  109 +  1 +  152 +  448 +   = 2515  ->  13  ->  4 
+ jake magus ativossuora a a grand magus
+ 36 +  448 +  1321 +  1 +  1 +  152 +  448 +   = 2407  ->  13  ->  4 
  
