@@ -788,7 +788,7 @@ class SanaVerkkoKontrolleri:
     def OnMelodySpeed(self, event):
         value = self._readFloat(self.melody_speed_ctrl)
         if value is not None:
-            self.params["melody_speed"] = min(4.0, max(0.2, value))
+            self.params["melody_speed"] = min(6.0, max(0.2, value))
             self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
         else:
             self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
