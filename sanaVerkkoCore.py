@@ -3,6 +3,7 @@ import pygame
 import random
 import time
 import math
+import bisect
 import wx
 import threading
 import sys
@@ -128,6 +129,7 @@ class SanaVerkkoKontrolleri:
         self.params["fluid_root"] = False
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
+        self.params["frequency_mapping_mode"] = "original_notes"
         self.params["voice_count"] = 1
         self.params["voice_spread"] = 1.0
         self.params["melody_speed"] = 1.0
@@ -233,6 +235,7 @@ class SanaVerkkoKontrolleri:
         self.selection_top_k_label = wx.StaticText(panel, -1, "Selection top-k")
         self.selection_top_k_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_top_k"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.selection_top_k_ctrl, self.OnSelectionTopK)
+        self.selection_top_k_ctrl.Bind(wx.EVT_KILL_FOCUS, self.OnSelectionTopK)
 
         self.jump_probability_label = wx.StaticText(panel, -1, "Jump probability (0-1)")
         self.jump_probability_ctrl = wx.TextCtrl(panel, -1, str(self.params["jump_probability"]), style=wx.TE_PROCESS_ENTER)
@@ -246,6 +249,11 @@ class SanaVerkkoKontrolleri:
         self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=["Dynamic", "Pure sine", "Noise-heavy", "Classic analog"])
         self.audio_wave_mode_choice.SetSelection(0)
         self.audio_wave_mode_choice.Bind(wx.EVT_CHOICE, self.OnAudioWaveMode)
+
+        self.frequency_mapping_label = wx.StaticText(panel, -1, "Frequency mapping")
+        self.frequency_mapping_choice = wx.Choice(panel, -1, choices=[label for _, label in self._frequency_mapping_modes()])
+        self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params.get("frequency_mapping_mode", "original_notes")))
+        self.frequency_mapping_choice.Bind(wx.EVT_CHOICE, self.OnFrequencyMappingMode)
 
         self.voice_count_label = wx.StaticText(panel, -1, "Polyphony voices")
         self.voice_count_choice = wx.Choice(panel, -1, choices=["1", "2", "3", "4"])
@@ -344,6 +352,8 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.frequency_mapping_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.frequency_mapping_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_count_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_count_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_spread_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -586,7 +596,6 @@ class SanaVerkkoKontrolleri:
 
     def _bindNumericCtrl(self, ctrl, handler):
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
-        ctrl.Bind(wx.EVT_KILL_FOCUS, handler)
 
     def _getMonospaceWxFont(self, point_size=11):
         return wx.Font(
@@ -670,35 +679,35 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.word_change_threshold_ctrl)
         if value is not None:
             self.params["word_change_threshold"] = value
-            self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
+            self.word_change_threshold_ctrl.ChangeValue(str(self.params["word_change_threshold"]))
         else:
-            self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
+            self.word_change_threshold_ctrl.ChangeValue(str(self.params["word_change_threshold"]))
         event.Skip()
 
     def OnZoom(self, event):
         value = self._readFloat(self.zoom_ctrl)
         if value is not None:
             self.params["zoom"] = max(0.001, value)
-            self.zoom_ctrl.SetValue(str(self.params["zoom"]))
+            self.zoom_ctrl.ChangeValue(str(self.params["zoom"]))
             self.makeWordCircle(self.words)
         else:
-            self.zoom_ctrl.SetValue(str(self.params["zoom"]))
+            self.zoom_ctrl.ChangeValue(str(self.params["zoom"]))
         event.Skip()
 
     def OnProcessInterval(self, event):
         value = self._readFloat(self.process_interval_ctrl)
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
-            self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+            self.process_interval_ctrl.ChangeValue(str(self.params["process_interval"]))
         else:
-            self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
+            self.process_interval_ctrl.ChangeValue(str(self.params["process_interval"]))
         event.Skip()
 
     def OnSelectionExploration(self, event):
         value = self._readFloat(self.selection_exploration_ctrl)
         if value is not None:
             self.params["selection_exploration"] = min(1.0, max(0.0, value))
-            self.selection_exploration_ctrl.SetValue(str(self.params["selection_exploration"]))
+            self.selection_exploration_ctrl.ChangeValue(str(self.params["selection_exploration"]))
         event.Skip()
 
     def OnSelectionTopK(self, event):
@@ -716,18 +725,18 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.jump_probability_ctrl)
         if value is not None:
             self.params["jump_probability"] = min(1.0, max(0.0, value))
-            self.jump_probability_ctrl.SetValue(str(self.params["jump_probability"]))
+            self.jump_probability_ctrl.ChangeValue(str(self.params["jump_probability"]))
         else:
-            self.jump_probability_ctrl.SetValue(str(self.params["jump_probability"]))
+            self.jump_probability_ctrl.ChangeValue(str(self.params["jump_probability"]))
         event.Skip()
 
     def OnJumpRadius(self, event):
         value = self._readInt(self.jump_radius_ctrl)
         if value is not None:
             self.params["jump_radius"] = max(0, value)
-            self.jump_radius_ctrl.SetValue(str(self.params["jump_radius"]))
+            self.jump_radius_ctrl.ChangeValue(str(self.params["jump_radius"]))
         else:
-            self.jump_radius_ctrl.SetValue(str(self.params["jump_radius"]))
+            self.jump_radius_ctrl.ChangeValue(str(self.params["jump_radius"]))
         event.Skip()
 
     def OnImportMode(self, event):
@@ -750,6 +759,12 @@ class SanaVerkkoKontrolleri:
             self.params["audio_wave_mode"] = "dynamic"
         event.Skip()
 
+    def OnFrequencyMappingMode(self, event):
+        selected_label = self.frequency_mapping_choice.GetStringSelection()
+        self.params["frequency_mapping_mode"] = self._frequency_mapping_key_from_label(selected_label)
+        self.last_audio_sentence_signature = None
+        event.Skip()
+
     def OnVoiceCount(self, event):
         selected_voice_count = self.voice_count_choice.GetStringSelection()
         try:
@@ -764,9 +779,9 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.voice_spread_ctrl)
         if value is not None:
             self.params["voice_spread"] = min(5.0, max(0.3, value))
-            self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
+            self.voice_spread_ctrl.ChangeValue(str(self.params["voice_spread"]))
         else:
-            self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
+            self.voice_spread_ctrl.ChangeValue(str(self.params["voice_spread"]))
         self.last_audio_sentence_signature = None
         event.Skip()
 
@@ -774,9 +789,9 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.melody_speed_ctrl)
         if value is not None:
             self.params["melody_speed"] = min(4.0, max(0.2, value))
-            self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
+            self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
         else:
-            self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
+            self.melody_speed_ctrl.ChangeValue(str(self.params["melody_speed"]))
         self.last_audio_sentence_signature = None
         event.Skip()
 
@@ -809,10 +824,10 @@ class SanaVerkkoKontrolleri:
         if release_value is not None:
             self.params["adsr_release"] = max(0.0, release_value)
 
-        self.adsr_attack_ctrl.SetValue(str(self.params["adsr_attack"]))
-        self.adsr_decay_ctrl.SetValue(str(self.params["adsr_decay"]))
-        self.adsr_sustain_ctrl.SetValue(str(self.params["adsr_sustain"]))
-        self.adsr_release_ctrl.SetValue(str(self.params["adsr_release"]))
+        self.adsr_attack_ctrl.ChangeValue(str(self.params["adsr_attack"]))
+        self.adsr_decay_ctrl.ChangeValue(str(self.params["adsr_decay"]))
+        self.adsr_sustain_ctrl.ChangeValue(str(self.params["adsr_sustain"]))
+        self.adsr_release_ctrl.ChangeValue(str(self.params["adsr_release"]))
         self._applyADSRToAudio()
         event.Skip()
 
@@ -862,7 +877,240 @@ class SanaVerkkoKontrolleri:
         self.audio_wave_index = 0
         self.audio_waveforms = ["sine", "triangle", "square", "sawtooth", "noise"]
         self.last_audio_sentence_signature = None
+        self.frequency_mapping_cache = {}
+        self.frequency_mapping_boundaries = {}
+        self.last_frequency_mapping_info = []
         sanasyna.init_audio(self.audio_sample_rate)
+
+    def _frequency_mapping_modes(self):
+        return [
+            ("original_notes", "Original notes"),
+            ("pythagorean_pentatonic", "Pythagorean pentatonic"),
+            ("pythagorean_8_note", "Pythagorean 8 note"),
+            ("equal_tempered_ionian", "Equal tempered ionian"),
+            ("equal_tempered_dorian", "Equal tempered dorian"),
+            ("equal_tempered_frygian", "Equal tempered frygian"),
+            ("equal_tempered_lydian", "Equal tempered lydian"),
+            ("equal_tempered_mixolydian", "Equal tempered mixolydian"),
+            ("equal_tempered_aeolian", "Equal tempered aeolian"),
+            ("equal_tempered_locrian", "Equal tempered locrian"),
+            ("equal_tempered_12_note", "Equal tempered 12 note"),
+            ("equal_tempered_24_note", "Equal tempered 24 note"),
+            ("equal_tempered_36_note", "Equal tempered 36 note"),
+            ("equal_tempered_48_note", "Equal tempered 48 note"),
+        ]
+
+    def _frequency_mapping_label_from_key(self, mode_key):
+        for key, label in self._frequency_mapping_modes():
+            if key == mode_key:
+                return label
+        return "Original notes"
+
+    def _frequency_mapping_key_from_label(self, mode_label):
+        for key, label in self._frequency_mapping_modes():
+            if label == mode_label:
+                return key
+        return "original_notes"
+
+    def _frequency_mapping_definition(self, mode_key):
+        definitions = {
+            "pythagorean_pentatonic": {
+                "kind": "ratio",
+                "ratios": [1.0, 9.0 / 8.0, 81.0 / 64.0, 3.0 / 2.0, 27.0 / 16.0],
+                "prefix": "PYPEN",
+            },
+            "pythagorean_8_note": {
+                "kind": "ratio",
+                "ratios": [1.0, 9.0 / 8.0, 81.0 / 64.0, 4.0 / 3.0, 3.0 / 2.0, 27.0 / 16.0, 243.0 / 128.0, 2.0],
+                "prefix": "PY8",
+            },
+            "equal_tempered_ionian": {
+                "kind": "et_mode",
+                "steps": [0, 2, 4, 5, 7, 9, 11],
+                "divisions": 12,
+                "prefix": "ET_ION",
+            },
+            "equal_tempered_dorian": {
+                "kind": "et_mode",
+                "steps": [0, 2, 3, 5, 7, 9, 10],
+                "divisions": 12,
+                "prefix": "ET_DOR",
+            },
+            "equal_tempered_frygian": {
+                "kind": "et_mode",
+                "steps": [0, 1, 3, 5, 7, 8, 10],
+                "divisions": 12,
+                "prefix": "ET_FRY",
+            },
+            "equal_tempered_lydian": {
+                "kind": "et_mode",
+                "steps": [0, 2, 4, 6, 7, 9, 11],
+                "divisions": 12,
+                "prefix": "ET_LYD",
+            },
+            "equal_tempered_mixolydian": {
+                "kind": "et_mode",
+                "steps": [0, 2, 4, 5, 7, 9, 10],
+                "divisions": 12,
+                "prefix": "ET_MIX",
+            },
+            "equal_tempered_aeolian": {
+                "kind": "et_mode",
+                "steps": [0, 2, 3, 5, 7, 8, 10],
+                "divisions": 12,
+                "prefix": "ET_AEO",
+            },
+            "equal_tempered_locrian": {
+                "kind": "et_mode",
+                "steps": [0, 1, 3, 5, 6, 8, 10],
+                "divisions": 12,
+                "prefix": "ET_LOC",
+            },
+            "equal_tempered_12_note": {
+                "kind": "et_full",
+                "divisions": 12,
+                "prefix": "ET12",
+            },
+            "equal_tempered_24_note": {
+                "kind": "et_full",
+                "divisions": 24,
+                "prefix": "ET24",
+            },
+            "equal_tempered_36_note": {
+                "kind": "et_full",
+                "divisions": 36,
+                "prefix": "ET36",
+            },
+            "equal_tempered_48_note": {
+                "kind": "et_full",
+                "divisions": 48,
+                "prefix": "ET48",
+            },
+        }
+        return definitions.get(mode_key)
+
+    def _build_frequency_mapping_entries(self, mode_key, min_freq=40.0, max_freq=4000.0, root_freq=110.0):
+        definition = self._frequency_mapping_definition(mode_key)
+        if definition is None:
+            return []
+
+        tones = []
+        kind = definition["kind"]
+
+        if kind == "ratio":
+            ratios = definition["ratios"]
+            for octave in range(-8, 9):
+                octave_ratio = 2.0 ** octave
+                for degree, ratio in enumerate(ratios):
+                    freq = root_freq * ratio * octave_ratio
+                    if min_freq * 0.5 <= freq <= max_freq * 2.0:
+                        tones.append((freq, degree, octave))
+        else:
+            divisions = int(definition["divisions"])
+            if kind == "et_mode":
+                steps = definition["steps"]
+            else:
+                steps = list(range(divisions))
+
+            for octave in range(-8, 9):
+                for degree, step in enumerate(steps):
+                    freq = root_freq * (2.0 ** (octave + (float(step) / float(divisions))))
+                    if min_freq * 0.5 <= freq <= max_freq * 2.0:
+                        tones.append((freq, degree, octave))
+
+        tones = sorted(tones, key=lambda item: item[0])
+        if len(tones) < 2:
+            return []
+
+        entries = []
+        prefix = definition["prefix"]
+        for index, (freq, degree, octave) in enumerate(tones):
+            if index == 0:
+                next_freq = tones[index + 1][0]
+                low = freq / math.sqrt(next_freq / freq)
+            else:
+                prev_freq = tones[index - 1][0]
+                low = math.sqrt(prev_freq * freq)
+
+            if index == len(tones) - 1:
+                prev_freq = tones[index - 1][0]
+                high = freq * math.sqrt(freq / prev_freq)
+            else:
+                next_freq = tones[index + 1][0]
+                high = math.sqrt(freq * next_freq)
+
+            if high < min_freq or low > max_freq:
+                continue
+
+            entry = {
+                "note_id": f"{prefix}_{degree:02d}_O{octave:+d}",
+                "range_min": max(min_freq, low),
+                "range_max": min(max_freq, high),
+                "mapped_freq": freq,
+            }
+            entries.append(entry)
+
+        return entries
+
+    def _get_frequency_mapping_entries(self, mode_key):
+        if mode_key == "original_notes":
+            return []
+
+        if mode_key in self.frequency_mapping_cache:
+            return self.frequency_mapping_cache[mode_key]
+
+        entries = self._build_frequency_mapping_entries(mode_key)
+        self.frequency_mapping_cache[mode_key] = entries
+        self.frequency_mapping_boundaries[mode_key] = [entry["range_max"] for entry in entries]
+        return entries
+
+    def _map_frequency_value(self, frequency, mode_key):
+        if frequency <= 0.0:
+            return {
+                "note_id": "REST",
+                "range_min": 0.0,
+                "range_max": 0.0,
+                "mapped_freq": 0.0,
+            }
+
+        if mode_key == "original_notes":
+            return {
+                "note_id": "ORIGINAL",
+                "range_min": frequency,
+                "range_max": frequency,
+                "mapped_freq": frequency,
+            }
+
+        entries = self._get_frequency_mapping_entries(mode_key)
+        boundaries = self.frequency_mapping_boundaries.get(mode_key, [])
+        if not entries or not boundaries:
+            return {
+                "note_id": "ORIGINAL",
+                "range_min": frequency,
+                "range_max": frequency,
+                "mapped_freq": frequency,
+            }
+
+        entry_index = bisect.bisect_left(boundaries, frequency)
+        if entry_index >= len(entries):
+            entry_index = len(entries) - 1
+
+        entry = entries[entry_index]
+        if frequency < entry["range_min"] and entry_index > 0:
+            entry = entries[entry_index - 1]
+
+        return {
+            "note_id": entry["note_id"],
+            "range_min": entry["range_min"],
+            "range_max": entry["range_max"],
+            "mapped_freq": entry["mapped_freq"],
+        }
+
+    def getFrequencyMappingTable(self):
+        mode_key = str(self.params.get("frequency_mapping_mode", "original_notes"))
+        if mode_key == "original_notes":
+            return []
+        return list(self._get_frequency_mapping_entries(mode_key))
 
     def _waveform_from_mode(self, mode, signed_activation=0.0, activation_spread=0.0):
         if mode == "pure_sine":
@@ -890,11 +1138,14 @@ class SanaVerkkoKontrolleri:
         pattern = []
         max_activation = max(0.001, float(self.params.get("activation_limit", 2.0)))
         activation_norm = min(1.0, max(0.0, abs(float(activation_value)) / max_activation))
+        mapping_mode = str(self.params.get("frequency_mapping_mode", "original_notes"))
 
         for index, value in enumerate(letter_values):
             step = (float(value) % 240.0) * 1.35
             direction = 1.0 if index % 2 == 0 else -1.0
             frequency = max(80.0, min(1400.0, base_freq + direction * step))
+            mapping_entry = self._map_frequency_value(frequency, mapping_mode)
+            frequency = mapping_entry["mapped_freq"]
             if index == 0:
                 step_delta = abs(float(value) - float(letter_values[-1]))
             else:
@@ -940,6 +1191,8 @@ class SanaVerkkoKontrolleri:
         if not melody:
             return
 
+        mapping_mode = str(self.params.get("frequency_mapping_mode", "original_notes"))
+
         voice_count = max(1, min(4, int(self.params.get("voice_count", 1))))
         voice_spread = float(self.params.get("voice_spread", 1.0))
         melody_speed = float(self.params.get("melody_speed", 1.0))
@@ -948,6 +1201,7 @@ class SanaVerkkoKontrolleri:
         signature = (
             tuple(word.word for word in self.words),
             waveform,
+            mapping_mode,
             voice_count,
             round(voice_spread, 2),
             round(melody_speed, 2),
@@ -1184,6 +1438,13 @@ class SanaVerkkoKontrolleri:
         if audio_wave_mode not in {"dynamic", "pure_sine", "noise_heavy", "classic_analog"}:
             audio_wave_mode = "dynamic"
         self.params["audio_wave_mode"] = audio_wave_mode
+
+        frequency_mapping_mode = str(self.params.get("frequency_mapping_mode", "original_notes"))
+        valid_frequency_modes = {key for key, _ in self._frequency_mapping_modes()}
+        if frequency_mapping_mode not in valid_frequency_modes:
+            frequency_mapping_mode = "original_notes"
+        self.params["frequency_mapping_mode"] = frequency_mapping_mode
+
         self.params["voice_count"] = max(1, min(4, int(float(self.params.get("voice_count", 1)))))
         self.params["voice_spread"] = min(5.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
         self.params["melody_speed"] = min(4.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
@@ -1220,6 +1481,7 @@ class SanaVerkkoKontrolleri:
             self.audio_wave_mode_choice.SetStringSelection("Classic analog")
         else:
             self.audio_wave_mode_choice.SetStringSelection("Dynamic")
+        self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
         self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
         self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
         self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
