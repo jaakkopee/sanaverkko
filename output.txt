@@ -1,237 +1,251 @@
-jake magus taivossuora a a grand magus
- 36 +  448 +  1321 +  1 +  1 +  152 +  448 +   = 2407  ->  13  ->  4 
- jake magus magus a a grand magus
- 36 +  448 +  448 +  1 +  1 +  152 +  448 +   = 1534  ->  13  ->  4 
- i magus you a a think you
- 9 +  448 +  1060 +  1 +  1 +  287 +  1060 +   = 2866  ->  22  ->  4 
- i be be is a to you
- 9 +  7 +  7 +  109 +  1 +  260 +  1060 +   = 1453  ->  13  ->  4 
- have you you is a to you
- 414 +  1060 +  1060 +  109 +  1 +  260 +  1060 +   = 3964  ->  22  ->  4 
- have you you is a to you
- 414 +  1060 +  1060 +  109 +  1 +  260 +  1060 +   = 3964  ->  22  ->  4 
- have you you is a to you
- 414 +  1060 +  1060 +  109 +  1 +  260 +  1060 +   = 3964  ->  22  ->  4 
- have you you is a to you
- 414 +  1060 +  1060 +  109 +  1 +  260 +  1060 +   = 3964  ->  22  ->  4 
- have you you is a to you
- 414 +  1060 +  1060 +  109 +  1 +  260 +  1060 +   = 3964  ->  22  ->  4 
- have you you is a to you
- 414 +  1060 +  1060 +  109 +  1 +  260 +  1060 +   = 3964  ->  22  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- i you you is spelled think you
- 9 +  1060 +  1060 +  109 +  244 +  287 +  1060 +   = 3829  ->  22  ->  4 
- i you be is is to you
- 9 +  1060 +  7 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- i you be is is to you
- 9 +  1060 +  7 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- i you you spelled spelled to be
- 9 +  1060 +  1060 +  244 +  244 +  260 +  7 +   = 2884  ->  22  ->  4 
- can be be is is to you
- 54 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1606  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i be be and and to you
- 9 +  7 +  7 +  55 +  55 +  260 +  1060 +   = 1453  ->  13  ->  4 
- i be you is is to you
- 9 +  7 +  1060 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- i you you is is think be
- 9 +  1060 +  1060 +  109 +  109 +  287 +  7 +   = 2641  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- have you you spelled spelled to be
- 414 +  1060 +  1060 +  244 +  244 +  260 +  7 +   = 3289  ->  22  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- have you you is spelled think be
- 414 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 3181  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you is spelled think you
- 9 +  1060 +  1060 +  109 +  244 +  287 +  1060 +   = 3829  ->  22  ->  4 
- can be you is is think you
- 54 +  7 +  1060 +  109 +  109 +  287 +  1060 +   = 2686  ->  22  ->  4 
- can be you is is think you
- 54 +  7 +  1060 +  109 +  109 +  287 +  1060 +   = 2686  ->  22  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- i you be is spelled to you
- 9 +  1060 +  7 +  109 +  244 +  260 +  1060 +   = 2749  ->  22  ->  4 
- i you you is spelled think you
- 9 +  1060 +  1060 +  109 +  244 +  287 +  1060 +   = 3829  ->  22  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- have you you spelled spelled think be
- 414 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 3316  ->  13  ->  4 
- have you you spelled spelled think be
- 414 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 3316  ->  13  ->  4 
- have you you spelled spelled think be
- 414 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 3316  ->  13  ->  4 
- have be be is is to you
- 414 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1966  ->  22  ->  4 
- have you you is is to you
- 414 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 4072  ->  13  ->  4 
- have you you is is to you
- 414 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 4072  ->  13  ->  4 
- i you you is is to you
- 9 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 3667  ->  22  ->  4 
- i you you is is to you
- 9 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 3667  ->  22  ->  4 
- have you you spelled spelled to you
- 414 +  1060 +  1060 +  244 +  244 +  260 +  1060 +   = 4342  ->  13  ->  4 
- i you you spelled spelled think you
- 9 +  1060 +  1060 +  244 +  244 +  287 +  1060 +   = 3964  ->  22  ->  4 
- i you you spelled spelled think you
- 9 +  1060 +  1060 +  244 +  244 +  287 +  1060 +   = 3964  ->  22  ->  4 
- have you you spelled spelled think you
- 414 +  1060 +  1060 +  244 +  244 +  287 +  1060 +   = 4369  ->  22  ->  4 
- have you you spelled spelled think you
- 414 +  1060 +  1060 +  244 +  244 +  287 +  1060 +   = 4369  ->  22  ->  4 
- have you you spelled spelled think you
- 414 +  1060 +  1060 +  244 +  244 +  287 +  1060 +   = 4369  ->  22  ->  4 
- have be you spelled spelled think be
- 414 +  7 +  1060 +  244 +  244 +  287 +  7 +   = 2263  ->  13  ->  4 
- can be be is is to you
- 54 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1606  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you is spelled think be
- 9 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 2776  ->  22  ->  4 
- have you you is is think be
- 414 +  1060 +  1060 +  109 +  109 +  287 +  7 +   = 3046  ->  13  ->  4 
- have you you is is think be
- 414 +  1060 +  1060 +  109 +  109 +  287 +  7 +   = 3046  ->  13  ->  4 
- have you you spelled is think be
- 414 +  1060 +  1060 +  244 +  109 +  287 +  7 +   = 3181  ->  13  ->  4 
- have you you spelled is think be
- 414 +  1060 +  1060 +  244 +  109 +  287 +  7 +   = 3181  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you is is to you
- 9 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 3667  ->  22  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i be you spelled is to you
- 9 +  7 +  1060 +  244 +  109 +  260 +  1060 +   = 2749  ->  22  ->  4 
- can be you is is to you
- 54 +  7 +  1060 +  109 +  109 +  260 +  1060 +   = 2659  ->  22  ->  4 
- have you you spelled spelled think be
- 414 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 3316  ->  13  ->  4 
- have you you spelled spelled think be
- 414 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 3316  ->  13  ->  4 
- i you be spelled spelled think you
- 9 +  1060 +  7 +  244 +  244 +  287 +  1060 +   = 2911  ->  13  ->  4 
- can you you is is think you
- 54 +  1060 +  1060 +  109 +  109 +  287 +  1060 +   = 3739  ->  22  ->  4 
- can you you is is to you
- 54 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 3712  ->  13  ->  4 
- can be you and is to you
- 54 +  7 +  1060 +  55 +  109 +  260 +  1060 +   = 2605  ->  13  ->  4 
- have you you spelled spelled to be
- 414 +  1060 +  1060 +  244 +  244 +  260 +  7 +   = 3289  ->  22  ->  4 
- i you be is is to you
- 9 +  1060 +  7 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- have you you is spelled think be
- 414 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 3181  ->  13  ->  4 
- have you be is is to you
- 414 +  1060 +  7 +  109 +  109 +  260 +  1060 +   = 3019  ->  13  ->  4 
- have you you is is to you
- 414 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 4072  ->  13  ->  4 
- have you you is is to you
- 414 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 4072  ->  13  ->  4 
- have you you is spelled to be
- 414 +  1060 +  1060 +  109 +  244 +  260 +  7 +   = 3154  ->  13  ->  4 
- have you you spelled is to you
- 414 +  1060 +  1060 +  244 +  109 +  260 +  1060 +   = 4207  ->  13  ->  4 
- i you you spelled is to you
- 9 +  1060 +  1060 +  244 +  109 +  260 +  1060 +   = 3802  ->  13  ->  4 
- have you you spelled is think be
- 414 +  1060 +  1060 +  244 +  109 +  287 +  7 +   = 3181  ->  13  ->  4 
- i you you spelled is to you
- 9 +  1060 +  1060 +  244 +  109 +  260 +  1060 +   = 3802  ->  13  ->  4 
- i you you spelled is to you
- 9 +  1060 +  1060 +  244 +  109 +  260 +  1060 +   = 3802  ->  13  ->  4 
- have you you spelled is to you
- 414 +  1060 +  1060 +  244 +  109 +  260 +  1060 +   = 4207  ->  13  ->  4 
- have you you is spelled think be
- 414 +  1060 +  1060 +  109 +  244 +  287 +  7 +   = 3181  ->  13  ->  4 
- have be be is is think be
- 414 +  7 +  7 +  109 +  109 +  287 +  7 +   = 940  ->  13  ->  4 
- have you be is is think be
- 414 +  1060 +  7 +  109 +  109 +  287 +  7 +   = 1993  ->  22  ->  4 
- can be be is is to you
- 54 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1606  ->  13  ->  4 
- can be be is is to you
- 54 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1606  ->  13  ->  4 
- can be be is is to you
- 54 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1606  ->  13  ->  4 
- i you you spelled spelled to be
- 9 +  1060 +  1060 +  244 +  244 +  260 +  7 +   = 2884  ->  22  ->  4 
- i you you spelled spelled to be
- 9 +  1060 +  1060 +  244 +  244 +  260 +  7 +   = 2884  ->  22  ->  4 
- i you you is spelled to be
- 9 +  1060 +  1060 +  109 +  244 +  260 +  7 +   = 2749  ->  22  ->  4 
- path you be is spelled think you
- 279 +  1060 +  7 +  109 +  244 +  287 +  1060 +   = 3046  ->  13  ->  4 
- path you be is spelled think you
- 279 +  1060 +  7 +  109 +  244 +  287 +  1060 +   = 3046  ->  13  ->  4 
- path be you is spelled to be
- 279 +  7 +  1060 +  109 +  244 +  260 +  7 +   = 1966  ->  22  ->  4 
- path be be is is to you
- 279 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1831  ->  13  ->  4 
- i be you is is to you
- 9 +  7 +  1060 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- i be you is is to you
- 9 +  7 +  1060 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- i be you is is to you
- 9 +  7 +  1060 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- have you you is is to you
- 414 +  1060 +  1060 +  109 +  109 +  260 +  1060 +   = 4072  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i you be is is to you
- 9 +  1060 +  7 +  109 +  109 +  260 +  1060 +   = 2614  ->  13  ->  4 
- i be be is is to you
- 9 +  7 +  7 +  109 +  109 +  260 +  1060 +   = 1561  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- i you you spelled spelled think be
- 9 +  1060 +  1060 +  244 +  244 +  287 +  7 +   = 2911  ->  13  ->  4 
- can be be spelled is to you
- 54 +  7 +  7 +  244 +  109 +  260 +  1060 +   = 1741  ->  13  ->  4 
+jake pii taivossuora a a great mage
+ 36 +  88 +  1321 +  1 +  1 +  303 +  53 +   = 1803  ->  12  ->  3 
+ jake pii pii a a great mage
+ 36 +  88 +  88 +  1 +  1 +  303 +  53 +   = 570  ->  12  ->  3 
+ i pii you is is or each
+ 9 +  88 +  1060 +  109 +  109 +  150 +  17 +   = 1542  ->  12  ->  3 
+ i all all is is holy think
+ 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
+ can all be is is are think
+ 54 +  61 +  7 +  109 +  109 +  96 +  287 +   = 723  ->  12  ->  3 
+ can you you is is are to
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
+ can all you is is holy think
+ 54 +  61 +  1060 +  109 +  109 +  798 +  287 +   = 2478  ->  21  ->  3 
+ can be you is is holy to
+ 54 +  7 +  1060 +  109 +  109 +  798 +  260 +   = 2397  ->  21  ->  3 
+ can be be is is holy think
+ 54 +  7 +  7 +  109 +  109 +  798 +  287 +   = 1371  ->  12  ->  3 
+ can you you is is are to
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
+ have you be is is are to
+ 414 +  1060 +  7 +  109 +  109 +  96 +  260 +   = 2055  ->  12  ->  3 
+ i you be we is are to
+ 9 +  1060 +  7 +  505 +  109 +  96 +  260 +   = 2046  ->  12  ->  3 
+ i be be is is holy think
+ 9 +  7 +  7 +  109 +  109 +  798 +  287 +   = 1326  ->  12  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i be be is is the god
+ 9 +  7 +  7 +  109 +  109 +  213 +  71 +   = 525  ->  12  ->  3 
+ can you you is is are to
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
+ i all all is is holy to
+ 9 +  61 +  61 +  109 +  109 +  798 +  260 +   = 1407  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i all be is we holy think
+ 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
+ have you be we we the to
+ 414 +  1060 +  7 +  505 +  505 +  213 +  260 +   = 2964  ->  21  ->  3 
+ i you all is we holy think
+ 9 +  1060 +  61 +  109 +  505 +  798 +  287 +   = 2829  ->  21  ->  3 
+ can you you is we are to
+ 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
+ can you you is we are to
+ 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
+ can you you is we are to
+ 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
+ have you you is we with to
+ 414 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 4125  ->  12  ->  3 
+ have you be is we the to
+ 414 +  1060 +  7 +  109 +  505 +  213 +  260 +   = 2568  ->  21  ->  3 
+ i all be is we holy think
+ 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
+ i all be is we holy think
+ 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
+ i all be is we holy think
+ 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
+ i all be is is are think
+ 9 +  61 +  7 +  109 +  109 +  96 +  287 +   = 678  ->  21  ->  3 
+ can you you is is are think
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  287 +   = 2775  ->  21  ->  3 
+ i you you we we the to
+ 9 +  1060 +  1060 +  505 +  505 +  213 +  260 +   = 3612  ->  12  ->  3 
+ i you you is is are to
+ 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
+ i you you is is are to
+ 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
+ i you all is is holy to
+ 9 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2406  ->  12  ->  3 
+ i you all is is holy to
+ 9 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2406  ->  12  ->  3 
+ i you be we we the to
+ 9 +  1060 +  7 +  505 +  505 +  213 +  260 +   = 2559  ->  21  ->  3 
+ i you all is is the to
+ 9 +  1060 +  61 +  109 +  109 +  213 +  260 +   = 1821  ->  12  ->  3 
+ can you you is is the to
+ 54 +  1060 +  1060 +  109 +  109 +  213 +  260 +   = 2865  ->  21  ->  3 
+ can you you is is the to
+ 54 +  1060 +  1060 +  109 +  109 +  213 +  260 +   = 2865  ->  21  ->  3 
+ i you be is is holy think
+ 9 +  1060 +  7 +  109 +  109 +  798 +  287 +   = 2379  ->  21  ->  3 
+ can be you is is the think
+ 54 +  7 +  1060 +  109 +  109 +  213 +  287 +   = 1839  ->  21  ->  3 
+ can be you is is the think
+ 54 +  7 +  1060 +  109 +  109 +  213 +  287 +   = 1839  ->  21  ->  3 
+ can be all is is holy think
+ 54 +  7 +  61 +  109 +  109 +  798 +  287 +   = 1425  ->  12  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i be all is is holy think
+ 9 +  7 +  61 +  109 +  109 +  798 +  287 +   = 1380  ->  12  ->  3 
+ i you you is is are to
+ 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
+ can you you is is are to
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
+ can you you is is are to
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
+ can you all is is holy to
+ 54 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2451  ->  12  ->  3 
+ i all all is is holy think
+ 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
+ can you you we is are to
+ 54 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3144  ->  12  ->  3 
+ i be be we is are to
+ 9 +  7 +  7 +  505 +  109 +  96 +  260 +   = 993  ->  21  ->  3 
+ i be be is is holy think
+ 9 +  7 +  7 +  109 +  109 +  798 +  287 +   = 1326  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be all we we holy to
+ 9 +  7 +  61 +  505 +  505 +  798 +  260 +   = 2145  ->  12  ->  3 
+ i be all we we holy to
+ 9 +  7 +  61 +  505 +  505 +  798 +  260 +   = 2145  ->  12  ->  3 
+ have be you we we holy think
+ 414 +  7 +  1060 +  505 +  505 +  798 +  287 +   = 3576  ->  21  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be you is is are to
+ 9 +  7 +  1060 +  109 +  109 +  96 +  260 +   = 1650  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i all all is is holy think
+ 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
+ i all all is is holy think
+ 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
+ i all all is is the think
+ 9 +  61 +  61 +  109 +  109 +  213 +  287 +   = 849  ->  21  ->  3 
+ i all you we we the to
+ 9 +  61 +  1060 +  505 +  505 +  213 +  260 +   = 2613  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i all all is is holy to
+ 9 +  61 +  61 +  109 +  109 +  798 +  260 +   = 1407  ->  12  ->  3 
+ i all you we we with to
+ 9 +  61 +  1060 +  505 +  505 +  717 +  260 +   = 3117  ->  12  ->  3 
+ i all be we we the to
+ 9 +  61 +  7 +  505 +  505 +  213 +  260 +   = 1560  ->  12  ->  3 
+ can you you is is are to
+ 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
+ can you you is is the to
+ 54 +  1060 +  1060 +  109 +  109 +  213 +  260 +   = 2865  ->  21  ->  3 
+ i you all is is holy to
+ 9 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2406  ->  12  ->  3 
+ i you you is we with to
+ 9 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 3720  ->  12  ->  3 
+ i you you is we with to
+ 9 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 3720  ->  12  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i be all is is the to
+ 9 +  7 +  61 +  109 +  109 +  213 +  260 +   = 768  ->  21  ->  3 
+ i be all is is the to
+ 9 +  7 +  61 +  109 +  109 +  213 +  260 +   = 768  ->  21  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be you is is the to
+ 9 +  7 +  1060 +  109 +  109 +  213 +  260 +   = 1767  ->  21  ->  3 
+ i be you is we the to
+ 9 +  7 +  1060 +  109 +  505 +  213 +  260 +   = 2163  ->  12  ->  3 
+ i be all is we holy to
+ 9 +  7 +  61 +  109 +  505 +  798 +  260 +   = 1749  ->  21  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ can you you is we are to
+ 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
+ can be be is we are to
+ 54 +  7 +  7 +  109 +  505 +  96 +  260 +   = 1038  ->  12  ->  3 
+ can be you is we are to
+ 54 +  7 +  1060 +  109 +  505 +  96 +  260 +   = 2091  ->  12  ->  3 
+ i you be is we the to
+ 9 +  1060 +  7 +  109 +  505 +  213 +  260 +   = 2163  ->  12  ->  3 
+ i all all is is the to
+ 9 +  61 +  61 +  109 +  109 +  213 +  260 +   = 822  ->  12  ->  3 
+ i all be is is the to
+ 9 +  61 +  7 +  109 +  109 +  213 +  260 +   = 768  ->  21  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be is is the to
+ 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ can you you we is are to
+ 54 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3144  ->  12  ->  3 
+ i you you we is are to
+ 9 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3099  ->  21  ->  3 
+ i you you we is are to
+ 9 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3099  ->  21  ->  3 
+ i all all we we holy think
+ 9 +  61 +  61 +  505 +  505 +  798 +  287 +   = 2226  ->  12  ->  3 
+ i be all is is holy think
+ 9 +  7 +  61 +  109 +  109 +  798 +  287 +   = 1380  ->  12  ->  3 
+ can you you is is holy think
+ 54 +  1060 +  1060 +  109 +  109 +  798 +  287 +   = 3477  ->  21  ->  3 
+ i be be we we the to
+ 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
+ can you be is is are to
+ 54 +  1060 +  7 +  109 +  109 +  96 +  260 +   = 1695  ->  21  ->  3 
+ i you you is is are to
+ 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ i be be is we the to
+ 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
+ have you you is we with to
+ 414 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 4125  ->  12  ->  3 
+ have you be is is with to
+ 414 +  1060 +  7 +  109 +  109 +  717 +  260 +   = 2676  ->  21  ->  3 
  

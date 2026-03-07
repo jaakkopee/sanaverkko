@@ -506,13 +506,19 @@ class SanaVerkkoKontrolleri:
         self.output_text_ctrl.ShowPosition(self.output_text_ctrl.GetLastPosition())
 
     def OnSetWeightByGematria(self, event):
+        if self._suppress_param_events:
+            return
         self.params["set_weight_by_gematria"] = self.set_weight_by_gematria_checkbox.GetValue()
 
     def OnUsePOSMatching(self, event):
+        if self._suppress_param_events:
+            return
         self.params["use_pos_matching"] = self._is_pos_matching_enabled()
         self._updatePOSBackendStatusLabel(check_nltk=self.params["use_pos_matching"])
 
     def OnUseLongTermMemory(self, event):
+        if self._suppress_param_events:
+            return
         self.params["use_long_term_memory"] = self._is_ltm_enabled()
         self._updateLTMStatusLabel()
 
@@ -534,6 +540,8 @@ class SanaVerkkoKontrolleri:
             self.ltm_status_label.SetLabel(f"LTM load failed: {error}")
 
     def OnFluidRoot(self, event):
+        if self._suppress_param_events:
+            return
         self.params["fluid_root"] = self._is_fluid_root_enabled()
 
     def _is_pos_matching_enabled(self):
@@ -851,14 +859,17 @@ class SanaVerkkoKontrolleri:
             self.params["jump_radius"] = max(0, value)
 
     def OnImportMode(self, event):
+        if self._suppress_param_events:
+            return
         selected_mode = self.import_mode_choice.GetStringSelection()
         if selected_mode == "Replace database":
             self.params["import_mode"] = "replace"
         else:
             self.params["import_mode"] = "append"
-        event.Skip()
 
     def OnAudioWaveMode(self, event):
+        if self._suppress_param_events:
+            return
         selected_mode = self.audio_wave_mode_choice.GetStringSelection()
         if selected_mode == "Pure sine":
             self.params["audio_wave_mode"] = "pure_sine"
@@ -868,23 +879,23 @@ class SanaVerkkoKontrolleri:
             self.params["audio_wave_mode"] = "classic_analog"
         else:
             self.params["audio_wave_mode"] = "dynamic"
-        event.Skip()
 
     def OnFrequencyMappingMode(self, event):
+        if self._suppress_param_events:
+            return
         selected_label = self.frequency_mapping_choice.GetStringSelection()
         self.params["frequency_mapping_mode"] = self._frequency_mapping_key_from_label(selected_label)
         self.last_audio_sentence_signature = None
-        event.Skip()
 
     def OnVoiceCount(self, event):
+        if self._suppress_param_events:
+            return
         selected_voice_count = self.voice_count_choice.GetStringSelection()
         try:
             self.params["voice_count"] = max(1, min(4, int(selected_voice_count)))
         except Exception:
             self.params["voice_count"] = 1
-        self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
         self.last_audio_sentence_signature = None
-        event.Skip()
 
     def OnVoiceSpread(self, event):
         if self._is_duplicate_param_event(event, self.voice_spread_ctrl):
