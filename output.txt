@@ -1,209 +1,79 @@
-jake magus is a grand magus
- 36 +  448 +  109 +  1 +  152 +  448 +   = 1194  ->  15  ->  6 
- jake magus is is grand magus
- 36 +  448 +  109 +  109 +  152 +  448 +   = 1302  ->  6 
- fl containing abase abase abraham devil
- 36 +  439 +  109 +  109 +  143 +  448 +   = 1284  ->  15  ->  6 
- em devil abase abase abraham cherubim
- 45 +  448 +  109 +  109 +  143 +  457 +   = 1311  ->  6 
- em devil abase abase abraham courage
- 45 +  448 +  109 +  109 +  143 +  466 +   = 1320  ->  6 
- em devil abase abase abraham kerubim
- 45 +  448 +  109 +  109 +  143 +  466 +   = 1320  ->  6 
- em devil abase abase abraham courage
- 45 +  448 +  109 +  109 +  143 +  466 +   = 1320  ->  6 
- em devil abase abase abraham having
- 45 +  448 +  109 +  109 +  143 +  475 +   = 1329  ->  15  ->  6 
- em devil abase has to having
- 45 +  448 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
- em devil has has to having
- 45 +  448 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
- em devil has has to having
- 45 +  448 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
- can devil has has to having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can devil has has to having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing place has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can titled has has to having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can cherubim has has to having
- 54 +  457 +  109 +  109 +  260 +  475 +   = 1464  ->  15  ->  6 
- can cherubim has has to having
- 54 +  457 +  109 +  109 +  260 +  475 +   = 1464  ->  15  ->  6 
- can freemasons has has sense classroom
- 54 +  457 +  109 +  109 +  260 +  484 +   = 1473  ->  15  ->  6 
- can using has has to having
- 54 +  466 +  109 +  109 +  260 +  475 +   = 1473  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can devil has has to buffoon
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can devil has has to classroom
- 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing has has to having
- 54 +  439 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
- can containing has has to having
- 54 +  439 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can titled has place to plough
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can freemasons has place to having
- 54 +  457 +  109 +  109 +  260 +  475 +   = 1464  ->  15  ->  6 
- can cherubim place has to classroom
- 54 +  457 +  109 +  109 +  260 +  484 +   = 1473  ->  15  ->  6 
- can having has has to buffoon
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can devil has has to having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can vil has has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can vil has has to buffoon
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can containing aces has to classroom
- 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to having
- 54 +  475 +  109 +  109 +  260 +  475 +   = 1482  ->  15  ->  6 
- can having has has to having
- 54 +  475 +  109 +  109 +  260 +  475 +   = 1482  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to control
- 54 +  475 +  109 +  109 +  260 +  493 +   = 1500  ->  6 
- can lookest has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to classroom
- 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
- can having has has to control
- 54 +  475 +  109 +  109 +  260 +  493 +   = 1500  ->  6 
- can classroom has has to having
- 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
- can classroom has has to plough
- 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
- can classroom has has to plough
- 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
- can classroom has has to plough
- 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
- can classroom has has to classroom
- 54 +  484 +  109 +  109 +  260 +  484 +   = 1500  ->  6 
- can classroom has has to classroom
- 54 +  484 +  109 +  109 +  260 +  484 +   = 1500  ->  6 
- can classroom has has to classroom
- 54 +  484 +  109 +  109 +  260 +  484 +   = 1500  ->  6 
- can having has has to control
- 54 +  475 +  109 +  109 +  260 +  493 +   = 1500  ->  6 
- can having has has to having
- 54 +  475 +  109 +  109 +  260 +  475 +   = 1482  ->  15  ->  6 
- can devil has has to having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can devil has place talked having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can devil has place talked having
- 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
- can proper has has disks lemurs
- 54 +  385 +  109 +  109 +  233 +  565 +   = 1455  ->  15  ->  6 
- can proper has has disks pushes
- 54 +  385 +  109 +  109 +  233 +  583 +   = 1473  ->  15  ->  6 
- can proper has place disks pushes
- 54 +  385 +  109 +  109 +  233 +  583 +   = 1473  ->  15  ->  6 
- can nects case kedemel disks tipareth
- 54 +  358 +  109 +  109 +  233 +  583 +   = 1446  ->  15  ->  6 
- can nects place place membrane developed
- 54 +  358 +  109 +  109 +  233 +  583 +   = 1446  ->  15  ->  6 
- can scores hands scene beth priests
- 54 +  358 +  163 +  163 +  215 +  574 +   = 1527  ->  15  ->  6 
- can scores hands scene beth priests
- 54 +  358 +  163 +  163 +  215 +  574 +   = 1527  ->  15  ->  6 
- can scores hands scene beth priests
- 54 +  358 +  163 +  163 +  215 +  574 +   = 1527  ->  15  ->  6 
- can dimensional hands firm beth stepchildren
- 54 +  358 +  163 +  145 +  215 +  574 +   = 1509  ->  15  ->  6 
- can dimensional hands erance insane priests
- 54 +  358 +  163 +  154 +  215 +  574 +   = 1518  ->  15  ->  6 
- can practiced place place becomes than
- 54 +  385 +  109 +  109 +  215 +  259 +   = 1131  ->  6 
- can practiced place place tea than
- 54 +  385 +  109 +  109 +  206 +  259 +   = 1122  ->  6 
- can practiced place place tea from
- 54 +  385 +  109 +  109 +  206 +  196 +   = 1059  ->  15  ->  6 
- can practiced place place beth though
- 54 +  385 +  109 +  109 +  215 +  583 +   = 1455  ->  15  ->  6 
- can effort place place beth from
- 54 +  367 +  109 +  109 +  215 +  196 +   = 1050  ->  6 
- can obsess place place beth from
- 54 +  367 +  109 +  109 +  215 +  196 +   = 1050  ->  6 
- can effort place place beth from
- 54 +  367 +  109 +  109 +  215 +  196 +   = 1050  ->  6 
- can effort place place faith through
- 54 +  367 +  109 +  109 +  224 +  673 +   = 1536  ->  15  ->  6 
- field material pipe place insane cavities
- 54 +  376 +  154 +  109 +  215 +  727 +   = 1635  ->  15  ->  6 
- himself effort rod place data cavities
- 198 +  367 +  154 +  109 +  206 +  727 +   = 1761  ->  15  ->  6 
- can certain ences belong sense dwarfish
- 54 +  358 +  163 +  154 +  260 +  718 +   = 1707  ->  15  ->  6 
- child scores dances hands talk formulated
- 54 +  358 +  163 +  163 +  251 +  736 +   = 1725  ->  15  ->  6 
- ball nestled hands place tool traumatic
- 63 +  394 +  163 +  109 +  350 +  844 +   = 1923  ->  15  ->  6 
- hod capricorn hands case astral finally
- 72 +  376 +  163 +  109 +  422 +  826 +   = 1968  ->  24  ->  6 
- hod capricorn hands case astral quadrants
- 72 +  376 +  163 +  109 +  422 +  826 +   = 1968  ->  24  ->  6 
- nail capricorn radiance case astral formulated
- 90 +  376 +  163 +  109 +  422 +  736 +   = 1896  ->  24  ->  6 
- another certain leon girl geburah finally
- 414 +  358 +  145 +  136 +  413 +  826 +   = 2292  ->  15  ->  6 
+jake pii taivossuora is is great mage
+ 36 +  88 +  1321 +  109 +  109 +  303 +  53 +   = 2019  ->  12  ->  3 
+ i choice story is is enfant chicken
+ 9 +  88 +  1150 +  109 +  109 +  312 +  98 +   = 1875  ->  21  ->  3 
+ i choice window is is task chicken
+ 9 +  88 +  1123 +  109 +  109 +  321 +  98 +   = 1857  ->  21  ->  3 
+ i choice texts is is top chicken
+ 9 +  88 +  1105 +  109 +  109 +  330 +  98 +   = 1848  ->  21  ->  3 
+ i far texts is has top chicken
+ 9 +  97 +  1105 +  109 +  109 +  330 +  98 +   = 1857  ->  21  ->  3 
+ i far window has has top chicken
+ 9 +  97 +  1123 +  109 +  109 +  330 +  98 +   = 1875  ->  21  ->  3 
+ i far texts has has top chicken
+ 9 +  97 +  1105 +  109 +  109 +  330 +  98 +   = 1857  ->  21  ->  3 
+ i far texts has has top chicken
+ 9 +  97 +  1105 +  109 +  109 +  330 +  98 +   = 1857  ->  21  ->  3 
+ i far heavy has has top chicken
+ 9 +  97 +  1114 +  109 +  109 +  330 +  98 +   = 1866  ->  21  ->  3 
+ i far heavy has has top chicken
+ 9 +  97 +  1114 +  109 +  109 +  330 +  98 +   = 1866  ->  21  ->  3 
+ i phere heavy has has pillars chicken
+ 9 +  178 +  1114 +  109 +  109 +  330 +  98 +   = 1947  ->  21  ->  3 
+ i phere heavy has has consider chicken
+ 9 +  178 +  1114 +  109 +  109 +  321 +  98 +   = 1938  ->  21  ->  3 
+ add phere texts has has task chicken
+ 9 +  178 +  1105 +  109 +  109 +  321 +  98 +   = 1929  ->  21  ->  3 
+ add phere texts has called task chicken
+ 9 +  178 +  1105 +  109 +  73 +  321 +  98 +   = 1893  ->  21  ->  3 
+ heard camel empty en like their space
+ 108 +  79 +  1015 +  55 +  64 +  312 +  179 +   = 1812  ->  12  ->  3 
+ nogah sinai texts comes stone aerates chicken
+ 126 +  169 +  1105 +  208 +  415 +  402 +  98 +   = 2523  ->  12  ->  3 
+ nogah sinai texts comes stone tombs chicken
+ 126 +  169 +  1105 +  208 +  415 +  402 +  98 +   = 2523  ->  12  ->  3 
+ his pocket scratchy decans finest reduced skin
+ 117 +  358 +  1105 +  163 +  370 +  411 +  179 +   = 2703  ->  12  ->  3 
+ eral listen heavy aces performed faster office
+ 126 +  394 +  1114 +  109 +  370 +  402 +  89 +   = 2604  ->  12  ->  3 
+ eral listen heavy th ew guarded lined
+ 126 +  394 +  1114 +  208 +  505 +  411 +  98 +   = 2856  ->  21  ->  3 
+ come dimensional predictably reprinted tongue guarded chicken
+ 108 +  358 +  1114 +  523 +  622 +  411 +  98 +   = 3234  ->  12  ->  3 
+ come dimensional predictably qabalists being urge godhead
+ 108 +  358 +  1114 +  523 +  73 +  402 +  89 +   = 2667  ->  21  ->  3 
+ i opposite apologize qabalists being reduced godhead
+ 9 +  574 +  1042 +  523 +  73 +  411 +  89 +   = 2721  ->  12  ->  3 
+ command freemasons healthy qabalists inn definition ceeded
+ 198 +  457 +  952 +  523 +  109 +  402 +  26 +   = 2667  ->  21  ->  3 
+ command freemasons pronunciation around feel manifested space
+ 198 +  457 +  952 +  505 +  46 +  420 +  179 +   = 2757  ->  21  ->  3 
+ beginning messages auspicious we ous spatial tear
+ 189 +  358 +  952 +  505 +  460 +  411 +  296 +   = 3171  ->  12  ->  3 
+ cooing possible expense qabalists we tombs think
+ 189 +  376 +  835 +  523 +  505 +  402 +  287 +   = 3117  ->  12  ->  3 
+ above arating expense move qabalists tombs chicken
+ 468 +  358 +  835 +  505 +  523 +  402 +  98 +   = 3189  ->  21  ->  3 
+ above scores exercise move qabalists tombs chicken
+ 468 +  358 +  817 +  505 +  523 +  402 +  98 +   = 3171  ->  12  ->  3 
+ divine pocket defective ew heads aerates appearance
+ 477 +  358 +  637 +  505 +  118 +  402 +  296 +   = 2793  ->  21  ->  3 
+ divine passes stunned ew th ruach appearance
+ 477 +  376 +  709 +  505 +  208 +  402 +  296 +   = 2973  ->  21  ->  3 
+ advanced material product pulse being ruach appearance
+ 468 +  376 +  727 +  505 +  73 +  402 +  296 +   = 2847  ->  21  ->  3 
+ above rather large dances plunging building spiritual
+ 468 +  394 +  133 +  163 +  523 +  411 +  809 +   = 2901  ->  12  ->  3 
+ above rather large call clifford ruach yod
+ 468 +  394 +  133 +  64 +  208 +  402 +  764 +   = 2433  ->  12  ->  3 
+ source program dark kingdom replaced emanates spiritual
+ 558 +  358 +  115 +  190 +  208 +  402 +  809 +   = 2640  ->  12  ->  3 
+ argument lookest raise case logic stepchild interpret
+ 693 +  475 +  205 +  109 +  109 +  429 +  719 +   = 2739  ->  21  ->  3 
+ argument lookest raise place heads succeeded irritating
+ 693 +  475 +  205 +  109 +  118 +  429 +  665 +   = 2694  ->  21  ->  3 
+ argument lookest te begin we wine went
+ 693 +  475 +  205 +  73 +  505 +  564 +  755 +   = 3270  ->  12  ->  3 
+ crust classroom smell begin we wine went
+ 693 +  484 +  205 +  73 +  505 +  564 +  755 +   = 3279  ->  21  ->  3 
  

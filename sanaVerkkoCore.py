@@ -835,6 +835,11 @@ class SanaVerkkoKontrolleri:
         value = self._readFloat(self.process_interval_ctrl)
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
+        try:
+            transition_crossfade = min(0.08, max(0.01, float(self.params["process_interval"]) * 0.45))
+            sanasyna.set_transition_crossfade(transition_crossfade)
+        except Exception:
+            pass
 
     def OnSelectionExploration(self, event):
         if self._is_duplicate_param_event(event, self.selection_exploration_ctrl):
@@ -1016,6 +1021,10 @@ class SanaVerkkoKontrolleri:
         self.frequency_mapping_boundaries = {}
         self.last_frequency_mapping_info = []
         sanasyna.init_audio(self.audio_sample_rate)
+        try:
+            sanasyna.set_transition_crossfade(0.03)
+        except Exception:
+            pass
 
     def _frequency_mapping_modes(self):
         return [

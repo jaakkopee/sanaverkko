@@ -14,11 +14,16 @@ _sample_rate = 44100
 _audio_available = sd is not None
 _stream = None
 _stream_rate = None
+_stream_blocksize = 2048
+_stream_latency = "high"
 _current_samples = np.zeros(1, dtype=np.float32)
+_pending_samples = None
 _current_loop = True
 _playback_position = 0
 _is_playing = False
 _state_lock = threading.Lock()
+_crossfade_seconds = 0.03
+_callback_status_count = 0
 _adsr_attack = 0.01
 _adsr_decay = 0.04
 _adsr_sustain = 0.85
@@ -43,6 +48,8 @@ def _ensure_stream():
         samplerate=_sample_rate,
         channels=1,
         dtype="float32",
+        blocksize=int(_stream_blocksize),
+        latency=_stream_latency,
         callback=_audio_callback,
     )
     _stream.start()
@@ -51,10 +58,13 @@ def _ensure_stream():
 
 
 def _audio_callback(outdata, frames, timing_info, status):
-    global _playback_position, _is_playing
+    global _playback_position, _is_playing, _pending_samples, _current_samples, _callback_status_count
 
     _ = timing_info
-    _ = status
+    if status:
+        _callback_status_count += 1
+        if _callback_status_count <= 8 or (_callback_status_count % 25 == 0):
+            print(f"sanasyna callback status: {status}")
 
     with _state_lock:
         if not _is_playing or _current_samples.size == 0:
@@ -87,16 +97,39 @@ def _audio_callback(outdata, frames, timing_info, status):
                 _playback_position = sample_count
                 _is_playing = False
 
+        if _pending_samples is not None and _pending_samples.size > 0:
+            next_samples = _pending_samples
+            _pending_samples = None
+
+            crossfade_samples = max(16, int(_crossfade_seconds * float(_sample_rate)))
+            crossfade_samples = min(crossfade_samples, frames, chunk.size, next_samples.size)
+
+            if crossfade_samples > 0:
+                fade_out = np.linspace(1.0, 0.0, crossfade_samples, endpoint=False, dtype=np.float32)
+                fade_in = np.linspace(0.0, 1.0, crossfade_samples, endpoint=False, dtype=np.float32)
+                mixed_chunk = np.array(chunk, copy=True)
+                mixed_chunk[:crossfade_samples] = (
+                    chunk[:crossfade_samples] * fade_out
+                    + next_samples[:crossfade_samples] * fade_in
+                )
+                chunk = mixed_chunk
+                _current_samples = next_samples
+                _playback_position = crossfade_samples % next_samples.size
+            else:
+                _current_samples = next_samples
+                _playback_position = 0
+            _is_playing = True
+
     outdata[:, 0] = chunk
 
 
 def _ensure_audio(sample_rate=None, buffer_size=1024):
-    global _sample_rate, _audio_available
-
-    _ = buffer_size
+    global _sample_rate, _audio_available, _stream_blocksize
 
     if sample_rate is not None:
         _sample_rate = int(sample_rate)
+    if buffer_size is not None:
+        _stream_blocksize = max(128, int(buffer_size))
 
     if not _audio_available:
         return False
@@ -149,7 +182,7 @@ def _apply_adsr(samples):
 
 
 def _set_current_sound(samples):
-    global _current_samples, _playback_position
+    global _current_samples, _playback_position, _pending_samples
 
     if not _ensure_audio():
         return
@@ -157,8 +190,18 @@ def _set_current_sound(samples):
     shaped_samples = _apply_adsr(np.array(samples, dtype=np.float32))
 
     with _state_lock:
-        _current_samples = np.clip(shaped_samples, -1.0, 1.0)
-        _playback_position = 0
+        clipped = np.clip(shaped_samples, -1.0, 1.0)
+        if _is_playing and _current_samples.size > 0:
+            _pending_samples = clipped
+        else:
+            _current_samples = clipped
+            _playback_position = 0
+            _pending_samples = None
+
+
+def set_transition_crossfade(seconds=0.03):
+    global _crossfade_seconds
+    _crossfade_seconds = min(0.25, max(0.0, float(seconds)))
 
 
 def init_sanasyna():
@@ -179,17 +222,20 @@ def play(loop=True):
     with _state_lock:
         if _current_samples.size == 0:
             return
+        was_playing = _is_playing
         _current_loop = bool(loop)
-        _playback_position = 0
+        if not was_playing:
+            _playback_position = 0
         _is_playing = True
 
 
 def stop():
-    global _is_playing, _playback_position
+    global _is_playing, _playback_position, _pending_samples
 
     with _state_lock:
         _is_playing = False
         _playback_position = 0
+        _pending_samples = None
 
 
 def close():
@@ -334,6 +380,23 @@ def _build_counterpoint_voices(base_notes, voice_count=1, voice_spread=1.0):
 
 
 def _render_note_sequence(note_sequence, amplitude, waveform):
+    def _apply_note_edge_fade(wave_chunk):
+        sample_count = wave_chunk.size
+        if sample_count <= 4:
+            return wave_chunk
+
+        fade_samples = max(8, int(0.0015 * float(_sample_rate)))
+        fade_samples = min(fade_samples, sample_count // 2)
+        if fade_samples <= 1:
+            return wave_chunk
+
+        faded = np.array(wave_chunk, copy=True)
+        in_fade = np.linspace(0.0, 1.0, fade_samples, endpoint=False, dtype=np.float32)
+        out_fade = np.linspace(1.0, 0.0, fade_samples, endpoint=True, dtype=np.float32)
+        faded[:fade_samples] *= in_fade
+        faded[-fade_samples:] *= out_fade
+        return faded
+
     chunks = []
     for freq, note_duration in note_sequence:
         if freq <= 0.0:
@@ -342,7 +405,8 @@ def _render_note_sequence(note_sequence, amplitude, waveform):
             continue
 
         raw_wave = _wave_from_freq(freq, note_duration, waveform)
-        chunks.append(_build_wave(raw_wave, amplitude))
+        shaped_wave = _apply_note_edge_fade(raw_wave)
+        chunks.append(_build_wave(shaped_wave, amplitude))
 
     if not chunks:
         return np.zeros(1, dtype=np.float32)
