@@ -1,251 +1,209 @@
-jake pii taivossuora a a great mage
- 36 +  88 +  1321 +  1 +  1 +  303 +  53 +   = 1803  ->  12  ->  3 
- jake pii pii a a great mage
- 36 +  88 +  88 +  1 +  1 +  303 +  53 +   = 570  ->  12  ->  3 
- i pii you is is or each
- 9 +  88 +  1060 +  109 +  109 +  150 +  17 +   = 1542  ->  12  ->  3 
- i all all is is holy think
- 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
- can all be is is are think
- 54 +  61 +  7 +  109 +  109 +  96 +  287 +   = 723  ->  12  ->  3 
- can you you is is are to
- 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
- can all you is is holy think
- 54 +  61 +  1060 +  109 +  109 +  798 +  287 +   = 2478  ->  21  ->  3 
- can be you is is holy to
- 54 +  7 +  1060 +  109 +  109 +  798 +  260 +   = 2397  ->  21  ->  3 
- can be be is is holy think
- 54 +  7 +  7 +  109 +  109 +  798 +  287 +   = 1371  ->  12  ->  3 
- can you you is is are to
- 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
- have you be is is are to
- 414 +  1060 +  7 +  109 +  109 +  96 +  260 +   = 2055  ->  12  ->  3 
- i you be we is are to
- 9 +  1060 +  7 +  505 +  109 +  96 +  260 +   = 2046  ->  12  ->  3 
- i be be is is holy think
- 9 +  7 +  7 +  109 +  109 +  798 +  287 +   = 1326  ->  12  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i be be is is the god
- 9 +  7 +  7 +  109 +  109 +  213 +  71 +   = 525  ->  12  ->  3 
- can you you is is are to
- 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
- i all all is is holy to
- 9 +  61 +  61 +  109 +  109 +  798 +  260 +   = 1407  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i all be is we holy think
- 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
- have you be we we the to
- 414 +  1060 +  7 +  505 +  505 +  213 +  260 +   = 2964  ->  21  ->  3 
- i you all is we holy think
- 9 +  1060 +  61 +  109 +  505 +  798 +  287 +   = 2829  ->  21  ->  3 
- can you you is we are to
- 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
- can you you is we are to
- 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
- can you you is we are to
- 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
- have you you is we with to
- 414 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 4125  ->  12  ->  3 
- have you be is we the to
- 414 +  1060 +  7 +  109 +  505 +  213 +  260 +   = 2568  ->  21  ->  3 
- i all be is we holy think
- 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
- i all be is we holy think
- 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
- i all be is we holy think
- 9 +  61 +  7 +  109 +  505 +  798 +  287 +   = 1776  ->  21  ->  3 
- i all be is is are think
- 9 +  61 +  7 +  109 +  109 +  96 +  287 +   = 678  ->  21  ->  3 
- can you you is is are think
- 54 +  1060 +  1060 +  109 +  109 +  96 +  287 +   = 2775  ->  21  ->  3 
- i you you we we the to
- 9 +  1060 +  1060 +  505 +  505 +  213 +  260 +   = 3612  ->  12  ->  3 
- i you you is is are to
- 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
- i you you is is are to
- 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
- i you all is is holy to
- 9 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2406  ->  12  ->  3 
- i you all is is holy to
- 9 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2406  ->  12  ->  3 
- i you be we we the to
- 9 +  1060 +  7 +  505 +  505 +  213 +  260 +   = 2559  ->  21  ->  3 
- i you all is is the to
- 9 +  1060 +  61 +  109 +  109 +  213 +  260 +   = 1821  ->  12  ->  3 
- can you you is is the to
- 54 +  1060 +  1060 +  109 +  109 +  213 +  260 +   = 2865  ->  21  ->  3 
- can you you is is the to
- 54 +  1060 +  1060 +  109 +  109 +  213 +  260 +   = 2865  ->  21  ->  3 
- i you be is is holy think
- 9 +  1060 +  7 +  109 +  109 +  798 +  287 +   = 2379  ->  21  ->  3 
- can be you is is the think
- 54 +  7 +  1060 +  109 +  109 +  213 +  287 +   = 1839  ->  21  ->  3 
- can be you is is the think
- 54 +  7 +  1060 +  109 +  109 +  213 +  287 +   = 1839  ->  21  ->  3 
- can be all is is holy think
- 54 +  7 +  61 +  109 +  109 +  798 +  287 +   = 1425  ->  12  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i be all is is holy think
- 9 +  7 +  61 +  109 +  109 +  798 +  287 +   = 1380  ->  12  ->  3 
- i you you is is are to
- 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
- can you you is is are to
- 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
- can you you is is are to
- 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
- can you all is is holy to
- 54 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2451  ->  12  ->  3 
- i all all is is holy think
- 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
- can you you we is are to
- 54 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3144  ->  12  ->  3 
- i be be we is are to
- 9 +  7 +  7 +  505 +  109 +  96 +  260 +   = 993  ->  21  ->  3 
- i be be is is holy think
- 9 +  7 +  7 +  109 +  109 +  798 +  287 +   = 1326  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be all we we holy to
- 9 +  7 +  61 +  505 +  505 +  798 +  260 +   = 2145  ->  12  ->  3 
- i be all we we holy to
- 9 +  7 +  61 +  505 +  505 +  798 +  260 +   = 2145  ->  12  ->  3 
- have be you we we holy think
- 414 +  7 +  1060 +  505 +  505 +  798 +  287 +   = 3576  ->  21  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be you is is are to
- 9 +  7 +  1060 +  109 +  109 +  96 +  260 +   = 1650  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i all all is is holy think
- 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
- i all all is is holy think
- 9 +  61 +  61 +  109 +  109 +  798 +  287 +   = 1434  ->  12  ->  3 
- i all all is is the think
- 9 +  61 +  61 +  109 +  109 +  213 +  287 +   = 849  ->  21  ->  3 
- i all you we we the to
- 9 +  61 +  1060 +  505 +  505 +  213 +  260 +   = 2613  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i all all is is holy to
- 9 +  61 +  61 +  109 +  109 +  798 +  260 +   = 1407  ->  12  ->  3 
- i all you we we with to
- 9 +  61 +  1060 +  505 +  505 +  717 +  260 +   = 3117  ->  12  ->  3 
- i all be we we the to
- 9 +  61 +  7 +  505 +  505 +  213 +  260 +   = 1560  ->  12  ->  3 
- can you you is is are to
- 54 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2748  ->  21  ->  3 
- can you you is is the to
- 54 +  1060 +  1060 +  109 +  109 +  213 +  260 +   = 2865  ->  21  ->  3 
- i you all is is holy to
- 9 +  1060 +  61 +  109 +  109 +  798 +  260 +   = 2406  ->  12  ->  3 
- i you you is we with to
- 9 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 3720  ->  12  ->  3 
- i you you is we with to
- 9 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 3720  ->  12  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i be all is is the to
- 9 +  7 +  61 +  109 +  109 +  213 +  260 +   = 768  ->  21  ->  3 
- i be all is is the to
- 9 +  7 +  61 +  109 +  109 +  213 +  260 +   = 768  ->  21  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be you is is the to
- 9 +  7 +  1060 +  109 +  109 +  213 +  260 +   = 1767  ->  21  ->  3 
- i be you is we the to
- 9 +  7 +  1060 +  109 +  505 +  213 +  260 +   = 2163  ->  12  ->  3 
- i be all is we holy to
- 9 +  7 +  61 +  109 +  505 +  798 +  260 +   = 1749  ->  21  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- can you you is we are to
- 54 +  1060 +  1060 +  109 +  505 +  96 +  260 +   = 3144  ->  12  ->  3 
- can be be is we are to
- 54 +  7 +  7 +  109 +  505 +  96 +  260 +   = 1038  ->  12  ->  3 
- can be you is we are to
- 54 +  7 +  1060 +  109 +  505 +  96 +  260 +   = 2091  ->  12  ->  3 
- i you be is we the to
- 9 +  1060 +  7 +  109 +  505 +  213 +  260 +   = 2163  ->  12  ->  3 
- i all all is is the to
- 9 +  61 +  61 +  109 +  109 +  213 +  260 +   = 822  ->  12  ->  3 
- i all be is is the to
- 9 +  61 +  7 +  109 +  109 +  213 +  260 +   = 768  ->  21  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be is is the to
- 9 +  7 +  7 +  109 +  109 +  213 +  260 +   = 714  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- can you you we is are to
- 54 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3144  ->  12  ->  3 
- i you you we is are to
- 9 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3099  ->  21  ->  3 
- i you you we is are to
- 9 +  1060 +  1060 +  505 +  109 +  96 +  260 +   = 3099  ->  21  ->  3 
- i all all we we holy think
- 9 +  61 +  61 +  505 +  505 +  798 +  287 +   = 2226  ->  12  ->  3 
- i be all is is holy think
- 9 +  7 +  61 +  109 +  109 +  798 +  287 +   = 1380  ->  12  ->  3 
- can you you is is holy think
- 54 +  1060 +  1060 +  109 +  109 +  798 +  287 +   = 3477  ->  21  ->  3 
- i be be we we the to
- 9 +  7 +  7 +  505 +  505 +  213 +  260 +   = 1506  ->  12  ->  3 
- can you be is is are to
- 54 +  1060 +  7 +  109 +  109 +  96 +  260 +   = 1695  ->  21  ->  3 
- i you you is is are to
- 9 +  1060 +  1060 +  109 +  109 +  96 +  260 +   = 2703  ->  12  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- i be be is we the to
- 9 +  7 +  7 +  109 +  505 +  213 +  260 +   = 1110  ->  3 
- have you you is we with to
- 414 +  1060 +  1060 +  109 +  505 +  717 +  260 +   = 4125  ->  12  ->  3 
- have you be is is with to
- 414 +  1060 +  7 +  109 +  109 +  717 +  260 +   = 2676  ->  21  ->  3 
+jake magus is a grand magus
+ 36 +  448 +  109 +  1 +  152 +  448 +   = 1194  ->  15  ->  6 
+ jake magus is is grand magus
+ 36 +  448 +  109 +  109 +  152 +  448 +   = 1302  ->  6 
+ fl containing abase abase abraham devil
+ 36 +  439 +  109 +  109 +  143 +  448 +   = 1284  ->  15  ->  6 
+ em devil abase abase abraham cherubim
+ 45 +  448 +  109 +  109 +  143 +  457 +   = 1311  ->  6 
+ em devil abase abase abraham courage
+ 45 +  448 +  109 +  109 +  143 +  466 +   = 1320  ->  6 
+ em devil abase abase abraham kerubim
+ 45 +  448 +  109 +  109 +  143 +  466 +   = 1320  ->  6 
+ em devil abase abase abraham courage
+ 45 +  448 +  109 +  109 +  143 +  466 +   = 1320  ->  6 
+ em devil abase abase abraham having
+ 45 +  448 +  109 +  109 +  143 +  475 +   = 1329  ->  15  ->  6 
+ em devil abase has to having
+ 45 +  448 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
+ em devil has has to having
+ 45 +  448 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
+ em devil has has to having
+ 45 +  448 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
+ can devil has has to having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can devil has has to having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing place has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can titled has has to having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can cherubim has has to having
+ 54 +  457 +  109 +  109 +  260 +  475 +   = 1464  ->  15  ->  6 
+ can cherubim has has to having
+ 54 +  457 +  109 +  109 +  260 +  475 +   = 1464  ->  15  ->  6 
+ can freemasons has has sense classroom
+ 54 +  457 +  109 +  109 +  260 +  484 +   = 1473  ->  15  ->  6 
+ can using has has to having
+ 54 +  466 +  109 +  109 +  260 +  475 +   = 1473  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can devil has has to buffoon
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can devil has has to classroom
+ 54 +  448 +  109 +  109 +  260 +  484 +   = 1464  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing has has to having
+ 54 +  439 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
+ can containing has has to having
+ 54 +  439 +  109 +  109 +  260 +  475 +   = 1446  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can titled has place to plough
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can freemasons has place to having
+ 54 +  457 +  109 +  109 +  260 +  475 +   = 1464  ->  15  ->  6 
+ can cherubim place has to classroom
+ 54 +  457 +  109 +  109 +  260 +  484 +   = 1473  ->  15  ->  6 
+ can having has has to buffoon
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can devil has has to having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can vil has has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can vil has has to buffoon
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can containing aces has to classroom
+ 54 +  439 +  109 +  109 +  260 +  484 +   = 1455  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to having
+ 54 +  475 +  109 +  109 +  260 +  475 +   = 1482  ->  15  ->  6 
+ can having has has to having
+ 54 +  475 +  109 +  109 +  260 +  475 +   = 1482  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to control
+ 54 +  475 +  109 +  109 +  260 +  493 +   = 1500  ->  6 
+ can lookest has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to classroom
+ 54 +  475 +  109 +  109 +  260 +  484 +   = 1491  ->  15  ->  6 
+ can having has has to control
+ 54 +  475 +  109 +  109 +  260 +  493 +   = 1500  ->  6 
+ can classroom has has to having
+ 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
+ can classroom has has to plough
+ 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
+ can classroom has has to plough
+ 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
+ can classroom has has to plough
+ 54 +  484 +  109 +  109 +  260 +  475 +   = 1491  ->  15  ->  6 
+ can classroom has has to classroom
+ 54 +  484 +  109 +  109 +  260 +  484 +   = 1500  ->  6 
+ can classroom has has to classroom
+ 54 +  484 +  109 +  109 +  260 +  484 +   = 1500  ->  6 
+ can classroom has has to classroom
+ 54 +  484 +  109 +  109 +  260 +  484 +   = 1500  ->  6 
+ can having has has to control
+ 54 +  475 +  109 +  109 +  260 +  493 +   = 1500  ->  6 
+ can having has has to having
+ 54 +  475 +  109 +  109 +  260 +  475 +   = 1482  ->  15  ->  6 
+ can devil has has to having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can devil has place talked having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can devil has place talked having
+ 54 +  448 +  109 +  109 +  260 +  475 +   = 1455  ->  15  ->  6 
+ can proper has has disks lemurs
+ 54 +  385 +  109 +  109 +  233 +  565 +   = 1455  ->  15  ->  6 
+ can proper has has disks pushes
+ 54 +  385 +  109 +  109 +  233 +  583 +   = 1473  ->  15  ->  6 
+ can proper has place disks pushes
+ 54 +  385 +  109 +  109 +  233 +  583 +   = 1473  ->  15  ->  6 
+ can nects case kedemel disks tipareth
+ 54 +  358 +  109 +  109 +  233 +  583 +   = 1446  ->  15  ->  6 
+ can nects place place membrane developed
+ 54 +  358 +  109 +  109 +  233 +  583 +   = 1446  ->  15  ->  6 
+ can scores hands scene beth priests
+ 54 +  358 +  163 +  163 +  215 +  574 +   = 1527  ->  15  ->  6 
+ can scores hands scene beth priests
+ 54 +  358 +  163 +  163 +  215 +  574 +   = 1527  ->  15  ->  6 
+ can scores hands scene beth priests
+ 54 +  358 +  163 +  163 +  215 +  574 +   = 1527  ->  15  ->  6 
+ can dimensional hands firm beth stepchildren
+ 54 +  358 +  163 +  145 +  215 +  574 +   = 1509  ->  15  ->  6 
+ can dimensional hands erance insane priests
+ 54 +  358 +  163 +  154 +  215 +  574 +   = 1518  ->  15  ->  6 
+ can practiced place place becomes than
+ 54 +  385 +  109 +  109 +  215 +  259 +   = 1131  ->  6 
+ can practiced place place tea than
+ 54 +  385 +  109 +  109 +  206 +  259 +   = 1122  ->  6 
+ can practiced place place tea from
+ 54 +  385 +  109 +  109 +  206 +  196 +   = 1059  ->  15  ->  6 
+ can practiced place place beth though
+ 54 +  385 +  109 +  109 +  215 +  583 +   = 1455  ->  15  ->  6 
+ can effort place place beth from
+ 54 +  367 +  109 +  109 +  215 +  196 +   = 1050  ->  6 
+ can obsess place place beth from
+ 54 +  367 +  109 +  109 +  215 +  196 +   = 1050  ->  6 
+ can effort place place beth from
+ 54 +  367 +  109 +  109 +  215 +  196 +   = 1050  ->  6 
+ can effort place place faith through
+ 54 +  367 +  109 +  109 +  224 +  673 +   = 1536  ->  15  ->  6 
+ field material pipe place insane cavities
+ 54 +  376 +  154 +  109 +  215 +  727 +   = 1635  ->  15  ->  6 
+ himself effort rod place data cavities
+ 198 +  367 +  154 +  109 +  206 +  727 +   = 1761  ->  15  ->  6 
+ can certain ences belong sense dwarfish
+ 54 +  358 +  163 +  154 +  260 +  718 +   = 1707  ->  15  ->  6 
+ child scores dances hands talk formulated
+ 54 +  358 +  163 +  163 +  251 +  736 +   = 1725  ->  15  ->  6 
+ ball nestled hands place tool traumatic
+ 63 +  394 +  163 +  109 +  350 +  844 +   = 1923  ->  15  ->  6 
+ hod capricorn hands case astral finally
+ 72 +  376 +  163 +  109 +  422 +  826 +   = 1968  ->  24  ->  6 
+ hod capricorn hands case astral quadrants
+ 72 +  376 +  163 +  109 +  422 +  826 +   = 1968  ->  24  ->  6 
+ nail capricorn radiance case astral formulated
+ 90 +  376 +  163 +  109 +  422 +  736 +   = 1896  ->  24  ->  6 
+ another certain leon girl geburah finally
+ 414 +  358 +  145 +  136 +  413 +  826 +   = 2292  ->  15  ->  6 
  

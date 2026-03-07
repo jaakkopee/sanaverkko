@@ -118,6 +118,8 @@ class SanaVerkkoKontrolleri:
         self.params["set_weight_by_gematria"] = False
         self.params["use_pos_matching"] = False
         self.params["use_long_term_memory"] = False
+        self.params["ltm_weight"] = 0.35
+        self.params["common_word_penalty"] = True
         self.params["learning_rate"] = 0.1
         self.params["error"] = 0
         self.params["target"] = 0
@@ -207,6 +209,15 @@ class SanaVerkkoKontrolleri:
         self.use_long_term_memory_checkbox = wx.CheckBox(panel, -1, "Use long term memory")
         self.use_long_term_memory_checkbox.SetValue(self.params["use_long_term_memory"])
         self.use_long_term_memory_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUseLongTermMemory)
+
+        self.ltm_weight_label = wx.StaticText(panel, -1, "LTM weight (0-1)")
+        self.ltm_weight_ctrl = wx.TextCtrl(panel, -1, str(self.params["ltm_weight"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.ltm_weight_ctrl, self.OnLTMWeight)
+
+        self.common_word_penalty_checkbox = wx.CheckBox(panel, -1, "Common word penalty")
+        self.common_word_penalty_checkbox.SetValue(self.params["common_word_penalty"])
+        self.common_word_penalty_checkbox.Bind(wx.EVT_CHECKBOX, self.OnCommonWordPenalty)
+
         self.ltm_load_button = wx.Button(panel, -1, "Load long term memory")
         self.ltm_load_button.Bind(wx.EVT_BUTTON, self.OnLoadLongTermMemory)
         self.ltm_status_label = wx.StaticText(panel, -1, "LTM: not loaded")
@@ -335,6 +346,9 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.pos_backend_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         self.sizer.Add(self.use_long_term_memory_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.ltm_weight_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.ltm_weight_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.common_word_penalty_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.ltm_load_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.ltm_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         self.sizer.Add(self.fluid_root_checkbox, 0, wx.ALL, 5)
@@ -521,6 +535,18 @@ class SanaVerkkoKontrolleri:
             return
         self.params["use_long_term_memory"] = self._is_ltm_enabled()
         self._updateLTMStatusLabel()
+
+    def OnLTMWeight(self, event):
+        if self._is_duplicate_param_event(event, self.ltm_weight_ctrl):
+            return
+        value = self._readFloat(self.ltm_weight_ctrl)
+        if value is not None:
+            self.params["ltm_weight"] = min(1.0, max(0.0, value))
+
+    def OnCommonWordPenalty(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["common_word_penalty"] = bool(self.common_word_penalty_checkbox.GetValue())
 
     def OnLoadLongTermMemory(self, event):
         with wx.FileDialog(
@@ -751,26 +777,7 @@ class SanaVerkkoKontrolleri:
     def _is_duplicate_param_event(self, event, fallback_ctrl=None):
         if self._suppress_param_events:
             return True
-
-        source_ctrl = fallback_ctrl
-        if source_ctrl is None and event is not None:
-            try:
-                source_ctrl = event.GetEventObject()
-            except Exception:
-                source_ctrl = None
-
-        if source_ctrl is None:
-            return False
-
-        try:
-            control_id = source_ctrl.GetId()
-            control_text = str(source_ctrl.GetValue())
-        except Exception:
-            return False
-
-        previous_text = self._last_param_event.get(control_id)
-        self._last_param_event[control_id] = control_text
-        return previous_text == control_text
+        return False
 
     def OnLearningRate(self, event):
         if self._is_duplicate_param_event(event, self.learning_rate_ctrl):
@@ -1521,6 +1528,41 @@ class SanaVerkkoKontrolleri:
             return {}
         return {}
 
+    def _common_word_penalty_factor(self, word_text):
+        if not bool(self.params.get("common_word_penalty", True)):
+            return 1.0
+        if not isinstance(word_text, str):
+            return 1.0
+
+        common_words = {
+            "the", "and", "is", "a", "an", "to", "of", "in", "on", "for", "with", "at", "by", "from",
+            "it", "this", "that", "these", "those", "as", "be", "are", "was", "were", "am", "i", "you",
+            "he", "she", "we", "they", "me", "him", "her", "them", "my", "your", "our", "their",
+        }
+        return 0.35 if word_text.lower() in common_words else 1.0
+
+    def _reference_blended_score(self, source_word, candidate, ltm_probabilities):
+        source_gematria = source_word.gematria
+        source_reduction = numerological_reduction(source_gematria)
+        source_root = digital_root(source_gematria)
+
+        gematria_delta = abs(candidate.gematria - source_gematria) / 1000.0
+        reduction_delta = abs(numerological_reduction(candidate.gematria) - source_reduction) / 9.0
+        root_delta = abs(digital_root(candidate.gematria) - source_root) / 9.0
+        base_score = gematria_delta + 0.35 * reduction_delta + 0.35 * root_delta
+
+        if ltm_probabilities:
+            raw_ltm_prob = float(ltm_probabilities.get(candidate.word, 0.0))
+            adjusted_ltm_prob = raw_ltm_prob * self._common_word_penalty_factor(candidate.word)
+            ltm_term = 1.0 - adjusted_ltm_prob
+            ltm_weight = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
+        else:
+            ltm_term = 0.0
+            ltm_weight = 0.0
+
+        blended_score = (1.0 - ltm_weight) * base_score + ltm_weight * ltm_term
+        return blended_score, base_score
+
     def _selectBestReference(self, source_word, candidates, force_jump=False):
         if not candidates:
             return None
@@ -1533,7 +1575,8 @@ class SanaVerkkoKontrolleri:
         ranked_candidates = sorted(
             candidates,
             key=lambda candidate: (
-                -float(ltm_probabilities.get(candidate.word, 0.0)),
+                self._reference_blended_score(source_word, candidate, ltm_probabilities)[0],
+                self._reference_blended_score(source_word, candidate, ltm_probabilities)[1],
                 abs(candidate.gematria - source_gematria),
                 abs(numerological_reduction(candidate.gematria) - source_reduction),
                 abs(digital_root(candidate.gematria) - source_root),
@@ -1599,7 +1642,9 @@ class SanaVerkkoKontrolleri:
         self.params["set_weight_by_gematria"] = bool(self.params.get("set_weight_by_gematria", False))
         self.params["use_pos_matching"] = bool(self.params.get("use_pos_matching", False))
         self.params["use_long_term_memory"] = bool(self.params.get("use_long_term_memory", False))
+        self.params["common_word_penalty"] = bool(self.params.get("common_word_penalty", True))
         self.params["fluid_root"] = bool(self.params.get("fluid_root", False))
+        self.params["ltm_weight"] = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
 
         self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
         self.params["error"] = float(self.params.get("error", 0))
@@ -1648,9 +1693,11 @@ class SanaVerkkoKontrolleri:
             self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
             self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
             self.use_long_term_memory_checkbox.SetValue(self.params["use_long_term_memory"])
+            self.common_word_penalty_checkbox.SetValue(self.params["common_word_penalty"])
             self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
+            self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
 
             self._setCtrlValueSilently(self.learning_rate_ctrl, self.params["learning_rate"])
             self._setCtrlValueSilently(self.error_ctrl, self.params["error"])
