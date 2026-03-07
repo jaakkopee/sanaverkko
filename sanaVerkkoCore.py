@@ -12,6 +12,11 @@ import json
 import sanasyna
 
 try:
+    import sv_ltm
+except Exception:
+    sv_ltm = None
+
+try:
     import nltk
 except Exception:
     nltk = None
@@ -112,6 +117,7 @@ class SanaVerkkoKontrolleri:
         self.params = {}
         self.params["set_weight_by_gematria"] = False
         self.params["use_pos_matching"] = False
+        self.params["use_long_term_memory"] = False
         self.params["learning_rate"] = 0.1
         self.params["error"] = 0
         self.params["target"] = 0
@@ -174,6 +180,11 @@ class SanaVerkkoKontrolleri:
         self.reference_index_dirty = True
         self.reference_index_has_pos = False
         self.reference_index = {}
+        self._last_param_event = {}
+        self._suppress_param_events = False
+        self.ltm_model = None
+        self.ltm_model_path = ""
+        self.ltm_context_size = 3
 
         self.initPygame()
         self.initAudio()
@@ -192,6 +203,13 @@ class SanaVerkkoKontrolleri:
         self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
         self.use_pos_matching_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUsePOSMatching)
         self.pos_backend_status_label = wx.StaticText(panel, -1, "POS backend: heuristic")
+
+        self.use_long_term_memory_checkbox = wx.CheckBox(panel, -1, "Use long term memory")
+        self.use_long_term_memory_checkbox.SetValue(self.params["use_long_term_memory"])
+        self.use_long_term_memory_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUseLongTermMemory)
+        self.ltm_load_button = wx.Button(panel, -1, "Load long term memory")
+        self.ltm_load_button.Bind(wx.EVT_BUTTON, self.OnLoadLongTermMemory)
+        self.ltm_status_label = wx.StaticText(panel, -1, "LTM: not loaded")
 
         self.fluid_root_checkbox = wx.CheckBox(panel, -1, "Fluid root")
         self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
@@ -316,6 +334,9 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.pos_backend_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        self.sizer.Add(self.use_long_term_memory_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.ltm_load_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.ltm_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         self.sizer.Add(self.fluid_root_checkbox, 0, wx.ALL, 5)
 
         self.sizer.Add(self.learning_rate_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -420,6 +441,7 @@ class SanaVerkkoKontrolleri:
         self.setupOutputWindow()
         self._applyADSRToAudio()
         self._updatePOSBackendStatusLabel(check_nltk=False)
+        self._updateLTMStatusLabel()
 
     def setupOutputWindow(self):
         self.output_frame = wx.Frame(None, -1, "SanaVerkko Output", size=(760, 420))
@@ -490,6 +512,27 @@ class SanaVerkkoKontrolleri:
         self.params["use_pos_matching"] = self._is_pos_matching_enabled()
         self._updatePOSBackendStatusLabel(check_nltk=self.params["use_pos_matching"])
 
+    def OnUseLongTermMemory(self, event):
+        self.params["use_long_term_memory"] = self._is_ltm_enabled()
+        self._updateLTMStatusLabel()
+
+    def OnLoadLongTermMemory(self, event):
+        with wx.FileDialog(
+            self.frame,
+            "Load long term memory model",
+            wildcard="LTM model (*.svltm)|*.svltm|All files (*.*)|*.*",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        ) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+            selected_path = file_dialog.GetPath()
+
+        try:
+            self._load_ltm_model(selected_path)
+            self._updateLTMStatusLabel()
+        except Exception as error:
+            self.ltm_status_label.SetLabel(f"LTM load failed: {error}")
+
     def OnFluidRoot(self, event):
         self.params["fluid_root"] = self._is_fluid_root_enabled()
 
@@ -508,6 +551,43 @@ class SanaVerkkoKontrolleri:
         except Exception:
             pass
         return bool(self.params.get("fluid_root", False))
+
+    def _is_ltm_enabled(self):
+        try:
+            if hasattr(self, "use_long_term_memory_checkbox") and self.use_long_term_memory_checkbox is not None:
+                return bool(self.use_long_term_memory_checkbox.GetValue())
+        except Exception:
+            pass
+        return bool(self.params.get("use_long_term_memory", False))
+
+    def _load_ltm_model(self, model_path):
+        if sv_ltm is None:
+            raise RuntimeError("sv_ltm module is not available")
+        self.ltm_model = sv_ltm.load_model(model_path)
+        self.ltm_model_path = model_path
+        self.ltm_context_size = max(1, int(getattr(self.ltm_model, "context_size", 3)))
+
+    def _updateLTMStatusLabel(self):
+        if not hasattr(self, "ltm_status_label") or self.ltm_status_label is None:
+            return
+
+        if sv_ltm is None:
+            self.ltm_status_label.SetLabel("LTM: module unavailable")
+            return
+
+        enabled = self._is_ltm_enabled()
+        if self.ltm_model is None:
+            if enabled:
+                self.ltm_status_label.SetLabel("LTM: enabled (no model loaded)")
+            else:
+                self.ltm_status_label.SetLabel("LTM: disabled")
+            return
+
+        model_name = os.path.basename(self.ltm_model_path) if self.ltm_model_path else "model loaded"
+        if enabled:
+            self.ltm_status_label.SetLabel(f"LTM: enabled ({model_name})")
+        else:
+            self.ltm_status_label.SetLabel(f"LTM: loaded ({model_name}), disabled")
 
     def _ensure_nltk_pos_tagger(self):
         if nltk is None:
@@ -604,6 +684,14 @@ class SanaVerkkoKontrolleri:
         ctrl.Unbind(wx.EVT_TEXT_ENTER, handler=handler)
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
 
+    def _setCtrlValueSilently(self, ctrl, value):
+        if ctrl is None:
+            return
+        try:
+            ctrl.ChangeValue(str(value))
+        except Exception:
+            ctrl.SetValue(str(value))
+
     def _getMonospaceWxFont(self, point_size=11):
         return wx.Font(
             point_size,
@@ -652,64 +740,112 @@ class SanaVerkkoKontrolleri:
         except ValueError:
             return None
 
+    def _is_duplicate_param_event(self, event, fallback_ctrl=None):
+        if self._suppress_param_events:
+            return True
+
+        source_ctrl = fallback_ctrl
+        if source_ctrl is None and event is not None:
+            try:
+                source_ctrl = event.GetEventObject()
+            except Exception:
+                source_ctrl = None
+
+        if source_ctrl is None:
+            return False
+
+        try:
+            control_id = source_ctrl.GetId()
+            control_text = str(source_ctrl.GetValue())
+        except Exception:
+            return False
+
+        previous_text = self._last_param_event.get(control_id)
+        self._last_param_event[control_id] = control_text
+        return previous_text == control_text
+
     def OnLearningRate(self, event):
+        if self._is_duplicate_param_event(event, self.learning_rate_ctrl):
+            return
         value = self._readFloat(self.learning_rate_ctrl)
         if value is not None:
             self.params["learning_rate"] = value
 
     def OnError(self, event):
+        if self._is_duplicate_param_event(event, self.error_ctrl):
+            return
         value = self._readFloat(self.error_ctrl)
         if value is not None:
             self.params["error"] = value
 
     def OnActivationIncrease(self, event):
+        if self._is_duplicate_param_event(event, self.activation_increase_ctrl):
+            return
         value = self._readFloat(self.activation_increase_ctrl)
         if value is not None:
             self.params["activation_increase"] = value
 
     def OnActivationLimit(self, event):
+        if self._is_duplicate_param_event(event, self.activation_limit_ctrl):
+            return
         value = self._readFloat(self.activation_limit_ctrl)
         if value is not None:
             self.params["activation_limit"] = value
 
     def OnSigmoidScale(self, event):
+        if self._is_duplicate_param_event(event, self.sigmoid_scale_ctrl):
+            return
         value = self._readFloat(self.sigmoid_scale_ctrl)
         if value is not None:
             self.params["sigmoid_scale"] = value
 
     def OnWordChangeThreshold(self, event):
+        if self._is_duplicate_param_event(event, self.word_change_threshold_ctrl):
+            return
         value = self._readFloat(self.word_change_threshold_ctrl)
         if value is not None:
             self.params["word_change_threshold"] = value
 
     def OnZoom(self, event):
+        if self._is_duplicate_param_event(event, self.zoom_ctrl):
+            return
         value = self._readFloat(self.zoom_ctrl)
         if value is not None:
             self.params["zoom"] = max(0.001, value)
             self.makeWordCircle(self.words)
 
     def OnProcessInterval(self, event):
+        if self._is_duplicate_param_event(event, self.process_interval_ctrl):
+            return
         value = self._readFloat(self.process_interval_ctrl)
         if value is not None:
             self.params["process_interval"] = max(0.01, value)
 
     def OnSelectionExploration(self, event):
+        if self._is_duplicate_param_event(event, self.selection_exploration_ctrl):
+            return
         value = self._readFloat(self.selection_exploration_ctrl)
         if value is not None:
             self.params["selection_exploration"] = min(1.0, max(0.0, value))
 
     def OnSelectionTopK(self, event):
+        if self._is_duplicate_param_event(event, self.selection_top_k_ctrl):
+            return
         value = self._readInt(self.selection_top_k_ctrl)
         if value is not None:
             normalized_value = max(1, value)
             self.params["selection_top_k"] = normalized_value
 
     def OnJumpProbability(self, event):
+        if self._is_duplicate_param_event(event, self.jump_probability_ctrl):
+            return
         value = self._readFloat(self.jump_probability_ctrl)
         if value is not None:
             self.params["jump_probability"] = min(1.0, max(0.0, value))
 
     def OnJumpRadius(self, event):
+        if self._is_duplicate_param_event(event, self.jump_radius_ctrl):
+            return
         value = self._readInt(self.jump_radius_ctrl)
         if value is not None:
             self.params["jump_radius"] = max(0, value)
@@ -751,18 +887,24 @@ class SanaVerkkoKontrolleri:
         event.Skip()
 
     def OnVoiceSpread(self, event):
+        if self._is_duplicate_param_event(event, self.voice_spread_ctrl):
+            return
         value = self._readFloat(self.voice_spread_ctrl)
         if value is not None:
             self.params["voice_spread"] = min(5.0, max(0.3, value))
         self.last_audio_sentence_signature = None
 
     def OnMelodySpeed(self, event):
+        if self._is_duplicate_param_event(event, self.melody_speed_ctrl):
+            return
         value = self._readFloat(self.melody_speed_ctrl)
         if value is not None:
             self.params["melody_speed"] = min(6.0, max(0.2, value))
         self.last_audio_sentence_signature = None
 
     def OnMinNoteDuration(self, event):
+        if self._is_duplicate_param_event(event, self.min_note_duration_ctrl):
+            return
         value = self._readFloat(self.min_note_duration_ctrl)
         if value is not None:
             self.params["min_note_duration"] = min(1.0, max(0.01, value))
@@ -783,6 +925,14 @@ class SanaVerkkoKontrolleri:
         )
 
     def OnADSR(self, event):
+        event_ctrl = None
+        try:
+            event_ctrl = event.GetEventObject()
+        except Exception:
+            event_ctrl = None
+        if self._is_duplicate_param_event(event, event_ctrl):
+            return
+
         attack_value = self._readFloat(self.adsr_attack_ctrl)
         decay_value = self._readFloat(self.adsr_decay_ctrl)
         sustain_value = self._readFloat(self.adsr_sustain_ctrl)
@@ -1333,6 +1483,33 @@ class SanaVerkkoKontrolleri:
         if include_pos and not self.reference_index_has_pos:
             self._rebuildReferenceIndex(include_pos=True)
 
+    def _ltm_candidate_probabilities(self, source_word, candidates):
+        if not self._is_ltm_enabled():
+            return {}
+        if self.ltm_model is None:
+            return {}
+        if not candidates:
+            return {}
+
+        context_words = [word.word for word in self.words if hasattr(word, "word") and isinstance(word.word, str) and word.word]
+        if source_word is not None and isinstance(source_word.word, str) and source_word.word:
+            if not context_words or context_words[-1] != source_word.word:
+                context_words.append(source_word.word)
+
+        model_context_size = max(1, int(getattr(self.ltm_model, "context_size", self.ltm_context_size)))
+        context_words = context_words[-model_context_size:]
+        candidate_words = list({candidate.word for candidate in candidates if isinstance(candidate.word, str) and candidate.word})
+        if not candidate_words:
+            return {}
+
+        try:
+            probabilities = self.ltm_model.predict_next_probabilities(context_words=context_words, candidate_words=candidate_words)
+            if isinstance(probabilities, dict):
+                return probabilities
+        except Exception:
+            return {}
+        return {}
+
     def _selectBestReference(self, source_word, candidates, force_jump=False):
         if not candidates:
             return None
@@ -1340,10 +1517,12 @@ class SanaVerkkoKontrolleri:
         source_gematria = source_word.gematria
         source_reduction = numerological_reduction(source_gematria)
         source_root = digital_root(source_gematria)
+        ltm_probabilities = self._ltm_candidate_probabilities(source_word, candidates)
 
         ranked_candidates = sorted(
             candidates,
             key=lambda candidate: (
+                -float(ltm_probabilities.get(candidate.word, 0.0)),
                 abs(candidate.gematria - source_gematria),
                 abs(numerological_reduction(candidate.gematria) - source_reduction),
                 abs(digital_root(candidate.gematria) - source_root),
@@ -1408,6 +1587,7 @@ class SanaVerkkoKontrolleri:
     def _normalize_params(self):
         self.params["set_weight_by_gematria"] = bool(self.params.get("set_weight_by_gematria", False))
         self.params["use_pos_matching"] = bool(self.params.get("use_pos_matching", False))
+        self.params["use_long_term_memory"] = bool(self.params.get("use_long_term_memory", False))
         self.params["fluid_root"] = bool(self.params.get("fluid_root", False))
 
         self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
@@ -1452,47 +1632,53 @@ class SanaVerkkoKontrolleri:
         self.params["adsr_release"] = max(0.0, float(self.params.get("adsr_release", 0.03)))
 
     def _sync_controls_from_params(self):
-        self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
-        self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
-        self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
-        self._updatePOSBackendStatusLabel(check_nltk=False)
+        self._suppress_param_events = True
+        try:
+            self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
+            self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
+            self.use_long_term_memory_checkbox.SetValue(self.params["use_long_term_memory"])
+            self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
+            self._updatePOSBackendStatusLabel(check_nltk=False)
+            self._updateLTMStatusLabel()
 
-        self.learning_rate_ctrl.SetValue(str(self.params["learning_rate"]))
-        self.error_ctrl.SetValue(str(self.params["error"]))
-        self.activation_increase_ctrl.SetValue(str(self.params["activation_increase"]))
-        self.activation_limit_ctrl.SetValue(str(self.params["activation_limit"]))
-        self.sigmoid_scale_ctrl.SetValue(str(self.params["sigmoid_scale"]))
-        self.word_change_threshold_ctrl.SetValue(str(self.params["word_change_threshold"]))
-        self.zoom_ctrl.SetValue(str(self.params["zoom"]))
-        self.process_interval_ctrl.SetValue(str(self.params["process_interval"]))
-        self.selection_exploration_ctrl.SetValue(str(self.params["selection_exploration"]))
-        self.selection_top_k_ctrl.SetValue(str(self.params["selection_top_k"]))
-        self.jump_probability_ctrl.SetValue(str(self.params["jump_probability"]))
-        self.jump_radius_ctrl.SetValue(str(self.params["jump_radius"]))
+            self._setCtrlValueSilently(self.learning_rate_ctrl, self.params["learning_rate"])
+            self._setCtrlValueSilently(self.error_ctrl, self.params["error"])
+            self._setCtrlValueSilently(self.activation_increase_ctrl, self.params["activation_increase"])
+            self._setCtrlValueSilently(self.activation_limit_ctrl, self.params["activation_limit"])
+            self._setCtrlValueSilently(self.sigmoid_scale_ctrl, self.params["sigmoid_scale"])
+            self._setCtrlValueSilently(self.word_change_threshold_ctrl, self.params["word_change_threshold"])
+            self._setCtrlValueSilently(self.zoom_ctrl, self.params["zoom"])
+            self._setCtrlValueSilently(self.process_interval_ctrl, self.params["process_interval"])
+            self._setCtrlValueSilently(self.selection_exploration_ctrl, self.params["selection_exploration"])
+            self._setCtrlValueSilently(self.selection_top_k_ctrl, self.params["selection_top_k"])
+            self._setCtrlValueSilently(self.jump_probability_ctrl, self.params["jump_probability"])
+            self._setCtrlValueSilently(self.jump_radius_ctrl, self.params["jump_radius"])
 
-        if self.params["audio_wave_mode"] == "pure_sine":
-            self.audio_wave_mode_choice.SetStringSelection("Pure sine")
-        elif self.params["audio_wave_mode"] == "noise_heavy":
-            self.audio_wave_mode_choice.SetStringSelection("Noise-heavy")
-        elif self.params["audio_wave_mode"] == "classic_analog":
-            self.audio_wave_mode_choice.SetStringSelection("Classic analog")
-        else:
-            self.audio_wave_mode_choice.SetStringSelection("Dynamic")
-        self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
-        self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
-        self.voice_spread_ctrl.SetValue(str(self.params["voice_spread"]))
-        self.melody_speed_ctrl.SetValue(str(self.params["melody_speed"]))
-        self.min_note_duration_ctrl.SetValue(str(self.params["min_note_duration"]))
+            if self.params["audio_wave_mode"] == "pure_sine":
+                self.audio_wave_mode_choice.SetStringSelection("Pure sine")
+            elif self.params["audio_wave_mode"] == "noise_heavy":
+                self.audio_wave_mode_choice.SetStringSelection("Noise-heavy")
+            elif self.params["audio_wave_mode"] == "classic_analog":
+                self.audio_wave_mode_choice.SetStringSelection("Classic analog")
+            else:
+                self.audio_wave_mode_choice.SetStringSelection("Dynamic")
+            self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
+            self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
+            self._setCtrlValueSilently(self.voice_spread_ctrl, self.params["voice_spread"])
+            self._setCtrlValueSilently(self.melody_speed_ctrl, self.params["melody_speed"])
+            self._setCtrlValueSilently(self.min_note_duration_ctrl, self.params["min_note_duration"])
 
-        if self.params["import_mode"] == "replace":
-            self.import_mode_choice.SetStringSelection("Replace database")
-        else:
-            self.import_mode_choice.SetStringSelection("Append database")
+            if self.params["import_mode"] == "replace":
+                self.import_mode_choice.SetStringSelection("Replace database")
+            else:
+                self.import_mode_choice.SetStringSelection("Append database")
 
-        self.adsr_attack_ctrl.SetValue(str(self.params["adsr_attack"]))
-        self.adsr_decay_ctrl.SetValue(str(self.params["adsr_decay"]))
-        self.adsr_sustain_ctrl.SetValue(str(self.params["adsr_sustain"]))
-        self.adsr_release_ctrl.SetValue(str(self.params["adsr_release"]))
+            self._setCtrlValueSilently(self.adsr_attack_ctrl, self.params["adsr_attack"])
+            self._setCtrlValueSilently(self.adsr_decay_ctrl, self.params["adsr_decay"])
+            self._setCtrlValueSilently(self.adsr_sustain_ctrl, self.params["adsr_sustain"])
+            self._setCtrlValueSilently(self.adsr_release_ctrl, self.params["adsr_release"])
+        finally:
+            self._suppress_param_events = False
 
     def _apply_loaded_preset(self):
         self._normalize_params()
