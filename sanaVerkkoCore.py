@@ -117,6 +117,7 @@ class SanaVerkkoKontrolleri:
         self.params = {}
         self.params["set_weight_by_gematria"] = False
         self.params["use_pos_matching"] = False
+        self.params["fluid_pos"] = False
         self.params["use_long_term_memory"] = False
         self.params["ltm_weight"] = 0.35
         self.params["common_word_penalty"] = True
@@ -135,6 +136,7 @@ class SanaVerkkoKontrolleri:
         self.params["jump_probability"] = 0.08
         self.params["jump_radius"] = 120
         self.params["fluid_root"] = False
+        self.params["fluid_gematria"] = False
         self.params["import_mode"] = "append"
         self.params["audio_wave_mode"] = "dynamic"
         self.params["frequency_mapping_mode"] = "original_notes"
@@ -207,6 +209,10 @@ class SanaVerkkoKontrolleri:
         self.use_pos_matching_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUsePOSMatching)
         self.pos_backend_status_label = wx.StaticText(panel, -1, "POS backend: heuristic")
 
+        self.fluid_pos_checkbox = wx.CheckBox(panel, -1, "Fluid POS")
+        self.fluid_pos_checkbox.SetValue(self.params["fluid_pos"])
+        self.fluid_pos_checkbox.Bind(wx.EVT_CHECKBOX, self.OnFluidPOS)
+
         self.use_long_term_memory_checkbox = wx.CheckBox(panel, -1, "Use long term memory")
         self.use_long_term_memory_checkbox.SetValue(self.params["use_long_term_memory"])
         self.use_long_term_memory_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUseLongTermMemory)
@@ -226,6 +232,10 @@ class SanaVerkkoKontrolleri:
         self.fluid_root_checkbox = wx.CheckBox(panel, -1, "Fluid root")
         self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
         self.fluid_root_checkbox.Bind(wx.EVT_CHECKBOX, self.OnFluidRoot)
+
+        self.fluid_gematria_checkbox = wx.CheckBox(panel, -1, "Fluid gematria")
+        self.fluid_gematria_checkbox.SetValue(self.params["fluid_gematria"])
+        self.fluid_gematria_checkbox.Bind(wx.EVT_CHECKBOX, self.OnFluidGematria)
 
         self.learning_rate_label = wx.StaticText(panel, -1, "Learning rate")
         self.learning_rate_ctrl = wx.TextCtrl(panel, -1, str(self.params["learning_rate"]), style=wx.TE_PROCESS_ENTER)
@@ -346,6 +356,7 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.pos_backend_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        self.sizer.Add(self.fluid_pos_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_long_term_memory_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.ltm_weight_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.ltm_weight_ctrl, 0, wx.ALL, 5)
@@ -353,6 +364,7 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.ltm_load_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.ltm_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
         self.sizer.Add(self.fluid_root_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.fluid_gematria_checkbox, 0, wx.ALL, 5)
 
         self.sizer.Add(self.learning_rate_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.learning_rate_ctrl, 0, wx.ALL, 5)
@@ -531,6 +543,11 @@ class SanaVerkkoKontrolleri:
         self.params["use_pos_matching"] = self._is_pos_matching_enabled()
         self._updatePOSBackendStatusLabel(check_nltk=self.params["use_pos_matching"])
 
+    def OnFluidPOS(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["fluid_pos"] = self._is_fluid_pos_enabled()
+
     def OnUseLongTermMemory(self, event):
         if self._suppress_param_events:
             return
@@ -567,6 +584,11 @@ class SanaVerkkoKontrolleri:
             return
         self.params["fluid_root"] = self._is_fluid_root_enabled()
 
+    def OnFluidGematria(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["fluid_gematria"] = self._is_fluid_gematria_enabled()
+
     def _is_pos_matching_enabled(self):
         try:
             if hasattr(self, "use_pos_matching_checkbox") and self.use_pos_matching_checkbox is not None:
@@ -582,6 +604,22 @@ class SanaVerkkoKontrolleri:
         except Exception:
             pass
         return bool(self.params.get("fluid_root", False))
+
+    def _is_fluid_gematria_enabled(self):
+        try:
+            if hasattr(self, "fluid_gematria_checkbox") and self.fluid_gematria_checkbox is not None:
+                return bool(self.fluid_gematria_checkbox.GetValue())
+        except Exception:
+            pass
+        return bool(self.params.get("fluid_gematria", False))
+
+    def _is_fluid_pos_enabled(self):
+        try:
+            if hasattr(self, "fluid_pos_checkbox") and self.fluid_pos_checkbox is not None:
+                return bool(self.fluid_pos_checkbox.GetValue())
+        except Exception:
+            pass
+        return bool(self.params.get("fluid_pos", False))
 
     def _is_ltm_enabled(self):
         try:
@@ -1604,6 +1642,7 @@ class SanaVerkkoKontrolleri:
                 candidate.word,
             ),
         )
+        alternative_ranked_candidates = [candidate for candidate in ranked_candidates if candidate.word != source_word.word]
 
         exploration = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
         top_k = max(1, int(self.params.get("selection_top_k", 4)))
@@ -1618,8 +1657,15 @@ class SanaVerkkoKontrolleri:
 
         if len(ranked_candidates) > 1 and random.random() < exploration:
             top_candidates = ranked_candidates[:min(top_k, len(ranked_candidates))]
+            if alternative_ranked_candidates:
+                top_candidates = [candidate for candidate in top_candidates if candidate.word != source_word.word]
+                if not top_candidates:
+                    top_candidates = alternative_ranked_candidates[:min(top_k, len(alternative_ranked_candidates))]
             weights = [1.0 / float(index + 1) for index in range(len(top_candidates))]
             return random.choices(top_candidates, weights=weights, k=1)[0]
+
+        if alternative_ranked_candidates and ranked_candidates[0].word == source_word.word:
+            return alternative_ranked_candidates[0]
 
         return ranked_candidates[0]
 
@@ -1662,9 +1708,11 @@ class SanaVerkkoKontrolleri:
     def _normalize_params(self):
         self.params["set_weight_by_gematria"] = bool(self.params.get("set_weight_by_gematria", False))
         self.params["use_pos_matching"] = bool(self.params.get("use_pos_matching", False))
+        self.params["fluid_pos"] = bool(self.params.get("fluid_pos", False))
         self.params["use_long_term_memory"] = bool(self.params.get("use_long_term_memory", False))
         self.params["common_word_penalty"] = bool(self.params.get("common_word_penalty", True))
         self.params["fluid_root"] = bool(self.params.get("fluid_root", False))
+        self.params["fluid_gematria"] = bool(self.params.get("fluid_gematria", False))
         self.params["ltm_weight"] = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
 
         self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
@@ -1713,9 +1761,11 @@ class SanaVerkkoKontrolleri:
         try:
             self.set_weight_by_gematria_checkbox.SetValue(self.params["set_weight_by_gematria"])
             self.use_pos_matching_checkbox.SetValue(self.params["use_pos_matching"])
+            self.fluid_pos_checkbox.SetValue(self.params["fluid_pos"])
             self.use_long_term_memory_checkbox.SetValue(self.params["use_long_term_memory"])
             self.common_word_penalty_checkbox.SetValue(self.params["common_word_penalty"])
             self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
+            self.fluid_gematria_checkbox.SetValue(self.params["fluid_gematria"])
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
@@ -1884,6 +1934,7 @@ class SanaVerkkoKontrolleri:
 
         self._ensureReferenceIndex(include_pos=use_pos)
         index = self.reference_index
+        fluid_gematria_enabled = self._is_fluid_gematria_enabled()
 
         candidate_map = {}
 
@@ -1892,15 +1943,28 @@ class SanaVerkkoKontrolleri:
                 candidate_map[id(candidate)] = candidate
 
         if use_pos:
-            source_pos = self._get_seed_pos(word)
+            if self._is_fluid_pos_enabled():
+                source_pos = getWordPOS(word.word, force=True)
+            else:
+                source_pos = self._get_seed_pos(word)
             _add_candidates(index["pos_gematria"].get((source_pos, source_gematria), []))
-            _add_candidates(index["pos_reduction"].get((source_pos, source_reduction), []))
-            _add_candidates(index["pos_root"].get((source_pos, source_root), []))
+            if fluid_gematria_enabled:
+                _add_candidates(index["pos_reduction"].get((source_pos, source_reduction), []))
+                _add_candidates(index["pos_root"].get((source_pos, source_root), []))
+
+        if use_pos and self._is_fluid_pos_enabled():
+            has_non_self_candidate = any(candidate.word != word.word for candidate in candidate_map.values())
+            if not has_non_self_candidate:
+                _add_candidates(index["gematria"].get(source_gematria, []))
+                if fluid_gematria_enabled:
+                    _add_candidates(index["reduction"].get(source_reduction, []))
+                    _add_candidates(index["root"].get(source_root, []))
 
         if not candidate_map:
             _add_candidates(index["gematria"].get(source_gematria, []))
-            _add_candidates(index["reduction"].get(source_reduction, []))
-            _add_candidates(index["root"].get(source_root, []))
+            if fluid_gematria_enabled:
+                _add_candidates(index["reduction"].get(source_reduction, []))
+                _add_candidates(index["root"].get(source_root, []))
 
         jump_probability = min(1.0, max(0.0, float(self.params.get("jump_probability", 0.08))))
         jump_radius = max(0, int(self.params.get("jump_radius", 120)))
@@ -2411,6 +2475,8 @@ class Word:
         if not self.controller._is_pos_matching_enabled():
             return ""
         try:
+            if self.controller._is_fluid_pos_enabled():
+                return getWordPOS(self.word, force=True)
             return self.controller._get_seed_pos(self)
         except Exception:
             return ""
