@@ -2,6 +2,7 @@ import argparse
 import os
 import pickle
 import re
+import sys
 import numpy as np
 
 
@@ -214,13 +215,15 @@ class SVLTMModel:
 
         sample_count = X.shape[0]
         batch_size_local = max(8, int(batch_size))
+        total_batches = max(1, (sample_count + batch_size_local - 1) // batch_size_local)
 
         for epoch in range(max(1, int(epochs))):
             order = np.arange(sample_count)
             rng.shuffle(order)
 
             epoch_loss = 0.0
-            for start in range(0, sample_count, batch_size_local):
+            processed_samples = 0
+            for batch_index, start in enumerate(range(0, sample_count, batch_size_local), start=1):
                 batch_indices = order[start : start + batch_size_local]
                 xb = X[batch_indices]
                 yb = y[batch_indices]
@@ -238,6 +241,7 @@ class SVLTMModel:
                     np.sum(W1 * W1) + np.sum(W2 * W2) + np.sum(W3 * W3)
                 )
                 epoch_loss += loss * batch_size_now
+                processed_samples += batch_size_now
 
                 d_logits = probs
                 d_logits[np.arange(batch_size_now), yb] -= 1.0
@@ -263,8 +267,24 @@ class SVLTMModel:
                 W1 -= learning_rate * dW1
                 b1 -= learning_rate * db1
 
+                if verbose:
+                    progress = batch_index / float(total_batches)
+                    bar_width = 32
+                    filled = int(bar_width * progress)
+                    bar = "=" * filled + "-" * (bar_width - filled)
+                    running_loss = epoch_loss / float(max(1, processed_samples))
+                    sys.stdout.write(
+                        f"\repoch {epoch + 1}/{epochs} [{bar}] {batch_index}/{total_batches} {progress * 100:6.2f}% loss~{running_loss:.6f}"
+                    )
+                    sys.stdout.flush()
+
             if verbose:
-                print(f"epoch {epoch + 1}/{epochs} loss={epoch_loss / sample_count:.6f}")
+                final_bar = "=" * 32
+                final_loss = epoch_loss / float(max(1, sample_count))
+                sys.stdout.write(
+                    f"\repoch {epoch + 1}/{epochs} [{final_bar}] {total_batches}/{total_batches} 100.00% loss={final_loss:.6f}\n"
+                )
+                sys.stdout.flush()
 
         model_data = {
             "version": 1,
