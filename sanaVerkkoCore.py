@@ -1983,7 +1983,7 @@ class SanaVerkkoKontrolleri:
         should_jump = random.random() < jump_probability
         fluid_root_enabled = self._is_fluid_root_enabled()
 
-        if should_jump:
+        if should_jump and fluid_gematria_enabled:
             gematria_keys = list(index["gematria"].keys())
             if gematria_keys:
                 nearest_keys = sorted(gematria_keys, key=lambda key: abs(key - source_gematria))
@@ -2004,6 +2004,10 @@ class SanaVerkkoKontrolleri:
                     _add_candidates(index["gematria"].get(key, []))
 
         candidates = list(candidate_map.values())
+
+        if not fluid_gematria_enabled:
+            should_jump = False
+            candidates = [candidate for candidate in candidates if candidate.gematria == source_gematria]
 
         if should_jump and not fluid_root_enabled:
             has_same_root_alternative = any(
