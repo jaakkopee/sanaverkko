@@ -1631,17 +1631,23 @@ class SanaVerkkoKontrolleri:
         source_root = digital_root(source_gematria)
         ltm_probabilities = self._ltm_candidate_probabilities(source_word, candidates)
 
-        ranked_candidates = sorted(
-            candidates,
-            key=lambda candidate: (
-                self._reference_blended_score(source_word, candidate, ltm_probabilities)[0],
-                self._reference_blended_score(source_word, candidate, ltm_probabilities)[1],
-                abs(candidate.gematria - source_gematria),
-                abs(numerological_reduction(candidate.gematria) - source_reduction),
-                abs(digital_root(candidate.gematria) - source_root),
-                candidate.word,
-            ),
-        )
+        scored_candidates = []
+        for candidate in candidates:
+            blended_score, base_score = self._reference_blended_score(source_word, candidate, ltm_probabilities)
+            scored_candidates.append(
+                (
+                    blended_score,
+                    base_score,
+                    abs(candidate.gematria - source_gematria),
+                    abs(numerological_reduction(candidate.gematria) - source_reduction),
+                    abs(digital_root(candidate.gematria) - source_root),
+                    candidate.word,
+                    candidate,
+                )
+            )
+
+        scored_candidates.sort(key=lambda item: item[:6])
+        ranked_candidates = [item[6] for item in scored_candidates]
         alternative_ranked_candidates = [candidate for candidate in ranked_candidates if candidate.word != source_word.word]
 
         exploration = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
