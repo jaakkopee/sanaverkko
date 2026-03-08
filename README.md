@@ -267,3 +267,7 @@ Only words composed of letters in the gematria table are accepted (`a-z`, `å`, 
 
 - This is an experimental project; behavior is intentionally exploratory.
 - Real-time mutation depends heavily on current parameter values and reference database content.
+
+## License
+
+This project is released under the [MIT License](LICENSE).
