@@ -653,10 +653,16 @@ class SanaVerkkoKontrolleri:
             return
 
         model_name = os.path.basename(self.ltm_model_path) if self.ltm_model_path else "model loaded"
+        backend_name = "cpu"
+        try:
+            if hasattr(self.ltm_model, "runtime_backend"):
+                backend_name = str(self.ltm_model.runtime_backend())
+        except Exception:
+            backend_name = "cpu"
         if enabled:
-            self.ltm_status_label.SetLabel(f"LTM: enabled ({model_name})")
+            self.ltm_status_label.SetLabel(f"LTM: enabled ({model_name}, backend={backend_name})")
         else:
-            self.ltm_status_label.SetLabel(f"LTM: loaded ({model_name}), disabled")
+            self.ltm_status_label.SetLabel(f"LTM: loaded ({model_name}, backend={backend_name}), disabled")
 
     def _ensure_nltk_pos_tagger(self):
         if nltk is None:

@@ -67,6 +67,11 @@ Larger hidden sizes improve capacity but increase model size and memory/CPU cost
 - `--batch-size` (int, default: `64`)
   - Batch size for training steps.
 
+- `--device` (`auto|cpu|mps|cuda`, default: `auto`)
+  - Selects training backend device.
+  - `auto` prefers `cuda`, then `mps`, then `cpu`.
+  - GPU acceleration is used when `torch` is installed and selected device is available.
+
 - `--seed` (int, default: `1234`)
   - RNG seed for deterministic initialization/order (same data + same params).
 
@@ -81,7 +86,8 @@ python sv_ltm.py \
   --epochs 5 \
   --hidden1 512 \
   --hidden2 256 \
-  --filters 32
+  --filters 32 \
+  --device auto
 ```
 
 ## Balanced baseline
@@ -97,7 +103,8 @@ python sv_ltm.py \
   --hidden2 512 \
   --embedding-dim 32 \
   --filters 64 \
-  --batch-size 64
+  --batch-size 64 \
+  --device auto
 ```
 
 ## Larger model (targeting >20MB)
@@ -112,8 +119,16 @@ python sv_ltm.py \
   --hidden2 1024 \
   --embedding-dim 64 \
   --filters 128 \
-  --batch-size 128
+  --batch-size 128 \
+  --device auto
 ```
+
+## GPU notes
+
+- GPU training/inference support is optional and uses PyTorch when available.
+- macOS (Apple Silicon): use `--device mps` (or `--device auto`).
+- NVIDIA: use `--device cuda`.
+- If PyTorch or the requested device is unavailable, training falls back to CPU path.
 
 ## Model size guidance
 
@@ -152,5 +167,5 @@ To reduce size:
 ## Notes
 
 - `sv_ltm.py` trains a word-level next-token predictor with a char-based word encoder.
-- Training uses NumPy only (no PyTorch/TensorFlow).
+- Training uses NumPy by default, with optional PyTorch acceleration (`mps`/`cuda`) when available.
 - Runtime loading in app requires the same Python environment to have compatible dependencies.

@@ -5,6 +5,38 @@ import re
 import sys
 import numpy as np
 
+try:
+    import torch
+    import torch.nn.functional as F
+except Exception:
+    torch = None
+    F = None
+
+
+def _resolve_torch_device(preferred="auto"):
+    if torch is None:
+        return None
+
+    torch_module = torch
+
+    preferred_value = str(preferred or "auto").lower().strip()
+    if preferred_value == "auto":
+        if torch_module.cuda.is_available():
+            return "cuda"
+        if hasattr(torch_module.backends, "mps") and torch_module.backends.mps.is_available():
+            return "mps"
+        return "cpu"
+
+    if preferred_value == "cuda":
+        return "cuda" if torch_module.cuda.is_available() else None
+    if preferred_value == "mps":
+        if hasattr(torch_module.backends, "mps") and torch_module.backends.mps.is_available():
+            return "mps"
+        return None
+    if preferred_value == "cpu":
+        return "cpu"
+    return None
+
 
 def _tokenize_text(text):
     return re.findall(r"[a-zåäö]+", text.lower())
@@ -71,6 +103,7 @@ class SVLTMModel:
         self.version = model_data["version"]
         self.topology = model_data["topology"]
         self.context_size = int(model_data["context_size"])
+        self.device_preference = str(model_data.get("device_preference", "auto"))
 
         self.alphabet = model_data["alphabet"]
         self.word_to_index = model_data["word_to_index"]
@@ -97,6 +130,47 @@ class SVLTMModel:
         self.b3 = model_data["mlp"]["b3"].astype(np.float32)
 
         self.word_feature_cache = model_data.get("word_feature_cache", {})
+
+        self._torch_inference_device = None
+        self._torch_inference_enabled = False
+        self._torch_W1 = None
+        self._torch_b1 = None
+        self._torch_W2 = None
+        self._torch_b2 = None
+        self._torch_W3 = None
+        self._torch_b3 = None
+        self._setup_torch_inference(self.device_preference)
+
+    def _setup_torch_inference(self, preferred_device):
+        resolved_device = _resolve_torch_device(preferred_device)
+        if torch is None or resolved_device is None or resolved_device == "cpu":
+            self._torch_inference_enabled = False
+            self._torch_inference_device = None
+            return
+
+        assert torch is not None
+
+        try:
+            device = torch.device(resolved_device)
+            self._torch_W1 = torch.from_numpy(self.W1).to(device)
+            self._torch_b1 = torch.from_numpy(self.b1).to(device)
+            self._torch_W2 = torch.from_numpy(self.W2).to(device)
+            self._torch_b2 = torch.from_numpy(self.b2).to(device)
+            self._torch_W3 = torch.from_numpy(self.W3).to(device)
+            self._torch_b3 = torch.from_numpy(self.b3).to(device)
+            self._torch_inference_device = device
+            self._torch_inference_enabled = True
+        except Exception:
+            self._torch_inference_enabled = False
+            self._torch_inference_device = None
+
+    def runtime_backend(self):
+        if self._torch_inference_enabled and self._torch_inference_device is not None:
+            try:
+                return str(self._torch_inference_device.type)
+            except Exception:
+                return "gpu"
+        return "cpu"
 
     @staticmethod
     def _relu(x):
@@ -143,6 +217,7 @@ class SVLTMModel:
         max_word_len=24,
         seed=1234,
         batch_size=64,
+        device="auto",
         verbose=True,
     ):
         if len(words) <= context_size:
@@ -217,79 +292,157 @@ class SVLTMModel:
         batch_size_local = max(8, int(batch_size))
         total_batches = max(1, (sample_count + batch_size_local - 1) // batch_size_local)
 
-        for epoch in range(max(1, int(epochs))):
-            order = np.arange(sample_count)
-            rng.shuffle(order)
+        resolved_device = _resolve_torch_device(device)
+        use_torch_training = torch is not None and F is not None and resolved_device in {"cuda", "mps"}
 
-            epoch_loss = 0.0
-            processed_samples = 0
-            for batch_index, start in enumerate(range(0, sample_count, batch_size_local), start=1):
-                batch_indices = order[start : start + batch_size_local]
-                xb = X[batch_indices]
-                yb = y[batch_indices]
+        if use_torch_training:
+            assert torch is not None
+            assert F is not None
+            if verbose:
+                print(f"Using torch backend on {resolved_device} for training")
 
-                z1 = xb @ W1 + b1
-                a1 = relu(z1)
-                z2 = a1 @ W2 + b2
-                a2 = relu(z2)
-                logits = a2 @ W3 + b3
-                probs = softmax(logits)
+            device_obj = torch.device(resolved_device)
+            W1_t = torch.tensor(W1, device=device_obj, requires_grad=True)
+            b1_t = torch.tensor(b1, device=device_obj, requires_grad=True)
+            W2_t = torch.tensor(W2, device=device_obj, requires_grad=True)
+            b2_t = torch.tensor(b2, device=device_obj, requires_grad=True)
+            W3_t = torch.tensor(W3, device=device_obj, requires_grad=True)
+            b3_t = torch.tensor(b3, device=device_obj, requires_grad=True)
 
-                batch_size_now = xb.shape[0]
-                loss = -np.log(probs[np.arange(batch_size_now), yb] + 1e-9).mean()
-                loss += 0.5 * l2 * (
-                    np.sum(W1 * W1) + np.sum(W2 * W2) + np.sum(W3 * W3)
-                )
-                epoch_loss += loss * batch_size_now
-                processed_samples += batch_size_now
+            optimizer = torch.optim.SGD([W1_t, b1_t, W2_t, b2_t, W3_t, b3_t], lr=float(learning_rate))
 
-                d_logits = probs
-                d_logits[np.arange(batch_size_now), yb] -= 1.0
-                d_logits /= float(batch_size_now)
+            for epoch in range(max(1, int(epochs))):
+                order = np.arange(sample_count)
+                rng.shuffle(order)
 
-                dW3 = a2.T @ d_logits + l2 * W3
-                db3 = np.sum(d_logits, axis=0)
+                epoch_loss = 0.0
+                processed_samples = 0
+                for batch_index, start in enumerate(range(0, sample_count, batch_size_local), start=1):
+                    batch_indices = order[start : start + batch_size_local]
+                    xb = torch.from_numpy(X[batch_indices]).to(device_obj)
+                    yb = torch.from_numpy(y[batch_indices]).to(device_obj, dtype=torch.long)
 
-                d_a2 = d_logits @ W3.T
-                d_z2 = d_a2 * (z2 > 0.0)
-                dW2 = a1.T @ d_z2 + l2 * W2
-                db2 = np.sum(d_z2, axis=0)
+                    optimizer.zero_grad(set_to_none=True)
 
-                d_a1 = d_z2 @ W2.T
-                d_z1 = d_a1 * (z1 > 0.0)
-                dW1 = xb.T @ d_z1 + l2 * W1
-                db1 = np.sum(d_z1, axis=0)
+                    z1 = xb @ W1_t + b1_t
+                    a1 = torch.relu(z1)
+                    z2 = a1 @ W2_t + b2_t
+                    a2 = torch.relu(z2)
+                    logits = a2 @ W3_t + b3_t
 
-                W3 -= learning_rate * dW3
-                b3 -= learning_rate * db3
-                W2 -= learning_rate * dW2
-                b2 -= learning_rate * db2
-                W1 -= learning_rate * dW1
-                b1 -= learning_rate * db1
+                    ce_loss = F.cross_entropy(logits, yb)
+                    reg_loss = 0.5 * float(l2) * (
+                        torch.sum(W1_t * W1_t) + torch.sum(W2_t * W2_t) + torch.sum(W3_t * W3_t)
+                    )
+                    loss = ce_loss + reg_loss
+
+                    loss.backward()
+                    optimizer.step()
+
+                    batch_size_now = int(xb.shape[0])
+                    epoch_loss += float(loss.detach().cpu().item()) * batch_size_now
+                    processed_samples += batch_size_now
+
+                    if verbose:
+                        progress = batch_index / float(total_batches)
+                        bar_width = 32
+                        filled = int(bar_width * progress)
+                        bar = "=" * filled + "-" * (bar_width - filled)
+                        running_loss = epoch_loss / float(max(1, processed_samples))
+                        sys.stdout.write(
+                            f"\repoch {epoch + 1}/{epochs} [{bar}] {batch_index}/{total_batches} {progress * 100:6.2f}% loss~{running_loss:.6f}"
+                        )
+                        sys.stdout.flush()
 
                 if verbose:
-                    progress = batch_index / float(total_batches)
-                    bar_width = 32
-                    filled = int(bar_width * progress)
-                    bar = "=" * filled + "-" * (bar_width - filled)
-                    running_loss = epoch_loss / float(max(1, processed_samples))
+                    final_bar = "=" * 32
+                    final_loss = epoch_loss / float(max(1, sample_count))
                     sys.stdout.write(
-                        f"\repoch {epoch + 1}/{epochs} [{bar}] {batch_index}/{total_batches} {progress * 100:6.2f}% loss~{running_loss:.6f}"
+                        f"\repoch {epoch + 1}/{epochs} [{final_bar}] {total_batches}/{total_batches} 100.00% loss={final_loss:.6f}\n"
                     )
                     sys.stdout.flush()
 
-            if verbose:
-                final_bar = "=" * 32
-                final_loss = epoch_loss / float(max(1, sample_count))
-                sys.stdout.write(
-                    f"\repoch {epoch + 1}/{epochs} [{final_bar}] {total_batches}/{total_batches} 100.00% loss={final_loss:.6f}\n"
-                )
-                sys.stdout.flush()
+            W1 = W1_t.detach().cpu().numpy().astype(np.float32)
+            b1 = b1_t.detach().cpu().numpy().astype(np.float32)
+            W2 = W2_t.detach().cpu().numpy().astype(np.float32)
+            b2 = b2_t.detach().cpu().numpy().astype(np.float32)
+            W3 = W3_t.detach().cpu().numpy().astype(np.float32)
+            b3 = b3_t.detach().cpu().numpy().astype(np.float32)
+        else:
+            for epoch in range(max(1, int(epochs))):
+                order = np.arange(sample_count)
+                rng.shuffle(order)
+
+                epoch_loss = 0.0
+                processed_samples = 0
+                for batch_index, start in enumerate(range(0, sample_count, batch_size_local), start=1):
+                    batch_indices = order[start : start + batch_size_local]
+                    xb = X[batch_indices]
+                    yb = y[batch_indices]
+
+                    z1 = xb @ W1 + b1
+                    a1 = relu(z1)
+                    z2 = a1 @ W2 + b2
+                    a2 = relu(z2)
+                    logits = a2 @ W3 + b3
+                    probs = softmax(logits)
+
+                    batch_size_now = xb.shape[0]
+                    loss = -np.log(probs[np.arange(batch_size_now), yb] + 1e-9).mean()
+                    loss += 0.5 * l2 * (
+                        np.sum(W1 * W1) + np.sum(W2 * W2) + np.sum(W3 * W3)
+                    )
+                    epoch_loss += loss * batch_size_now
+                    processed_samples += batch_size_now
+
+                    d_logits = probs
+                    d_logits[np.arange(batch_size_now), yb] -= 1.0
+                    d_logits /= float(batch_size_now)
+
+                    dW3 = a2.T @ d_logits + l2 * W3
+                    db3 = np.sum(d_logits, axis=0)
+
+                    d_a2 = d_logits @ W3.T
+                    d_z2 = d_a2 * (z2 > 0.0)
+                    dW2 = a1.T @ d_z2 + l2 * W2
+                    db2 = np.sum(d_z2, axis=0)
+
+                    d_a1 = d_z2 @ W2.T
+                    d_z1 = d_a1 * (z1 > 0.0)
+                    dW1 = xb.T @ d_z1 + l2 * W1
+                    db1 = np.sum(d_z1, axis=0)
+
+                    W3 -= learning_rate * dW3
+                    b3 -= learning_rate * db3
+                    W2 -= learning_rate * dW2
+                    b2 -= learning_rate * db2
+                    W1 -= learning_rate * dW1
+                    b1 -= learning_rate * db1
+
+                    if verbose:
+                        progress = batch_index / float(total_batches)
+                        bar_width = 32
+                        filled = int(bar_width * progress)
+                        bar = "=" * filled + "-" * (bar_width - filled)
+                        running_loss = epoch_loss / float(max(1, processed_samples))
+                        sys.stdout.write(
+                            f"\repoch {epoch + 1}/{epochs} [{bar}] {batch_index}/{total_batches} {progress * 100:6.2f}% loss~{running_loss:.6f}"
+                        )
+                        sys.stdout.flush()
+
+                if verbose:
+                    final_bar = "=" * 32
+                    final_loss = epoch_loss / float(max(1, sample_count))
+                    sys.stdout.write(
+                        f"\repoch {epoch + 1}/{epochs} [{final_bar}] {total_batches}/{total_batches} 100.00% loss={final_loss:.6f}\n"
+                    )
+                    sys.stdout.flush()
 
         model_data = {
             "version": 1,
             "topology": "char_cnn_mlp_word_softmax_ctx3",
             "context_size": context_size,
+            "device_preference": str(device),
             "alphabet": alphabet,
             "word_to_index": word_to_index,
             "index_to_word": index_to_word,
@@ -333,6 +486,16 @@ class SVLTMModel:
         return np.concatenate(vectors, axis=0).astype(np.float32)
 
     def _forward_logits(self, context_words):
+        if self._torch_inference_enabled and self._torch_inference_device is not None:
+            assert torch is not None
+            x_np = self._context_vector(context_words).reshape(1, -1)
+            with torch.no_grad():
+                x = torch.from_numpy(x_np).to(self._torch_inference_device)
+                a1 = torch.relu(x @ self._torch_W1 + self._torch_b1)
+                a2 = torch.relu(a1 @ self._torch_W2 + self._torch_b2)
+                logits = a2 @ self._torch_W3 + self._torch_b3
+            return logits.detach().cpu().numpy()
+
         x = self._context_vector(context_words).reshape(1, -1)
         a1 = self._relu(x @ self.W1 + self.b1)
         a2 = self._relu(a1 @ self.W2 + self.b2)
@@ -366,6 +529,7 @@ class SVLTMModel:
             "version": self.version,
             "topology": self.topology,
             "context_size": self.context_size,
+            "device_preference": self.device_preference,
             "alphabet": self.alphabet,
             "word_to_index": self.word_to_index,
             "index_to_word": self.index_to_word,
@@ -414,6 +578,7 @@ def train_from_text_file(
     max_word_len=24,
     seed=1234,
     batch_size=64,
+    device="auto",
 ):
     with open(input_text_file, "r", encoding="utf-8") as input_file:
         text = input_file.read()
@@ -436,6 +601,7 @@ def train_from_text_file(
         max_word_len=max_word_len,
         seed=seed,
         batch_size=batch_size,
+        device=device,
         verbose=True,
     )
     model.save(output_model_file)
@@ -460,6 +626,7 @@ def main():
     parser.add_argument("--filters", type=int, default=64)
     parser.add_argument("--max-word-len", type=int, default=24)
     parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "mps", "cuda"])
     parser.add_argument("--seed", type=int, default=1234)
     args = parser.parse_args()
 
@@ -482,6 +649,7 @@ def main():
         max_word_len=args.max_word_len,
         seed=args.seed,
         batch_size=args.batch_size,
+        device=args.device,
     )
 
 
