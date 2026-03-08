@@ -711,6 +711,24 @@ class SanaVerkkoKontrolleri:
         self.pos_tag_cache[key] = pos_tag
         return pos_tag
 
+    def _assign_seed_pos(self, word_obj):
+        if word_obj is None:
+            return ""
+        try:
+            pos_value = self.getWordPOS(word_obj.word, force=True)
+        except Exception:
+            pos_value = ""
+        word_obj.seed_pos = pos_value
+        return pos_value
+
+    def _get_seed_pos(self, word_obj):
+        if word_obj is None:
+            return ""
+        pos_value = getattr(word_obj, "seed_pos", "")
+        if isinstance(pos_value, str) and pos_value != "":
+            return pos_value
+        return self._assign_seed_pos(word_obj)
+
     def _bindNumericCtrl(self, ctrl, handler):
         ctrl.Unbind(wx.EVT_TEXT_ENTER, handler=handler)
         ctrl.Bind(wx.EVT_TEXT_ENTER, handler)
@@ -1420,6 +1438,7 @@ class SanaVerkkoKontrolleri:
         self.referenceWords = self.parseText(reference_filename) if reference_filename else []
 
         for word in self.words:
+            self._assign_seed_pos(word)
             self.referenceWords.append(word)
 
         self.referenceWords = self._uniqueWordObjects(self.referenceWords)
@@ -1798,6 +1817,7 @@ class SanaVerkkoKontrolleri:
 
     def addWordToNetwork(self, word_text):
         new_word = Word(word_text, 0, 0, (255, 255, 255), self)
+        self._assign_seed_pos(new_word)
 
         for existing_word in self.words:
             weight_to_existing = self.getGematriaDistance(new_word.gematria, existing_word.gematria)
@@ -1872,7 +1892,7 @@ class SanaVerkkoKontrolleri:
                 candidate_map[id(candidate)] = candidate
 
         if use_pos:
-            source_pos = self.getWordPOS(word.word, force=True)
+            source_pos = self._get_seed_pos(word)
             _add_candidates(index["pos_gematria"].get((source_pos, source_gematria), []))
             _add_candidates(index["pos_reduction"].get((source_pos, source_reduction), []))
             _add_candidates(index["pos_root"].get((source_pos, source_root), []))
@@ -2350,6 +2370,7 @@ class Word:
         self.controller = controller
         self.word = word
         self.gematria = get_gematria(word)
+        self.seed_pos = ""
         self.x = x
         self.y = y
         self.neuron = Neuron(x, y, 20, color)
@@ -2390,7 +2411,7 @@ class Word:
         if not self.controller._is_pos_matching_enabled():
             return ""
         try:
-            return self.controller.getWordPOS(self.word)
+            return self.controller._get_seed_pos(self)
         except Exception:
             return ""
 
