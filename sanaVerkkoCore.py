@@ -1956,7 +1956,7 @@ class SanaVerkkoKontrolleri:
 
         if use_pos:
             if self._is_fluid_pos_enabled():
-                source_pos = getWordPOS(word.word, force=True)
+                source_pos = self.getWordPOS(word.word, force=True)
             else:
                 source_pos = self._get_seed_pos(word)
             _add_candidates(index["pos_gematria"].get((source_pos, source_gematria), []))
@@ -2492,7 +2492,7 @@ class Word:
             return ""
         try:
             if self.controller._is_fluid_pos_enabled():
-                return getWordPOS(self.word, force=True)
+                return self.controller.getWordPOS(self.word, force=True)
             return self.controller._get_seed_pos(self)
         except Exception:
             return ""
