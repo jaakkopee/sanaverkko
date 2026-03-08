@@ -184,6 +184,7 @@ class SanaVerkkoKontrolleri:
         self.reference_index = {}
         self._last_param_event = {}
         self._suppress_param_events = False
+        self._in_param_commit = False
         self.ltm_model = None
         self.ltm_model_path = ""
         self.ltm_context_size = 3
@@ -305,16 +306,16 @@ class SanaVerkkoKontrolleri:
         self.adsr_display = ADSRDisplayPanel(panel)
         self.adsr_attack_label = wx.StaticText(panel, -1, "Attack (s)")
         self.adsr_attack_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_attack"]), style=wx.TE_PROCESS_ENTER)
-        self._bindNumericCtrl(self.adsr_attack_ctrl, self.OnADSR)
+        self._bindNumericCtrl(self.adsr_attack_ctrl, self.OnADSRAttack)
         self.adsr_decay_label = wx.StaticText(panel, -1, "Decay (s)")
         self.adsr_decay_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_decay"]), style=wx.TE_PROCESS_ENTER)
-        self._bindNumericCtrl(self.adsr_decay_ctrl, self.OnADSR)
+        self._bindNumericCtrl(self.adsr_decay_ctrl, self.OnADSRDecay)
         self.adsr_sustain_label = wx.StaticText(panel, -1, "Sustain (0-1)")
         self.adsr_sustain_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_sustain"]), style=wx.TE_PROCESS_ENTER)
-        self._bindNumericCtrl(self.adsr_sustain_ctrl, self.OnADSR)
+        self._bindNumericCtrl(self.adsr_sustain_ctrl, self.OnADSRSustain)
         self.adsr_release_label = wx.StaticText(panel, -1, "Release (s)")
         self.adsr_release_ctrl = wx.TextCtrl(panel, -1, str(self.params["adsr_release"]), style=wx.TE_PROCESS_ENTER)
-        self._bindNumericCtrl(self.adsr_release_ctrl, self.OnADSR)
+        self._bindNumericCtrl(self.adsr_release_ctrl, self.OnADSRRelease)
 
         self.add_words_label = wx.StaticText(panel, -1, "Add word(s)")
         self.add_words_ctrl = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER)
@@ -537,11 +538,7 @@ class SanaVerkkoKontrolleri:
         self._updateLTMStatusLabel()
 
     def OnLTMWeight(self, event):
-        if self._is_duplicate_param_event(event, self.ltm_weight_ctrl):
-            return
-        value = self._readFloat(self.ltm_weight_ctrl)
-        if value is not None:
-            self.params["ltm_weight"] = min(1.0, max(0.0, value))
+        self._commit_float_param(self.ltm_weight_ctrl, "ltm_weight", minimum=0.0, maximum=1.0)
 
     def OnCommonWordPenalty(self, event):
         if self._suppress_param_events:
@@ -775,66 +772,79 @@ class SanaVerkkoKontrolleri:
             return None
 
     def _is_duplicate_param_event(self, event, fallback_ctrl=None):
-        if self._suppress_param_events:
+        if self._suppress_param_events or self._in_param_commit:
             return True
         return False
 
+    def _commit_float_param(self, ctrl, key, minimum=None, maximum=None):
+        if self._is_duplicate_param_event(None, ctrl):
+            return None
+        value = self._readFloat(ctrl)
+        if value is None:
+            return None
+
+        normalized = float(value)
+        if minimum is not None:
+            normalized = max(float(minimum), normalized)
+        if maximum is not None:
+            normalized = min(float(maximum), normalized)
+
+        self._in_param_commit = True
+        try:
+            self.params[key] = normalized
+            self._setCtrlValueSilently(ctrl, normalized)
+        finally:
+            self._in_param_commit = False
+        return normalized
+
+    def _commit_int_param(self, ctrl, key, minimum=None, maximum=None):
+        if self._is_duplicate_param_event(None, ctrl):
+            return None
+        value = self._readInt(ctrl)
+        if value is None:
+            return None
+
+        normalized = int(value)
+        if minimum is not None:
+            normalized = max(int(minimum), normalized)
+        if maximum is not None:
+            normalized = min(int(maximum), normalized)
+
+        self._in_param_commit = True
+        try:
+            self.params[key] = normalized
+            self._setCtrlValueSilently(ctrl, normalized)
+        finally:
+            self._in_param_commit = False
+        return normalized
+
     def OnLearningRate(self, event):
-        if self._is_duplicate_param_event(event, self.learning_rate_ctrl):
-            return
-        value = self._readFloat(self.learning_rate_ctrl)
-        if value is not None:
-            self.params["learning_rate"] = value
+        self._commit_float_param(self.learning_rate_ctrl, "learning_rate")
 
     def OnError(self, event):
-        if self._is_duplicate_param_event(event, self.error_ctrl):
-            return
-        value = self._readFloat(self.error_ctrl)
-        if value is not None:
-            self.params["error"] = value
+        self._commit_float_param(self.error_ctrl, "error")
 
     def OnActivationIncrease(self, event):
-        if self._is_duplicate_param_event(event, self.activation_increase_ctrl):
-            return
-        value = self._readFloat(self.activation_increase_ctrl)
-        if value is not None:
-            self.params["activation_increase"] = value
+        self._commit_float_param(self.activation_increase_ctrl, "activation_increase")
 
     def OnActivationLimit(self, event):
-        if self._is_duplicate_param_event(event, self.activation_limit_ctrl):
-            return
-        value = self._readFloat(self.activation_limit_ctrl)
-        if value is not None:
-            self.params["activation_limit"] = value
+        self._commit_float_param(self.activation_limit_ctrl, "activation_limit")
 
     def OnSigmoidScale(self, event):
-        if self._is_duplicate_param_event(event, self.sigmoid_scale_ctrl):
-            return
-        value = self._readFloat(self.sigmoid_scale_ctrl)
-        if value is not None:
-            self.params["sigmoid_scale"] = value
+        self._commit_float_param(self.sigmoid_scale_ctrl, "sigmoid_scale")
 
     def OnWordChangeThreshold(self, event):
-        if self._is_duplicate_param_event(event, self.word_change_threshold_ctrl):
-            return
-        value = self._readFloat(self.word_change_threshold_ctrl)
-        if value is not None:
-            self.params["word_change_threshold"] = value
+        self._commit_float_param(self.word_change_threshold_ctrl, "word_change_threshold")
 
     def OnZoom(self, event):
-        if self._is_duplicate_param_event(event, self.zoom_ctrl):
-            return
-        value = self._readFloat(self.zoom_ctrl)
+        value = self._commit_float_param(self.zoom_ctrl, "zoom", minimum=0.001)
         if value is not None:
-            self.params["zoom"] = max(0.001, value)
             self.makeWordCircle(self.words)
 
     def OnProcessInterval(self, event):
-        if self._is_duplicate_param_event(event, self.process_interval_ctrl):
+        value = self._commit_float_param(self.process_interval_ctrl, "process_interval", minimum=0.01)
+        if value is None:
             return
-        value = self._readFloat(self.process_interval_ctrl)
-        if value is not None:
-            self.params["process_interval"] = max(0.01, value)
         try:
             transition_crossfade = min(0.08, max(0.01, float(self.params["process_interval"]) * 0.45))
             sanasyna.set_transition_crossfade(transition_crossfade)
@@ -842,33 +852,16 @@ class SanaVerkkoKontrolleri:
             pass
 
     def OnSelectionExploration(self, event):
-        if self._is_duplicate_param_event(event, self.selection_exploration_ctrl):
-            return
-        value = self._readFloat(self.selection_exploration_ctrl)
-        if value is not None:
-            self.params["selection_exploration"] = min(1.0, max(0.0, value))
+        self._commit_float_param(self.selection_exploration_ctrl, "selection_exploration", minimum=0.0, maximum=1.0)
 
     def OnSelectionTopK(self, event):
-        if self._is_duplicate_param_event(event, self.selection_top_k_ctrl):
-            return
-        value = self._readInt(self.selection_top_k_ctrl)
-        if value is not None:
-            normalized_value = max(1, value)
-            self.params["selection_top_k"] = normalized_value
+        self._commit_int_param(self.selection_top_k_ctrl, "selection_top_k", minimum=1)
 
     def OnJumpProbability(self, event):
-        if self._is_duplicate_param_event(event, self.jump_probability_ctrl):
-            return
-        value = self._readFloat(self.jump_probability_ctrl)
-        if value is not None:
-            self.params["jump_probability"] = min(1.0, max(0.0, value))
+        self._commit_float_param(self.jump_probability_ctrl, "jump_probability", minimum=0.0, maximum=1.0)
 
     def OnJumpRadius(self, event):
-        if self._is_duplicate_param_event(event, self.jump_radius_ctrl):
-            return
-        value = self._readInt(self.jump_radius_ctrl)
-        if value is not None:
-            self.params["jump_radius"] = max(0, value)
+        self._commit_int_param(self.jump_radius_ctrl, "jump_radius", minimum=0)
 
     def OnImportMode(self, event):
         if self._suppress_param_events:
@@ -910,27 +903,15 @@ class SanaVerkkoKontrolleri:
         self.last_audio_sentence_signature = None
 
     def OnVoiceSpread(self, event):
-        if self._is_duplicate_param_event(event, self.voice_spread_ctrl):
-            return
-        value = self._readFloat(self.voice_spread_ctrl)
-        if value is not None:
-            self.params["voice_spread"] = min(5.0, max(0.3, value))
+        self._commit_float_param(self.voice_spread_ctrl, "voice_spread", minimum=0.3, maximum=5.0)
         self.last_audio_sentence_signature = None
 
     def OnMelodySpeed(self, event):
-        if self._is_duplicate_param_event(event, self.melody_speed_ctrl):
-            return
-        value = self._readFloat(self.melody_speed_ctrl)
-        if value is not None:
-            self.params["melody_speed"] = min(6.0, max(0.2, value))
+        self._commit_float_param(self.melody_speed_ctrl, "melody_speed", minimum=0.2, maximum=6.0)
         self.last_audio_sentence_signature = None
 
     def OnMinNoteDuration(self, event):
-        if self._is_duplicate_param_event(event, self.min_note_duration_ctrl):
-            return
-        value = self._readFloat(self.min_note_duration_ctrl)
-        if value is not None:
-            self.params["min_note_duration"] = min(1.0, max(0.01, value))
+        self._commit_float_param(self.min_note_duration_ctrl, "min_note_duration", minimum=0.01, maximum=1.0)
         self.last_audio_sentence_signature = None
 
     def _applyADSRToAudio(self):
@@ -947,29 +928,41 @@ class SanaVerkkoKontrolleri:
             self.params["adsr_release"],
         )
 
+    def OnADSRAttack(self, event):
+        value = self._commit_float_param(self.adsr_attack_ctrl, "adsr_attack", minimum=0.0)
+        if value is not None:
+            self._applyADSRToAudio()
+
+    def OnADSRDecay(self, event):
+        value = self._commit_float_param(self.adsr_decay_ctrl, "adsr_decay", minimum=0.0)
+        if value is not None:
+            self._applyADSRToAudio()
+
+    def OnADSRSustain(self, event):
+        value = self._commit_float_param(self.adsr_sustain_ctrl, "adsr_sustain", minimum=0.0, maximum=1.0)
+        if value is not None:
+            self._applyADSRToAudio()
+
+    def OnADSRRelease(self, event):
+        value = self._commit_float_param(self.adsr_release_ctrl, "adsr_release", minimum=0.0)
+        if value is not None:
+            self._applyADSRToAudio()
+
     def OnADSR(self, event):
         event_ctrl = None
         try:
             event_ctrl = event.GetEventObject()
         except Exception:
             event_ctrl = None
-        if self._is_duplicate_param_event(event, event_ctrl):
-            return
 
-        attack_value = self._readFloat(self.adsr_attack_ctrl)
-        decay_value = self._readFloat(self.adsr_decay_ctrl)
-        sustain_value = self._readFloat(self.adsr_sustain_ctrl)
-        release_value = self._readFloat(self.adsr_release_ctrl)
-
-        if attack_value is not None:
-            self.params["adsr_attack"] = max(0.0, attack_value)
-        if decay_value is not None:
-            self.params["adsr_decay"] = max(0.0, decay_value)
-        if sustain_value is not None:
-            self.params["adsr_sustain"] = min(1.0, max(0.0, sustain_value))
-        if release_value is not None:
-            self.params["adsr_release"] = max(0.0, release_value)
-        self._applyADSRToAudio()
+        if event_ctrl == self.adsr_attack_ctrl:
+            self.OnADSRAttack(event)
+        elif event_ctrl == self.adsr_decay_ctrl:
+            self.OnADSRDecay(event)
+        elif event_ctrl == self.adsr_sustain_ctrl:
+            self.OnADSRSustain(event)
+        elif event_ctrl == self.adsr_release_ctrl:
+            self.OnADSRRelease(event)
 
     def OnClose(self, event):
         if self.closed:
