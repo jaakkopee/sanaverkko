@@ -17,7 +17,9 @@ You can add words, import a text database, mutate words by gematria relations, a
 - Dynamic word-neuron network (connections weighted by gematria distance)
 - Adjustable model parameters from UI
 - Optional POS-aware word matching (toggle in UI)
+- Fluid POS toggle (seed-locked vs mutable POS matching)
 - Optional long-term memory (LTM) guidance with external `.svltm` model
+- Fluid gematria toggle (strict gematria-only vs broader reduction/root matching)
 - Add words directly from UI
 - Import text files as reference database (append/replace mode)
 - JSON preset system (save/load from native file picker)
@@ -78,6 +80,7 @@ Python dependencies used by this repo:
 - `wxPython`
 - `sounddevice`
 - `nltk`
+- `torch`
 
 Install dependencies:
 
@@ -130,8 +133,10 @@ The control window is adaptive and scrollable.
 - Jump probability (0-1)
 - Jump radius (gematria)
 - Use POS matching (checkbox)
+- Fluid POS (checkbox)
 - Use long term memory (checkbox)
 - Fluid root (checkbox)
+- Fluid gematria (checkbox)
 
 ### Word/database controls
 - **Add word(s)**: add one or many words (space-separated)
@@ -149,7 +154,7 @@ The control window is adaptive and scrollable.
 ### LTM controls
 - **Use long term memory**: enables LTM-assisted candidate ranking
 - **Load long term memory**: loads an external `.svltm` model file
-- LTM status line shows disabled/enabled/model-loaded state
+- LTM status line shows disabled/enabled/model-loaded state and active backend (`cpu`, `mps`, `cuda`)
 
 ### Audio controls
 - **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
@@ -170,16 +175,16 @@ The control window is adaptive and scrollable.
 Presets serialize parameter values from the control window to JSON. Loading a preset updates the UI controls and applies the values immediately.
 
 Bundled presets in `presets/`:
-- `01_very_ordered.json` – highly stable, low exploration, no jumps
-- `02_ordered_balanced.json` – mostly ordered with light variation
-- `03_balanced_dynamic.json` – balanced default-style exploratory behavior
-- `04_exploratory.json` – wider search and faster mutation
-- `05_chaotic.json` – aggressive exploration/jumps and highly dynamic behavior
-- `06_crystal_ordered_polyphony.json` – ordered behavior with richer polyphony
-- `07_tight_balanced_triad.json` – balanced triad-like voice behavior
-- `08_dynamic_glide_quartet.json` – dynamic four-voice exploratory profile
-- `09_noisy_fractal_swarm.json` – high-motion, noisy exploratory profile
-- `10_resonant_pulse_duo.json` – two-voice resonant pulse profile
+- `01_monastic_order.json` – strict, highly stable, minimal mutation
+- `02_ordered_lattice.json` – ordered with small controlled variation
+- `03_balanced_motion.json` – balanced core profile with moderate exploration
+- `04_curious_explorer.json` – exploratory profile with fluid POS/root/gematria
+- `05_controlled_chaos.json` – faster mutation and wider candidate search
+- `06_harmonic_weave.json` – LTM-enabled multi-voice balanced exploration
+- `07_resonant_drift.json` – high-motion profile with stronger LTM guidance
+- `08_mutation_storm.json` – aggressive exploratory profile with dense mutation
+- `09_fractal_rupture.json` – near-chaotic search and rapid transitions
+- `10_abyssal_glitch.json` – maximum-chaos profile
 
 Preset scale is intended to move from conservative/consistent behavior to highly exploratory/chaotic behavior.
 
@@ -197,6 +202,8 @@ When sentence changes, app writes:
   - numerological reduction,
   - digital root,
   - and optionally POS tag.
+- With **Fluid gematria off**, matching is strict at word level (exact gematria only).
+- With **Fluid gematria on**, reduction/root candidates are also included.
 - Candidate selection is hybrid:
   - deterministic best match by default,
   - with configurable exploration over top-ranked candidates.
@@ -222,6 +229,7 @@ This prevents getting stuck in one fixed sentence while keeping transformations 
 
 - LTM is optional and loaded as an external model file (`.svltm`).
 - The included implementation uses a Char-CNN + MLP with word-softmax next-word prediction.
+- Training/inference supports optional PyTorch acceleration (`mps`/`cuda`) with CPU fallback.
 - Core app integration:
   - load model from control window,
   - toggle LTM on/off,
