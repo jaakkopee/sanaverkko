@@ -1,0 +1,225 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\geometry{margin=2.5cm}
+
+\title{SanaVerkko: Codebase and Algorithms\\\large with Historical Background on Gematria, Numerology, POS, and Neural Language Models}
+\author{Project Documentation}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+SanaVerkko is an experimental system that combines symbolic text transformation, numerological feature engineering, part-of-speech (POS) constraints, and real-time audio synthesis. The project couples a simulation/control loop with a reference database of words and a ranking model that can optionally be guided by a learned long-term memory (LTM) language model.
+
+At a high level, each word in an active sentence is represented as a node with an activation value. When activation crosses configurable thresholds, the word may be replaced by another reference word according to gematria-based matching, optional POS constraints, optional exploratory jump logic, and optional LTM-based re-ranking.
+
+\chapter{Codebase Architecture and Main Components}
+\section{Primary modules}
+The codebase is centered around three primary modules:
+\begin{itemize}
+  \item \textbf{sanaVerkkoCore.py}: main controller, UI logic (wxPython), simulation loop, replacement logic, indexing, and integration with LTM.
+  \item \textbf{sanasyna.py}: audio engine and waveform rendering; melody generation, ADSR shaping, and multi-voice counterpoint mixing.
+  \item \textbf{sv\_ltm.py}: trainable next-word model (Char-CNN + MLP + softmax), serialization to \texttt{.svltm}, and inference API used by the core app.
+\end{itemize}
+
+\section{Execution model}
+The runtime model is event-driven:
+\begin{enumerate}
+  \item UI parameters are set in wxPython controls.
+  \item A timer calls \texttt{simulationStep()} periodically.
+  \item Word activations update and trigger replacement checks.
+  \item Updated sentence state is rendered and written to output.
+  \item Audio state is regenerated when sentence/activation signature changes.
+\end{enumerate}
+
+\chapter{Core Algorithms in SanaVerkko}
+\section{Gematria and numerological features}
+For a word $w = c_1 c_2 \dots c_n$, gematria is computed as
+\[
+G(w)=\sum_{i=1}^{n} v(c_i),
+\]
+where $v(c_i)$ is the configured numeric value of character $c_i$.
+
+Two derived features are used:
+\begin{itemize}
+  \item \textbf{Reduction}: one-pass digit sum (e.g., $137 \rightarrow 11$).
+  \item \textbf{Digital root}: repeated reduction to one digit (e.g., $137 \rightarrow 11 \rightarrow 2$).
+\end{itemize}
+
+\section{Indexed candidate retrieval}
+To avoid linear scans over large databases, the reference set is indexed by:
+\begin{itemize}
+  \item gematria,
+  \item reduction,
+  \item digital root,
+  \item and POS-crossed versions of those indices when POS matching is enabled.
+\end{itemize}
+
+\section{Strict vs fluid gematria behavior}
+The current logic supports two modes:
+\begin{itemize}
+  \item \textbf{Fluid gematria OFF}: strict word-level gematria is enforced; candidates are filtered to exact gematria matches only.
+  \item \textbf{Fluid gematria ON}: reduction/root expansions are allowed, and jump exploration may broaden the search radius.
+\end{itemize}
+
+\section{POS matching and fluid POS}
+When POS matching is enabled, retrieval is POS-conditioned.
+\begin{itemize}
+  \item \textbf{Fluid POS OFF}: seed POS tags are frozen from the original sentence word slots.
+  \item \textbf{Fluid POS ON}: POS is recomputed dynamically from current word forms.
+\end{itemize}
+
+To avoid stagnation in narrow POS buckets, logic includes fallback broadening if no non-self alternatives exist.
+
+\section{Candidate scoring and selection}
+For a source word $s$ and candidate $c$, the base structural score is composed from gematria and numerological distances:
+\[
+\Delta_G = \frac{|G(c)-G(s)|}{1000},\quad
+\Delta_R = \frac{|R(c)-R(s)|}{9},\quad
+\Delta_D = \frac{|D(c)-D(s)|}{9},
+\]
+\[
+\text{base}(s,c)=\Delta_G+0.35\Delta_R+0.35\Delta_D.
+\]
+
+If LTM probabilities are available, a blended score is used:
+\[
+\text{blend}(s,c)=(1-\lambda)\,\text{base}(s,c)+\lambda\,(1-p_{\text{ltm}}(c|\text{context})),
+\]
+where $\lambda \in [0,1]$ is \texttt{ltm\_weight} and $p_{\text{ltm}}$ can be reduced by a common-word penalty.
+
+Selection combines ranked deterministic choice with controlled stochasticity (top-$k$ exploration and optional jump mode).
+
+\section{Sentence iteration and convergence guard}
+During each logic phase, words with activation magnitude above threshold are eligible for replacement. Iteration is bounded by:
+\begin{itemize}
+  \item maximum iteration count,
+  \item and cycle detection via previously seen sentence states.
+\end{itemize}
+This prevents infinite loops and gives practical convergence behavior.
+
+\section{Audio synthesis algorithm}
+The sentence is converted to note sequences and rendered as looped audio:
+\begin{itemize}
+  \item waveform choice (sine, triangle, square, sawtooth, noise-driven modes),
+  \item frequency mapping mode (original, Pythagorean, equal-tempered modal variants),
+  \item polyphonic voice count/spread,
+  \item ADSR envelope,
+  \item minimum note duration and duration scaling.
+\end{itemize}
+
+\chapter{Gematria and Numerology in Historical Perspective}
+\section{From ancient number-symbolism to formal systems}
+Number symbolism appears across many ancient cultures, including Egypt and Mesopotamia, and later in Greek philosophical traditions where number harmony was treated as a structural principle of cosmos and proportion. In late antiquity and medieval religious-intellectual contexts, alphabetic-number correspondences became increasingly formalized in scriptural interpretation traditions.
+
+\section{Hebrew Kabbalah and numerological interpretation}
+In Hebrew kabbalistic practice, letter-number correspondences support interpretive techniques such as gematria, where numerical values of words are compared to identify conceptual parallels. Within this worldview, language is not only semantic but also structural-symbolic.
+
+\section{Hermetic Qabalah (based on \texttt{chicken\_qabalah.txt})}
+The source text \texttt{chicken\_qabalah.txt} frames ``Chicken Qabalah'' as a practical adaptation of Hebrew Qabalah for Western Hermetic practitioners. Several themes are emphasized:
+\begin{itemize}
+  \item The distinction \textit{Kabbalah/Cabala/Qabalah} is presented as partly traditional/orthodox vs practical/esoteric usage.
+  \item The intended audience includes Western Hermetic domains (Tarot, ceremonial magick, Rosicrucianism, alchemy, esoteric Freemasonry, etc.).
+  \item Practice is centered on letter meanings and numbers, the Tree of Life, and related meditative/symbolic exercises.
+  \item The \textit{Sepher Yetzirah} is highlighted as foundational, particularly for the concepts of the ten \textit{Sephiroth} and the symbolic role of alphabetic creation.
+\end{itemize}
+
+This Hermetic framing is directly relevant to SanaVerkko because the software operationalizes a pragmatic, transformation-oriented form of gematria rather than a historical-philological reconstruction.
+
+\chapter{Part-of-Speech (POS) Tagging}
+\section{POS in NLP}
+POS tagging assigns grammatical categories (noun, verb, adjective, adverb, etc.) to word tokens. In modern NLP, POS can be estimated by rule-based systems, statistical sequence models, or neural contextual models. POS constraints are useful when one wants substitutions that preserve grammatical role.
+
+\section{POS implementation in SanaVerkko}
+SanaVerkko uses a hybrid strategy:
+\begin{itemize}
+  \item If NLTK tagger resources are available, it uses NLTK POS tagging.
+  \item Otherwise, it falls back to a suffix-based heuristic:
+  \begin{itemize}
+    \item \texttt{-ly} $\rightarrow$ adverb,
+    \item \texttt{-ing}/\texttt{-ed} $\rightarrow$ verb,
+    \item adjective-like suffixes (\texttt{-ous}, \texttt{-ful}, \texttt{-ive}, \dots),
+    \item noun-like suffixes (\texttt{-ness}, \texttt{-tion}, \texttt{-ment}, \dots),
+    \item default noun.
+  \end{itemize}
+\end{itemize}
+
+The system caches POS tags and supports both frozen-seed POS and fluid POS mutation modes.
+
+\chapter{Neural Language Models: General and SanaVerkko-Specific}
+\section{General overview}
+A neural language model estimates token probabilities conditioned on context:
+\[
+P(w_t\mid w_{t-k},\dots,w_{t-1}).
+\]
+Classic families include feed-forward $n$-gram-style MLPs, RNN/LSTM models, and Transformer-based architectures. Key training objective is usually cross-entropy minimization over next-token prediction.
+
+\section{SanaVerkko LTM model architecture}
+The model in \texttt{sv\_ltm.py} is a compact next-word predictor:
+\begin{enumerate}
+  \item Character-level encoder (Char-CNN) builds a fixed feature vector for each word.
+  \item Context window (default size 3) concatenates recent word feature vectors.
+  \item MLP head with two hidden layers projects to vocabulary logits.
+  \item Softmax yields next-word probabilities.
+\end{enumerate}
+
+\section{Training objective}
+The training objective is cross-entropy with L2 regularization:
+\[
+\mathcal{L} = -\frac{1}{B}\sum_{i=1}^{B}\log p(y_i\mid x_i)
++ \frac{\lambda}{2}\left(\|W_1\|_2^2 + \|W_2\|_2^2 + \|W_3\|_2^2\right).
+\]
+
+\section{Inference-time integration in SanaVerkko}
+The core app queries LTM probabilities for candidate words and blends them into ranking with a tunable weight. This means LTM does not replace gematria logic; it re-weights candidate preference.
+
+\section{GPU acceleration path}
+Phase-1 acceleration is implemented with optional PyTorch backend:
+\begin{itemize}
+  \item \texttt{device=auto|cpu|mps|cuda} for training,
+  \item Metal (MPS) support on Apple Silicon when available,
+  \item CPU fallback when PyTorch or requested backend is unavailable.
+\end{itemize}
+At runtime, backend status can be displayed in the app LTM status label.
+
+\chapter{Discussion and Future Directions}
+\section{Strengths}
+\begin{itemize}
+  \item Clear symbolic core (gematria + numerological transforms).
+  \item Practical controllability via strict/fluid toggles and exploration parameters.
+  \item Efficient indexed retrieval for large reference databases.
+  \item Optional neural prior (LTM) without losing interpretable symbolic behavior.
+\end{itemize}
+
+\section{Limitations}
+\begin{itemize}
+  \item Linguistic quality depends on reference corpus and POS coverage.
+  \item Heuristic POS fallback is intentionally simple.
+  \item LTM is a compact model and not as expressive as large transformer LMs.
+  \item Numerological mappings are symbolic/interpretive, not scientific semantics.
+\end{itemize}
+
+\section{Potential extensions}
+\begin{itemize}
+  \item Richer POS/morphology constraints.
+  \item Subword or transformer-based optional LTM.
+  \item Better observability dashboards for candidate pools and fallback reasons.
+  \item Preset metadata and experiment reproducibility tooling.
+\end{itemize}
+
+\chapter*{Source Notes}
+\addcontentsline{toc}{chapter}{Source Notes}
+\begin{itemize}
+  \item Implementation basis: \texttt{sanaVerkkoCore.py}, \texttt{sv\_ltm.py}, \texttt{sanasyna.py} in this repository.
+  \item Hermetic Qabalah framing basis: \texttt{chicken\_qabalah.txt} sections discussing practical Western Hermetic usage, Tree of Life focus, and \textit{Sepher Yetzirah} context.
+\end{itemize}
+
+\end{document}
