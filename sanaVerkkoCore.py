@@ -135,6 +135,9 @@ class SanaVerkkoKontrolleri:
         self.params["selection_top_k"] = 4
         self.params["jump_probability"] = 0.08
         self.params["jump_radius"] = 120
+        self.params["use_phoneme_rhyme"] = True
+        self.params["rhyme_weight"] = 0.28
+        self.params["rhyme_min_similarity"] = 0.34
         self.params["fluid_root"] = False
         self.params["fluid_gematria"] = False
         self.params["import_mode"] = "append"
@@ -184,6 +187,7 @@ class SanaVerkkoKontrolleri:
         self.reference_index_dirty = True
         self.reference_index_has_pos = False
         self.reference_index = {}
+        self.phoneme_cache = {}
         self._last_param_event = {}
         self._suppress_param_events = False
         self._in_param_commit = False
@@ -284,6 +288,18 @@ class SanaVerkkoKontrolleri:
         self.jump_radius_label = wx.StaticText(panel, -1, "Jump radius (gematria)")
         self.jump_radius_ctrl = wx.TextCtrl(panel, -1, str(self.params["jump_radius"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.jump_radius_ctrl, self.OnJumpRadius)
+
+        self.use_phoneme_rhyme_checkbox = wx.CheckBox(panel, -1, "Use phoneme rhyme")
+        self.use_phoneme_rhyme_checkbox.SetValue(self.params["use_phoneme_rhyme"])
+        self.use_phoneme_rhyme_checkbox.Bind(wx.EVT_CHECKBOX, self.OnUsePhonemeRhyme)
+
+        self.rhyme_weight_label = wx.StaticText(panel, -1, "Rhyme weight (0-1)")
+        self.rhyme_weight_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhyme_weight"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhyme_weight_ctrl, self.OnRhymeWeight)
+
+        self.rhyme_min_similarity_label = wx.StaticText(panel, -1, "Rhyme min similarity (0-1)")
+        self.rhyme_min_similarity_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhyme_min_similarity"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhyme_min_similarity_ctrl, self.OnRhymeMinSimilarity)
 
         self.audio_wave_mode_label = wx.StaticText(panel, -1, "Audio waveform mode")
         self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=["Dynamic", "Pure sine", "Noise-heavy", "Classic analog"])
@@ -401,6 +417,12 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.jump_radius_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.jump_radius_ctrl, 0, wx.ALL, 5)
+
+        self.sizer.Add(self.use_phoneme_rhyme_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhyme_weight_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhyme_weight_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhyme_min_similarity_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhyme_min_similarity_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -924,6 +946,17 @@ class SanaVerkkoKontrolleri:
 
     def OnJumpRadius(self, event):
         self._commit_int_param(self.jump_radius_ctrl, "jump_radius", minimum=0)
+
+    def OnUsePhonemeRhyme(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["use_phoneme_rhyme"] = bool(self.use_phoneme_rhyme_checkbox.GetValue())
+
+    def OnRhymeWeight(self, event):
+        self._commit_float_param(self.rhyme_weight_ctrl, "rhyme_weight", minimum=0.0, maximum=1.0)
+
+    def OnRhymeMinSimilarity(self, event):
+        self._commit_float_param(self.rhyme_min_similarity_ctrl, "rhyme_min_similarity", minimum=0.0, maximum=1.0)
 
     def OnImportMode(self, event):
         if self._suppress_param_events:
@@ -1606,6 +1639,98 @@ class SanaVerkkoKontrolleri:
         }
         return 0.35 if word_text.lower() in common_words else 1.0
 
+    def graphemeToPhonemes(self, word_text):
+        if not isinstance(word_text, str):
+            return ()
+
+        lowered_word = word_text.lower().strip()
+        if lowered_word == "":
+            return ()
+
+        cached = self.phoneme_cache.get(lowered_word)
+        if cached is not None:
+            return cached
+
+        normalized = "".join(char for char in lowered_word if char in gematria_table)
+        if normalized == "":
+            self.phoneme_cache[lowered_word] = ()
+            return ()
+
+        phonemes = []
+        index = 0
+
+        while index < len(normalized):
+            pair = normalized[index:index + 2]
+            if pair == "ng":
+                phonemes.append("ng")
+                index += 2
+                continue
+            if pair == "nk":
+                phonemes.extend(["ng", "k"])
+                index += 2
+                continue
+
+            char = normalized[index]
+            if char == "c":
+                phonemes.append("k")
+            elif char == "q":
+                phonemes.append("k")
+            elif char == "w":
+                phonemes.append("v")
+            elif char == "x":
+                phonemes.extend(["k", "s"])
+            elif char == "å":
+                phonemes.append("o")
+            elif char == "ä":
+                phonemes.append("ae")
+            elif char == "ö":
+                phonemes.append("oe")
+            else:
+                phonemes.append(char)
+            index += 1
+
+        phonemes_tuple = tuple(phonemes)
+        self.phoneme_cache[lowered_word] = phonemes_tuple
+        return phonemes_tuple
+
+    def _phoneme_rhyme_tail(self, phonemes):
+        if not phonemes:
+            return ()
+
+        vowel_phones = {"a", "e", "i", "o", "u", "y", "ae", "oe"}
+        for index in range(len(phonemes) - 1, -1, -1):
+            if phonemes[index] in vowel_phones:
+                return phonemes[index:]
+
+        return phonemes
+
+    def phonemeRhymeSimilarity(self, source_word_text, candidate_word_text):
+        source_phonemes = self.graphemeToPhonemes(source_word_text)
+        candidate_phonemes = self.graphemeToPhonemes(candidate_word_text)
+        if not source_phonemes or not candidate_phonemes:
+            return 0.0
+
+        source_tail = self._phoneme_rhyme_tail(source_phonemes)
+        candidate_tail = self._phoneme_rhyme_tail(candidate_phonemes)
+        if not source_tail or not candidate_tail:
+            return 0.0
+
+        overlap = min(len(source_tail), len(candidate_tail))
+        matching_suffix = 0
+        for offset in range(1, overlap + 1):
+            if source_tail[-offset] == candidate_tail[-offset]:
+                matching_suffix += 1
+            else:
+                break
+
+        if matching_suffix == 0:
+            return 0.0
+
+        similarity = matching_suffix / float(max(len(source_tail), len(candidate_tail)))
+        if source_tail == candidate_tail:
+            similarity = min(1.0, similarity + 0.15)
+        return similarity
+
     def _reference_blended_score(self, source_word, candidate, ltm_probabilities):
         source_gematria = source_word.gematria
         source_reduction = numerological_reduction(source_gematria)
@@ -1625,7 +1750,18 @@ class SanaVerkkoKontrolleri:
             ltm_term = 0.0
             ltm_weight = 0.0
 
-        blended_score = (1.0 - ltm_weight) * base_score + ltm_weight * ltm_term
+        rhyme_bonus = 0.0
+        if bool(self.params.get("use_phoneme_rhyme", True)) and candidate.word != source_word.word:
+            rhyme_similarity = self.phonemeRhymeSimilarity(source_word.word, candidate.word)
+            min_similarity = min(1.0, max(0.0, float(self.params.get("rhyme_min_similarity", 0.34))))
+            if rhyme_similarity >= min_similarity:
+                rhyme_bonus = rhyme_similarity
+
+        rhyme_weight = min(1.0, max(0.0, float(self.params.get("rhyme_weight", 0.28))))
+
+        blended_score = (1.0 - ltm_weight) * base_score + ltm_weight * ltm_term - rhyme_weight * rhyme_bonus
+        if blended_score < 0.0:
+            blended_score = 0.0
         return blended_score, base_score
 
     def _selectBestReference(self, source_word, candidates, force_jump=False):
@@ -1725,7 +1861,10 @@ class SanaVerkkoKontrolleri:
         self.params["common_word_penalty"] = bool(self.params.get("common_word_penalty", True))
         self.params["fluid_root"] = bool(self.params.get("fluid_root", False))
         self.params["fluid_gematria"] = bool(self.params.get("fluid_gematria", False))
+        self.params["use_phoneme_rhyme"] = bool(self.params.get("use_phoneme_rhyme", True))
         self.params["ltm_weight"] = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
+        self.params["rhyme_weight"] = min(1.0, max(0.0, float(self.params.get("rhyme_weight", 0.28))))
+        self.params["rhyme_min_similarity"] = min(1.0, max(0.0, float(self.params.get("rhyme_min_similarity", 0.34))))
 
         self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
         self.params["error"] = float(self.params.get("error", 0))
@@ -1778,9 +1917,12 @@ class SanaVerkkoKontrolleri:
             self.common_word_penalty_checkbox.SetValue(self.params["common_word_penalty"])
             self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
             self.fluid_gematria_checkbox.SetValue(self.params["fluid_gematria"])
+            self.use_phoneme_rhyme_checkbox.SetValue(self.params["use_phoneme_rhyme"])
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
+            self._setCtrlValueSilently(self.rhyme_weight_ctrl, self.params["rhyme_weight"])
+            self._setCtrlValueSilently(self.rhyme_min_similarity_ctrl, self.params["rhyme_min_similarity"])
 
             self._setCtrlValueSilently(self.learning_rate_ctrl, self.params["learning_rate"])
             self._setCtrlValueSilently(self.error_ctrl, self.params["error"])
