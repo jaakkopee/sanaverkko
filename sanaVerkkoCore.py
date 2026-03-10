@@ -483,7 +483,7 @@ class SanaVerkkoKontrolleri:
         target_height = min(max(900, best_height + 20), max(500, display_height - 80))
 
         self.frame.SetSize(target_width, target_height)
-        self.frame.SetMinSize((min(target_width, 760), min(target_height, 700)))
+        self.frame.SetMinSize((420, 360))
         self.frame.Layout()
         self.app.SetTopWindow(self.frame)
         self.frame.Show()
