@@ -1656,10 +1656,53 @@ class SanaVerkkoKontrolleri:
             self.phoneme_cache[lowered_word] = ()
             return ()
 
+        whole_word_overrides = {
+            "you": ("u",),
+            "your": ("y", "or"),
+            "yours": ("y", "or", "z"),
+            "one": ("w", "ah", "n"),
+            "once": ("w", "ah", "n", "s"),
+        }
+        override = whole_word_overrides.get(normalized)
+        if override is not None:
+            self.phoneme_cache[lowered_word] = override
+            return override
+
         phonemes = []
         index = 0
 
+        def _is_vowel(char_value):
+            return char_value in {"a", "e", "i", "o", "u", "y", "å", "ä", "ö"}
+
         while index < len(normalized):
+            remaining = normalized[index:]
+
+            if remaining.startswith("tion"):
+                phonemes.extend(["sh", "un"])
+                index += 4
+                continue
+            if remaining.startswith("sion"):
+                phonemes.extend(["zh", "un"])
+                index += 4
+                continue
+            if remaining.startswith("ture"):
+                phonemes.extend(["ch", "er"])
+                index += 4
+                continue
+
+            if remaining.startswith("dge"):
+                phonemes.append("j")
+                index += 3
+                continue
+            if remaining.startswith("tch"):
+                phonemes.append("ch")
+                index += 3
+                continue
+            if remaining.startswith("igh"):
+                phonemes.append("ai")
+                index += 3
+                continue
+
             pair = normalized[index:index + 2]
             if pair == "ng":
                 phonemes.append("ng")
@@ -1669,16 +1712,135 @@ class SanaVerkkoKontrolleri:
                 phonemes.extend(["ng", "k"])
                 index += 2
                 continue
+            if pair == "ph":
+                phonemes.append("f")
+                index += 2
+                continue
+            if pair == "sh":
+                phonemes.append("sh")
+                index += 2
+                continue
+            if pair == "ch":
+                phonemes.append("ch")
+                index += 2
+                continue
+            if pair == "th":
+                phonemes.append("th")
+                index += 2
+                continue
+            if pair == "wh":
+                phonemes.append("w")
+                index += 2
+                continue
+            if pair == "qu":
+                phonemes.extend(["k", "w"])
+                index += 2
+                continue
+            if pair == "ck":
+                phonemes.append("k")
+                index += 2
+                continue
+            if pair == "ee":
+                phonemes.append("i")
+                index += 2
+                continue
+            if pair == "ea":
+                phonemes.append("i")
+                index += 2
+                continue
+            if pair == "oo":
+                phonemes.append("u")
+                index += 2
+                continue
+            if pair == "oa":
+                phonemes.append("ou")
+                index += 2
+                continue
+            if pair == "ai":
+                phonemes.append("ei")
+                index += 2
+                continue
+            if pair == "ay":
+                phonemes.append("ei")
+                index += 2
+                continue
+            if pair == "oy":
+                phonemes.append("oi")
+                index += 2
+                continue
+            if pair == "oi":
+                phonemes.append("oi")
+                index += 2
+                continue
+            if pair == "ou":
+                phonemes.append("au")
+                index += 2
+                continue
+            if pair == "ow":
+                if index + 2 == len(normalized):
+                    phonemes.append("au")
+                else:
+                    phonemes.append("ou")
+                index += 2
+                continue
+            if pair == "au":
+                phonemes.append("o")
+                index += 2
+                continue
+            if pair == "er":
+                phonemes.append("er")
+                index += 2
+                continue
+            if pair == "ar":
+                phonemes.append("ar")
+                index += 2
+                continue
+            if pair == "or":
+                phonemes.append("or")
+                index += 2
+                continue
 
             char = normalized[index]
+            next_char = normalized[index + 1] if index + 1 < len(normalized) else ""
+            prev_char = normalized[index - 1] if index > 0 else ""
+
             if char == "c":
-                phonemes.append("k")
+                if next_char in {"e", "i", "y"}:
+                    phonemes.append("s")
+                else:
+                    phonemes.append("k")
+            elif char == "g":
+                if next_char in {"e", "i", "y"}:
+                    phonemes.append("j")
+                else:
+                    phonemes.append("g")
             elif char == "q":
                 phonemes.append("k")
             elif char == "w":
-                phonemes.append("v")
+                phonemes.append("w")
             elif char == "x":
                 phonemes.extend(["k", "s"])
+            elif char == "a":
+                phonemes.append("ae")
+            elif char == "e":
+                is_final_silent_e = (
+                    index == len(normalized) - 1
+                    and len(normalized) > 2
+                    and not _is_vowel(prev_char)
+                )
+                if not is_final_silent_e:
+                    phonemes.append("e")
+            elif char == "i":
+                phonemes.append("i")
+            elif char == "o":
+                phonemes.append("o")
+            elif char == "u":
+                phonemes.append("u")
+            elif char == "y":
+                is_vowel_like = index == len(normalized) - 1 or (
+                    not _is_vowel(prev_char) and (next_char == "" or not _is_vowel(next_char))
+                )
+                phonemes.append("i" if is_vowel_like else "y")
             elif char == "å":
                 phonemes.append("o")
             elif char == "ä":
@@ -1697,7 +1859,11 @@ class SanaVerkkoKontrolleri:
         if not phonemes:
             return ()
 
-        vowel_phones = {"a", "e", "i", "o", "u", "y", "ae", "oe"}
+        vowel_phones = {
+            "a", "e", "i", "o", "u", "y", "ae", "oe",
+            "ah", "aa", "ai", "ei", "oi", "au", "ou",
+            "er", "ar", "or", "ur", "ir", "un",
+        }
         for index in range(len(phonemes) - 1, -1, -1):
             if phonemes[index] in vowel_phones:
                 return phonemes[index:]
