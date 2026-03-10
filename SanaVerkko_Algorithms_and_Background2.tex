@@ -1,0 +1,349 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue}
+
+\lstdefinestyle{pseudocode}{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{green!40!black},
+}
+
+\title{Sanaverkko Algorithms and Background \\ \large Updated Feature Documentation}
+\author{Project Documentation}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{Overview}
+Sanaverkko is an experimental word-network system that combines:
+\begin{itemize}
+  \item gematria-driven symbolic transformations,
+  \item optional POS-aware linguistic constraints,
+  \item optional long-term memory (LTM) candidate re-ranking,
+  \item real-time neural-like activation dynamics,
+  \item and real-time audio synthesis from sentence state.
+\end{itemize}
+
+The application is centered in \texttt{sanaVerkkoCore.py} with audio in \texttt{sanasyna.py} and optional LTM training/inference support in \texttt{sv\_ltm.py}.
+
+\chapter{New Features and How to Use Them}
+This chapter lists the practical feature set currently present in the project and how to use each feature from the UI.
+
+\section{Feature summary}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.27\textwidth} >{\raggedright\arraybackslash}p{0.35\textwidth} >{\raggedright\arraybackslash}p{0.30\textwidth}}
+\toprule
+\textbf{Feature} & \textbf{What it does} & \textbf{How to use} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Feature} & \textbf{What it does} & \textbf{How to use} \\
+\midrule
+\endhead
+
+Fluid Gematria & Expands candidate search from strict exact gematria to reduction and digital-root buckets. & Enable \texttt{Fluid gematria} checkbox. Keep OFF for strict mode. \\
+
+Fluid Root (jump control) & Allows jump-search across different digital roots when jump mode is used. & Enable \texttt{Fluid root} for freer jumps; disable for root-preserving jumps. \\
+
+Jump Probability + Radius & Escapes local minima by sampling near gematria buckets around source value. & Increase \texttt{Jump probability} and \texttt{Jump radius (gematria)} gradually. \\
+
+Selection Exploration + Top-k & Mixes deterministic best-candidate choice with weighted stochastic exploration. & Tune \texttt{Selection exploration (0--1)} and \texttt{Selection top-k}. \\
+
+LTM Candidate Re-ranking & Uses \texttt{.svltm} next-word probabilities to bias candidate ranking. & Load model with \texttt{Load long term memory}; enable \texttt{Use long term memory}; tune \texttt{LTM weight}. \\
+
+Common Word Penalty & Penalizes high-frequency filler words in LTM scoring. & Toggle \texttt{Common word penalty}. Keep ON for more varied lexical output. \\
+
+Phoneme Rhyme Scoring & Adds rhyme bonus when source and candidate rhyme tails are similar. & Keep \texttt{Use phoneme rhyme} ON; tune \texttt{Rhyme weight} and \texttt{Rhyme min similarity}. \\
+
+POS Matching + Fluid POS & Constrains substitutions by part-of-speech, optionally fixed to seed POS or dynamic POS. & Enable \texttt{Use POS matching}; enable \texttt{Fluid POS} for adaptive POS. \\
+
+Indexed Candidate Retrieval & Fast lookups by gematria/reduction/root and optional POS-crossed indexes. & Automatic after importing/adding words; no manual action required. \\
+
+Preset Save/Load JSON & Stores and restores nearly all simulation/audio/selection parameters. & Use \texttt{Save preset} and \texttt{Load preset}. \\
+
+Import Mode Append/Replace & Controls whether imported text extends or replaces reference DB. & Select mode from \texttt{Import mode} before \texttt{Import .txt}. \\
+
+Polyphony + Voice Spread & Multi-voice melody rendering with detuned spread for richer sound. & Set \texttt{Polyphony voices (1--4)} and \texttt{Voice spread}. \\
+
+Frequency Mapping Modes & Maps generated frequencies to original, Pythagorean, or equal-tempered modal families. & Select \texttt{Frequency mapping}. \\
+
+Waveform Modes & Switches synthesis character among dynamic, pure sine, noise-heavy, classic analog. & Select \texttt{Audio waveform mode}. \\
+
+ADSR + Envelope Display & Controls attack/decay/sustain/release and visualizes envelope shape in control panel. & Edit ADSR fields and observe envelope panel. \\
+
+Minimum Note Duration + Melody Speed & Prevents too-short notes and globally scales temporal pacing. & Tune \texttt{Minimum note duration (s)} and \texttt{Melody speed coeff}. \\
+
+Live Output Window & Shows ongoing \texttt{output.txt} updates in separate window. & Opens automatically with app; monitor generated sentence traces. \\
+
+Explicit Numeric Commit & Numeric text fields apply values on Enter and revert invalid input. & Type value and press Enter in each field. \\
+
+\bottomrule
+\end{longtable}
+
+\section{Quick usage workflow}
+\begin{enumerate}
+  \item Start app: \texttt{python sanaVerkkoCore.py}
+  \item Add words or import database text.
+  \item Choose strict mode first (Fluid Gematria OFF), then widen exploration gradually.
+  \item Optionally load LTM and enable it.
+  \item Tune exploration/jump/rhyme/POS parameters for desired sentence motion.
+  \item Tune audio mapping/waveform/polyphony/ADSR.
+  \item Save a preset once behavior is stable.
+\end{enumerate}
+
+\chapter{Mathematical Formulation}
+\section{Gematria and number features}
+For a word $w = c_1c_2\dots c_n$ and character-value map $v(\cdot)$:
+\begin{equation}
+G(w) = \sum_{i=1}^{n} v(c_i).
+\end{equation}
+
+One-pass numerological reduction:
+\begin{equation}
+R(x) = \sum_{d \in \text{digits}(x)} d.
+\end{equation}
+
+Digital root:
+\begin{equation}
+D(x) = \underbrace{R(R(\dots R(x) \dots))}_{\text{until } x < 10}.
+\end{equation}
+
+\section{Reference-candidate base distance}
+Given source word $s$ and candidate $c$:
+\begin{align}
+\Delta_G &= \frac{|G(c)-G(s)|}{1000}, \\
+\Delta_R &= \frac{|R(G(c))-R(G(s))|}{9}, \\
+\Delta_D &= \frac{|D(G(c))-D(G(s))|}{9}.
+\end{align}
+
+Base score (smaller is better):
+\begin{equation}
+\text{base}(s,c) = \Delta_G + 0.35\Delta_R + 0.35\Delta_D.
+\end{equation}
+
+\section{LTM blending and common-word penalty}
+Let raw model probability be $p_{\text{raw}}(c\mid\text{context})$, and penalty factor $\pi(c)$:
+\begin{equation}
+\pi(c) =
+\begin{cases}
+0.35, & c \text{ in common-word list and penalty enabled},\\
+1.0, & \text{otherwise}.
+\end{cases}
+\end{equation}
+
+Adjusted probability and LTM term:
+\begin{align}
+p_{\text{adj}} &= p_{\text{raw}}\cdot \pi(c), \\
+\text{ltmTerm} &= 1 - p_{\text{adj}}.
+\end{align}
+
+\section{Phoneme rhyme bonus}
+A grapheme-to-phoneme approximation computes phoneme tails from the last vowel onward. Let
+$\rho(s,c) \in [0,1]$ be suffix-tail similarity. If $\rho(s,c)$ exceeds threshold $\tau$, then
+\begin{equation}
+\text{rhymeBonus}(s,c) = \rho(s,c),
+\end{equation}
+else it is $0$.
+
+\section{Final blended ranking score}
+With LTM weight $\lambda \in [0,1]$ and rhyme weight $\omega \in [0,1]$:
+\begin{equation}
+\text{score}(s,c) = (1-\lambda)\,\text{base}(s,c) + \lambda\,\text{ltmTerm} - \omega\,\text{rhymeBonus}(s,c).
+\end{equation}
+
+Final score is clamped to nonnegative values:
+\begin{equation}
+\text{score}(s,c) \leftarrow \max(0,\text{score}(s,c)).
+\end{equation}
+
+\section{Activation and backprop style weight update}
+Neuron activation update (code-level form):
+\begin{equation}
+a_i \leftarrow a_i + \operatorname{sign}(a_i)\,\alpha + \sum_{j \in \mathcal{N}(i)} \sigma(a_j; s)\,w_{ij}\,u,
+\end{equation}
+where $\alpha$ is \texttt{activation\_increase}, $s$ is \texttt{sigmoid\_scale}, and $u$ is external step input.
+
+Connection weight learning:
+\begin{align}
+e_i &= (t-a_i)\,\gamma, \\
+\Delta w_{ij} &= \eta\,e_i\,\sigma(a_j; s), \\
+w_{ij} &\leftarrow \text{clip}(w_{ij} + \Delta w_{ij}, -W_{\max}, W_{\max}),
+\end{align}
+with $\eta=$ learning rate, $\gamma=$ error gain, and $W_{\max}=\max(0.1, 4\cdot\texttt{activation\_limit})$.
+
+\chapter{Pseudocode Examples}
+\section{Candidate retrieval + scoring + selection}
+\begin{lstlisting}[style=pseudocode]
+function FIND_BEST_REFERENCE(sourceWord):
+    usePOS <- is_pos_matching_enabled()
+    fluidGematria <- is_fluid_gematria_enabled()
+    fluidRoot <- is_fluid_root_enabled()
+
+    ensure_reference_index(includePOS = usePOS)
+    candidates <- {}
+
+    if usePOS:
+        sourcePOS <- (fluid POS ? current POS : seed POS)
+        add index.pos_gematria[(sourcePOS, G(sourceWord))]
+        if fluidGematria:
+            add index.pos_reduction[(sourcePOS, R(G(sourceWord)))]
+            add index.pos_root[(sourcePOS, D(G(sourceWord)))]
+
+    if candidates empty:
+        add index.gematria[G(sourceWord)]
+        if fluidGematria:
+            add index.reduction[R(G(sourceWord))]
+            add index.root[D(G(sourceWord))]
+
+    shouldJump <- random() < jump_probability
+    if shouldJump and fluidGematria:
+        keys <- nearby gematria buckets within jump_radius
+        if not fluidRoot: keep only keys with same digital root
+        add candidates from selected gematria buckets
+
+    if not fluidGematria:
+        shouldJump <- false
+        keep only exact gematria candidates
+
+    return SELECT_BEST(sourceWord, candidates, forceJump = shouldJump)
+
+function SELECT_BEST(sourceWord, candidates, forceJump):
+    ltmProbs <- LTM candidate probabilities (optional)
+    ranked <- sort candidates by tuple:
+              (blendedScore, baseScore, gematriaDelta,
+               reductionDelta, rootDelta, candidateWord)
+
+    if forceJump:
+        pick random from non-self candidates in widened ranked slice
+
+    if random() < selection_exploration:
+        pick weighted random from top-k (weight = 1/(rankIndex+1))
+
+    if best candidate is source itself and alternatives exist:
+        return first alternative
+    return best candidate
+\end{lstlisting}
+
+\section{Sentence logic iteration}
+\begin{lstlisting}[style=pseudocode]
+function ITERATE_SENTENCE_TO_LOGIC(maxIterations):
+    seenStates <- empty set
+    changedAny <- false
+
+    repeat up to maxIterations:
+        state <- tuple(current sentence words)
+        if state in seenStates: break
+        add state to seenStates
+
+        changedThisRound <- false
+        for each word in sentence:
+            if abs(word.activation) > word_change_threshold:
+                if changeWord(word):
+                    changedThisRound <- true
+
+        if not changedThisRound: break
+        changedAny <- true
+
+    return changedAny
+\end{lstlisting}
+
+\section{Main simulation step}
+\begin{lstlisting}[style=pseudocode]
+function SIMULATION_STEP():
+    if not enough time since last step: return
+
+    process UI/window events
+    logicTriggered <- false
+
+    for each word in network:
+        word.activate(sin(current_time))
+        word.neuron.backpropagate(target)
+
+        if abs(word.activation) > 2:
+            word.activation <- 1
+
+        if abs(word.activation) > word_change_threshold:
+            logicTriggered <- true
+
+    if logicTriggered:
+        sentenceChanged <- ITERATE_SENTENCE_TO_LOGIC(logic_iteration_limit)
+
+    update audio from current sentence/activations
+    draw network and labels
+
+    if sentenceChanged:
+        write sentence, gematria expression, and reduction chain to output.txt
+\end{lstlisting}
+
+\section{LTM training CLI example}
+\begin{lstlisting}[style=pseudocode]
+# Train .svltm model
+python sv_ltm.py --input kalevala.txt --output kalevala_balanced.svltm \
+  --epochs 20 --context 3 --hidden1 1024 --hidden2 512 --device auto
+
+# In app:
+# 1) Load long term memory -> choose .svltm
+# 2) Enable Use long term memory
+# 3) Tune LTM weight and Common word penalty
+\end{lstlisting}
+
+\chapter{Practical Configuration Recipes}
+\section{Stable symbolic mode}
+\begin{itemize}
+  \item Fluid Gematria OFF, Fluid Root OFF.
+  \item Low exploration ($\le 0.1$), low jump probability ($\le 0.05$).
+  \item POS matching ON, Fluid POS OFF.
+\end{itemize}
+
+\section{Balanced creative mode}
+\begin{itemize}
+  \item Fluid Gematria ON, Fluid Root OFF.
+  \item Exploration around $0.15$--$0.25$, top-k around $4$--$6$.
+  \item Moderate rhyme weight and LTM weight ($\approx 0.3$--$0.5$).
+\end{itemize}
+
+\section{Chaotic exploration mode}
+\begin{itemize}
+  \item Fluid Gematria ON, Fluid Root ON.
+  \item Jump probability $\ge 0.2$, larger jump radius.
+  \item Higher exploration and larger top-k.
+\end{itemize}
+
+\chapter{Notes and Limitations}
+\begin{itemize}
+  \item Gematria/numerology are used as symbolic transformation signals, not empirical linguistic truth metrics.
+  \item POS fallback heuristics are intentionally lightweight when NLTK resources are unavailable.
+  \item LTM guidance is optional and corpus-dependent.
+  \item Output quality strongly depends on reference database quality and parameter settings.
+\end{itemize}
+
+\chapter*{Source Basis}
+\addcontentsline{toc}{chapter}{Source Basis}
+This document is based on current repository implementation and docs, primarily:
+\begin{itemize}
+  \item \texttt{sanaVerkkoCore.py}
+  \item \texttt{sanasyna.py}
+  \item \texttt{sv\_ltm.py}
+  \item \texttt{README.md}
+  \item \texttt{LTM\_USAGE.md}
+\end{itemize}
+
+\end{document}
