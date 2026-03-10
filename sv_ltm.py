@@ -608,13 +608,86 @@ def train_from_text_file(
     return model
 
 
+def _normalize_input_files(input_text_files):
+    if isinstance(input_text_files, str):
+        raw_values = [input_text_files]
+    else:
+        raw_values = list(input_text_files or [])
+
+    normalized = []
+    for value in raw_values:
+        if not isinstance(value, str):
+            continue
+        parts = [item.strip() for item in value.split(",")]
+        for part in parts:
+            if part != "":
+                normalized.append(part)
+
+    return normalized
+
+
+def train_from_text_files(
+    input_text_files,
+    output_model_file,
+    context_size=3,
+    epochs=10,
+    learning_rate=0.02,
+    hidden1=1024,
+    hidden2=512,
+    min_word_count=1,
+    embedding_dim=32,
+    filters_per_width=64,
+    widths=(2, 3, 4, 5),
+    max_word_len=24,
+    seed=1234,
+    batch_size=64,
+    device="auto",
+):
+    input_files = _normalize_input_files(input_text_files)
+    if not input_files:
+        raise ValueError("At least one input text file is required")
+
+    missing_files = [path for path in input_files if not os.path.isfile(path)]
+    if missing_files:
+        raise FileNotFoundError(f"Input file(s) not found: {', '.join(missing_files)}")
+
+    words = []
+    for input_file_path in input_files:
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            text = input_file.read()
+        words.extend(_tokenize_text(text))
+
+    if len(words) <= int(context_size):
+        raise ValueError("Not enough words for requested context size")
+
+    model = SVLTMModel.train_from_words(
+        words=words,
+        context_size=context_size,
+        epochs=epochs,
+        learning_rate=learning_rate,
+        hidden1=hidden1,
+        hidden2=hidden2,
+        min_word_count=min_word_count,
+        embedding_dim=embedding_dim,
+        filters_per_width=filters_per_width,
+        widths=widths,
+        max_word_len=max_word_len,
+        seed=seed,
+        batch_size=batch_size,
+        device=device,
+        verbose=True,
+    )
+    model.save(output_model_file)
+    return model
+
+
 def load_model(model_file):
     return SVLTMModel.load(model_file)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
+    parser.add_argument("--input", required=True, action="append", help="Input text file(s). Repeat --input for multiple files or use comma-separated values.")
     parser.add_argument("--output", required=True)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--lr", type=float, default=0.02)
@@ -634,8 +707,8 @@ def main():
     if not output_file.lower().endswith(".svltm"):
         output_file = f"{output_file}.svltm"
 
-    train_from_text_file(
-        input_text_file=args.input,
+    train_from_text_files(
+        input_text_files=args.input,
         output_model_file=output_file,
         context_size=args.context,
         epochs=args.epochs,
