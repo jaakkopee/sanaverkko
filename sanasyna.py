@@ -298,6 +298,27 @@ def _semitone_distance(freq_a, freq_b):
     return int(round(12.0 * math.log2(float(freq_b) / float(freq_a))))
 
 
+def _voice_duration_profile(base_duration, voice_count, note_index, context_size, voice_distance):
+    base = max(0.01, float(base_duration))
+    count = max(1, int(voice_count))
+    context = max(1, int(context_size))
+    contour_depth = min(0.22, 0.06 + 0.015 * float(context))
+    stability_bias = 1.0 - 0.35 * max(0.0, min(1.0, float(voice_distance)))
+
+    durations = []
+    for voice_idx in range(count):
+        phase_seed = float(note_index + 1) * (0.72 + 0.09 * float(voice_idx + 1))
+        phase = math.sin(phase_seed) + 0.5 * math.sin(0.5 * phase_seed + float(context))
+        alternating = -1.0 if (note_index + voice_idx) % 2 == 0 else 1.0
+        shape = contour_depth * (0.55 * phase + 0.45 * alternating)
+        multiplier = max(0.62, min(1.58, 1.0 + shape * stability_bias))
+        durations.append(base * multiplier)
+
+    minimum = max(0.01, base * 0.55)
+    maximum = max(minimum + 0.01, base * 1.75)
+    return [max(minimum, min(maximum, value)) for value in durations]
+
+
 def _direction_profile(base_motion, voice_count):
     motion = 1 if base_motion > 0 else (-1 if base_motion < 0 else 0)
     if voice_count == 2:
@@ -327,6 +348,229 @@ def _freq_to_midi(freq):
 
 def _midi_to_freq(midi_value):
     return 440.0 * (2.0 ** ((float(midi_value) - 69.0) / 12.0))
+
+
+def _mode_scale_steps(mapping_mode):
+    mode = str(mapping_mode or "original_notes")
+    mode_steps = {
+        "original_notes": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
+        "pythagorean_pentatonic": [0.0, 2.0, 4.0, 7.0, 9.0],
+        "pythagorean_8_note": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
+        "equal_tempered_ionian": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
+        "equal_tempered_dorian": [0.0, 2.0, 3.0, 5.0, 7.0, 9.0, 10.0],
+        "equal_tempered_frygian": [0.0, 1.0, 3.0, 5.0, 7.0, 8.0, 10.0],
+        "equal_tempered_lydian": [0.0, 2.0, 4.0, 6.0, 7.0, 9.0, 11.0],
+        "equal_tempered_mixolydian": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 10.0],
+        "equal_tempered_aeolian": [0.0, 2.0, 3.0, 5.0, 7.0, 8.0, 10.0],
+        "equal_tempered_locrian": [0.0, 1.0, 3.0, 5.0, 6.0, 8.0, 10.0],
+    }
+
+    if mode in mode_steps:
+        return list(mode_steps[mode])
+
+    if mode.startswith("equal_tempered_") and mode.endswith("_note"):
+        parts = mode.split("_")
+        try:
+            divisions = max(2, int(parts[-2]))
+        except Exception:
+            divisions = 12
+        step_size = 12.0 / float(divisions)
+        return [float(index) * step_size for index in range(divisions)]
+
+    return [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0]
+
+
+def _nearest_scale_step(value, scale_steps):
+    if not scale_steps:
+        return 0.0
+    return min(scale_steps, key=lambda step: abs(float(step) - float(value)))
+
+
+def _scale_degree_offset(scale_steps, degree_offset):
+    if not scale_steps:
+        return 0.0
+
+    ordered = sorted(set(float(step) for step in scale_steps))
+    if not ordered:
+        ordered = [0.0]
+
+    length = len(ordered)
+    octave_shift = int(degree_offset // length)
+    local_index = int(degree_offset % length)
+    return ordered[local_index] + 12.0 * float(octave_shift)
+
+
+def _build_scale_interval_library(scale_steps, context_size):
+    ordered = sorted(set(float(step) for step in scale_steps))
+    if len(ordered) < 2:
+        ordered = [0.0, 7.0]
+
+    base_tags = ["baroque", "jazz", "ambient", "folk", "neo-classical", "minimal"]
+    fantastic_tags = [
+        "quantum-noodle",
+        "dragon-telepathy",
+        "moon-ladder",
+        "time-soup",
+        "ghost-polyrhythm",
+        "cosmic-potato",
+        "hyperbanana-cadence",
+        "wormhole-waltz",
+    ]
+
+    permutations = []
+    interval_names = {
+        1: "micro-step", 2: "major-second", 3: "minor-third", 4: "major-third",
+        5: "perfect-fourth", 6: "tritone", 7: "perfect-fifth", 8: "minor-sixth",
+        9: "major-sixth", 10: "minor-seventh", 11: "major-seventh",
+    }
+    for source in ordered:
+        for target in ordered:
+            if abs(source - target) < 1e-6:
+                continue
+            raw_interval = float(target) - float(source)
+            rounded_interval = int(round(raw_interval))
+            interval_class = abs(rounded_interval) % 12
+            if interval_class == 0:
+                continue
+
+            style_tag = base_tags[(interval_class + int(round(source))) % len(base_tags)]
+            fantasy_tag = fantastic_tags[(interval_class + int(round(target))) % len(fantastic_tags)]
+            permutations.append(
+                {
+                    "source": source,
+                    "target": target,
+                    "interval": float(rounded_interval),
+                    "name": interval_names.get(interval_class, "mystery-interval"),
+                    "tags": [style_tag, fantasy_tag],
+                }
+            )
+
+    max_step_jump = min(12.0, 2.0 + 1.25 * float(max(1, int(context_size))))
+    route_map = {}
+    by_interval = {}
+    for entry in permutations:
+        by_interval.setdefault(int(round(entry["interval"])), []).append(entry)
+
+    unique_intervals = sorted(by_interval.keys())
+    for interval in unique_intervals:
+        followers = {}
+        for candidate in unique_intervals:
+            leap = abs(float(candidate) - float(interval))
+            if leap > max_step_jump:
+                continue
+            compatibility = math.exp(-leap / max(1.0, 0.8 * float(max(1, int(context_size)))))
+            followers[candidate] = float(compatibility)
+        route_map[interval] = followers
+
+    return {
+        "entries": permutations,
+        "route_map": route_map,
+        "by_interval": by_interval,
+    }
+
+
+def _choose_dyad_interval(interval_library, previous_interval, context_size, target_interval):
+    by_interval = interval_library.get("by_interval", {})
+    route_map = interval_library.get("route_map", {})
+    available = sorted(by_interval.keys())
+    if not available:
+        return float(target_interval)
+
+    if previous_interval is None:
+        return float(min(available, key=lambda value: abs(float(value) - float(target_interval))))
+
+    previous_key = int(round(previous_interval))
+    followers = route_map.get(previous_key, {})
+    if not followers:
+        return float(min(available, key=lambda value: abs(float(value) - float(target_interval))))
+
+    best_interval = None
+    best_score = None
+    complexity = max(1.0, float(max(1, int(context_size))))
+    for candidate, weight in followers.items():
+        closeness = abs(float(candidate) - float(target_interval))
+        static_penalty = 1.5 if abs(float(candidate)) < 0.5 else 0.0
+        score = (1.0 - min(0.85, 0.1 * complexity)) * closeness - 1.2 * float(weight) + static_penalty
+        if best_score is None or score < best_score:
+            best_score = score
+            best_interval = candidate
+
+    if best_interval is None:
+        best_interval = min(available, key=lambda value: abs(float(value) - float(target_interval)))
+    return float(best_interval)
+
+
+def _build_chord_targets(
+    base_midi,
+    voice_count,
+    spread,
+    scale_steps,
+    interval_library,
+    previous_midis,
+    dominant_state,
+    context_size,
+):
+    if base_midi is None:
+        return [None] * voice_count, None
+
+    chroma = float(base_midi) % 12.0
+    nearest_step = _nearest_scale_step(chroma, scale_steps)
+    root_midi = float(base_midi) - chroma + nearest_step
+
+    urgency = float(dominant_state.get("urgency", 0.0))
+    target_root = dominant_state.get("target_root")
+    if target_root is not None and urgency > 0.05:
+        root_midi = (1.0 - urgency) * root_midi + urgency * float(target_root)
+
+    if voice_count <= 1:
+        return [root_midi], root_midi
+
+    if voice_count == 2:
+        preferred_interval = max(2.0, 5.0 * float(spread))
+        previous_interval = None
+        if previous_midis and len(previous_midis) >= 2 and previous_midis[0] is not None and previous_midis[1] is not None:
+            previous_interval = float(previous_midis[1] - previous_midis[0])
+
+        selected_interval = _choose_dyad_interval(
+            interval_library=interval_library,
+            previous_interval=previous_interval,
+            context_size=context_size,
+            target_interval=preferred_interval,
+        )
+        return [root_midi, root_midi + selected_interval], root_midi
+
+    triad_degrees = [0, 2, 4]
+    if voice_count >= 4:
+        triad_degrees.append(6)
+
+    target_midis = []
+    for degree in triad_degrees[:voice_count]:
+        chord_offset = _scale_degree_offset(scale_steps, degree)
+        target_midis.append(root_midi + chord_offset)
+
+    for index in range(1, len(target_midis)):
+        while target_midis[index] <= target_midis[index - 1] + 1.0:
+            target_midis[index] += 12.0
+
+    return target_midis, root_midi
+
+
+def _update_dominant_state(dominant_state, root_midi, context_size):
+    decay = math.exp(-1.0 / max(1.0, float(max(1, int(context_size)))))
+    urgency = float(dominant_state.get("urgency", 0.0)) * decay
+
+    target_root = dominant_state.get("target_root")
+    if target_root is not None and root_midi is not None:
+        if abs(float(root_midi) - float(target_root)) <= 1.5:
+            urgency *= 0.35
+
+    next_target = None
+    if root_midi is not None:
+        next_target = float(root_midi) - 7.0
+
+    promoted_urgency = max(urgency, 0.45 + 0.45 * (1.0 - decay))
+    dominant_state["urgency"] = max(0.0, min(0.92, promoted_urgency))
+    dominant_state["target_root"] = next_target
 
 
 def _motion_sign(current_value, previous_value):
@@ -536,12 +780,15 @@ def _build_counterpoint_voices(
     strict_counterpoint=False,
     voice_distance=0.65,
     voice_distance_context=4,
+    mapping_mode="original_notes",
 ):
     voice_count = max(1, min(4, int(voice_count)))
     if voice_count <= 1:
         return [list(base_notes)]
 
     interval_ratios = _spread_intervals(voice_count, voice_spread)
+    scale_steps = _mode_scale_steps(mapping_mode)
+    interval_library = _build_scale_interval_library(scale_steps, voice_distance_context)
     voice_distance = min(1.0, max(0.0, float(voice_distance)))
     voice_distance_context = max(1, int(voice_distance_context))
 
@@ -550,29 +797,52 @@ def _build_counterpoint_voices(
     previous_midis = [None] * voice_count
     voice_histories = [[] for _ in range(voice_count)]
     slope_profile = _voice_motion_slopes(voice_count)
+    dominant_state = {"urgency": 0.0, "target_root": None}
 
     for note_index, (base_freq, note_duration) in enumerate(base_notes):
+        per_voice_durations = _voice_duration_profile(
+            base_duration=note_duration,
+            voice_count=voice_count,
+            note_index=note_index,
+            context_size=voice_distance_context,
+            voice_distance=voice_distance,
+        )
+
         if base_freq <= 0.0:
             for voice_idx in range(voice_count):
-                voices[voice_idx].append((0.0, note_duration))
+                voices[voice_idx].append((0.0, per_voice_durations[voice_idx]))
                 previous_freqs[voice_idx] = 0.0
                 previous_midis[voice_idx] = None
                 voice_histories[voice_idx].append(None)
             continue
 
         base_midi = _freq_to_midi(base_freq)
+        routed_target_midis, routed_root_midi = _build_chord_targets(
+            base_midi=base_midi,
+            voice_count=voice_count,
+            spread=voice_spread,
+            scale_steps=scale_steps,
+            interval_library=interval_library,
+            previous_midis=previous_midis,
+            dominant_state=dominant_state,
+            context_size=voice_distance_context,
+        )
         target_midis = []
         for voice_idx in range(voice_count):
-            target_freq = base_freq * interval_ratios[voice_idx]
-            target_midis.append(_freq_to_midi(target_freq))
+            if voice_idx < len(routed_target_midis) and routed_target_midis[voice_idx] is not None:
+                target_midis.append(routed_target_midis[voice_idx])
+            else:
+                target_freq = base_freq * interval_ratios[voice_idx]
+                target_midis.append(_freq_to_midi(target_freq))
 
         if note_index == 0:
             for voice_idx in range(voice_count):
                 voice_freq = _midi_to_freq(target_midis[voice_idx])
-                voices[voice_idx].append((voice_freq, note_duration))
+                voices[voice_idx].append((voice_freq, per_voice_durations[voice_idx]))
                 previous_freqs[voice_idx] = voice_freq
                 previous_midis[voice_idx] = target_midis[voice_idx]
                 voice_histories[voice_idx].append(target_midis[voice_idx])
+            _update_dominant_state(dominant_state, routed_root_midi, voice_distance_context)
             continue
 
         prev_base_freq = base_notes[note_index - 1][0]
@@ -634,6 +904,26 @@ def _build_counterpoint_voices(
             candidate_midis = _avoid_hidden_perfects(candidate_midis, previous_midis)
             candidate_midis = _avoid_parallel_perfects(candidate_midis, previous_midis)
 
+        if note_index >= 1:
+            static_voices = 0
+            for voice_idx in range(voice_count):
+                previous_midi = previous_midis[voice_idx]
+                current_midi = candidate_midis[voice_idx]
+                if previous_midi is None or current_midi is None:
+                    continue
+                if abs(float(current_midi) - float(previous_midi)) < 0.2:
+                    static_voices += 1
+
+            if static_voices >= max(1, voice_count - 1):
+                for voice_idx in range(voice_count - 1, 0, -1):
+                    if candidate_midis[voice_idx] is None or candidate_midis[voice_idx - 1] is None:
+                        continue
+                    nudge = 1.0 if (note_index + voice_idx) % 2 == 0 else -1.0
+                    proposal = candidate_midis[voice_idx] + nudge
+                    if proposal - candidate_midis[voice_idx - 1] >= 2.0:
+                        candidate_midis[voice_idx] = proposal
+                        break
+
         for voice_idx in range(voice_count):
             voice_midi = candidate_midis[voice_idx]
             if voice_midi is None:
@@ -642,13 +932,15 @@ def _build_counterpoint_voices(
                 voice_freq = _midi_to_freq(voice_midi)
 
             voice_freq = max(70.0, min(2200.0, voice_freq))
-            voices[voice_idx].append((voice_freq, note_duration))
+            voices[voice_idx].append((voice_freq, per_voice_durations[voice_idx]))
             previous_freqs[voice_idx] = voice_freq
             stored_midi = _freq_to_midi(voice_freq)
             previous_midis[voice_idx] = stored_midi
             voice_histories[voice_idx].append(stored_midi)
             if len(voice_histories[voice_idx]) > max(4, voice_distance_context * 2):
                 voice_histories[voice_idx] = voice_histories[voice_idx][-max(4, voice_distance_context * 2):]
+
+        _update_dominant_state(dominant_state, routed_root_midi, voice_distance_context)
 
     return voices
 
@@ -741,6 +1033,7 @@ def generate_melody(
     voice_spread=1.0,
     voice_distance=0.65,
     voice_distance_context=4,
+    mapping_mode="original_notes",
     duration_coeff=1.0,
 ):
     _ensure_audio(sample_rate=sample_rate)
@@ -766,16 +1059,18 @@ def generate_melody(
         strict_counterpoint=bool(strict_counterpoint),
         voice_distance=voice_distance,
         voice_distance_context=voice_distance_context,
+        mapping_mode=mapping_mode,
     )
     voice_renders = [_render_note_sequence(sequence, amplitude, waveform) for sequence in voice_sequences]
 
-    min_length = min(render.shape[0] for render in voice_renders)
-    if min_length <= 0:
+    max_length = max(render.shape[0] for render in voice_renders)
+    if max_length <= 0:
         return
 
-    mixed = np.zeros(min_length, dtype=np.float32)
+    mixed = np.zeros(max_length, dtype=np.float32)
     for render in voice_renders:
-        mixed += render[:min_length]
+        local_length = render.shape[0]
+        mixed[:local_length] += render
 
     normalization = max(1.0, float(voice_count) * 0.9)
     mixed /= normalization

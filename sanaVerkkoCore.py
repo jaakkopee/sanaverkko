@@ -1604,6 +1604,7 @@ class SanaVerkkoKontrolleri:
             voice_spread=effective_voice_spread,
             voice_distance=voice_distance,
             voice_distance_context=voice_distance_context,
+            mapping_mode=mapping_mode,
             duration_coeff=1.0,
         )
 
