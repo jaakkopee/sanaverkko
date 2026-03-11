@@ -206,6 +206,10 @@ class SanaVerkkoKontrolleri:
         self.ltm_model = None
         self.ltm_model_path = ""
         self.ltm_context_size = 3
+        self._logic_thread = None
+        self._logic_state_lock = threading.Lock()
+        self._logic_inflight = False
+        self._logic_changed_ready = False
 
         self.initPygame()
         self.initAudio()
@@ -288,6 +292,7 @@ class SanaVerkkoKontrolleri:
         self.melody_from_own_time_checkbox = wx.CheckBox(panel, -1, "From melody")
         self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
         self.melody_from_own_time_checkbox.Bind(wx.EVT_CHECKBOX, self.OnMelodyFromOwnTime)
+        self.logic_worker_status_label = wx.StaticText(panel, -1, "Logic worker: idle")
 
         self.selection_exploration_label = wx.StaticText(panel, -1, "Selection exploration (0-1)")
         self.selection_exploration_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_exploration"]), style=wx.TE_PROCESS_ENTER)
@@ -470,6 +475,7 @@ class SanaVerkkoKontrolleri:
         _pi_row.Add(self.process_interval_ctrl, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 8)
         _pi_row.Add(self.melody_from_own_time_checkbox, 0, wx.ALIGN_CENTER_VERTICAL)
         self.sizer.Add(_pi_row, 0, wx.ALL, 5)
+        self.sizer.Add(self.logic_worker_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         self.sizer.Add(self.selection_exploration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.selection_exploration_ctrl, 0, wx.ALL, 5)
@@ -1841,6 +1847,13 @@ class SanaVerkkoKontrolleri:
         # melody_from_own_time=True  → play once, next period starts when playback ends
         # melody_from_own_time=False → loop until the process_interval timer fires
 
+        if melody_from_own_time:
+            # Continue word processing while one-shot audio is playing, but do not
+            # start a new synthesis until playback has ended.
+            thread_active = self._synthesis_thread is not None and self._synthesis_thread.is_alive()
+            if thread_active or sanasyna.is_playing():
+                return
+
         activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
         signature = (
             tuple(word.word for word in self.words),
@@ -1897,13 +1910,15 @@ class SanaVerkkoKontrolleri:
         _mm_snap = mapping_mode
         _loop_snap = not melody_from_own_time  # True=loop (cut by timer), False=play once
 
-        # Mark signature eagerly — prevents re-queuing the same synthesis on the next tick
-        self.last_audio_sentence_signature = signature
-        self.audio_playing = True
-
         # If a synthesis is already running it will land via _pending_samples / crossfade
         if self._synthesis_thread is not None and self._synthesis_thread.is_alive():
             return
+
+        # Mark signature only when a new synthesis will actually be started.
+        # If we mark it while a thread is still running, future ticks can falsely
+        # believe synthesis already happened and leave old loops playing too long.
+        self.last_audio_sentence_signature = signature
+        self.audio_playing = True
 
         def _run_synthesis():
             sanasyna.generate_melody(
@@ -2846,6 +2861,32 @@ class SanaVerkkoKontrolleri:
             changed_any = True
 
         return changed_any
+
+    def _run_logic_iteration_task(self, max_iterations):
+        changed_any = False
+        try:
+            if self.running and not self.closed:
+                changed_any = self.iterateSentenceToLogic(max_iterations)
+        except Exception:
+            changed_any = False
+        finally:
+            with self._logic_state_lock:
+                self._logic_inflight = False
+                if changed_any:
+                    self._logic_changed_ready = True
+
+    def _update_logic_worker_status_label(self):
+        with self._logic_state_lock:
+            busy = bool(self._logic_inflight)
+            changed_pending = bool(self._logic_changed_ready)
+        if busy:
+            status = "Logic worker: busy"
+        elif changed_pending:
+            status = "Logic worker: changed ready"
+        else:
+            status = "Logic worker: idle"
+        if getattr(self, "logic_worker_status_label", None) is not None:
+            self.logic_worker_status_label.SetLabel(status)
         
     def writeToFile(self, word):
         self.outfile.write(word + " ")
@@ -2853,15 +2894,17 @@ class SanaVerkkoKontrolleri:
     def simulationStep(self):
         now = time.time()
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
-        if melody_from_own_time:
-            # Wait for both the synthesis thread and the one-shot playback to finish
-            thread_active = self._synthesis_thread is not None and self._synthesis_thread.is_alive()
-            if thread_active or sanasyna.is_playing():
-                return
-        else:
-            if now - self.last_process_time < self.params["process_interval"]:
-                return
+        if now - self.last_process_time < self.params["process_interval"]:
+            return
         self.last_process_time = now
+        self._update_logic_worker_status_label()
+
+        if not melody_from_own_time:
+            # Tight timed-mode behavior: end the current loop exactly at period boundary
+            # and force a fresh synthesis period regardless of previous signature.
+            sanasyna.stop()
+            self.audio_playing = False
+            self.last_audio_sentence_signature = None
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -2889,8 +2932,25 @@ class SanaVerkkoKontrolleri:
                 logic_triggered = True
 
         sentChanged = False
+        with self._logic_state_lock:
+            if self._logic_changed_ready:
+                sentChanged = True
+                self._logic_changed_ready = False
+
         if logic_triggered:
-            sentChanged = self.iterateSentenceToLogic(self.params.get("logic_iteration_limit", 48))
+            start_logic_worker = False
+            with self._logic_state_lock:
+                if not self._logic_inflight:
+                    self._logic_inflight = True
+                    start_logic_worker = True
+            if start_logic_worker:
+                max_iterations = self.params.get("logic_iteration_limit", 48)
+                self._logic_thread = threading.Thread(
+                    target=self._run_logic_iteration_task,
+                    args=(max_iterations,),
+                    daemon=True,
+                )
+                self._logic_thread.start()
 
         sentence = " ".join(word.word for word in self.words)
 
