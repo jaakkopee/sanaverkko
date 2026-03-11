@@ -49,6 +49,15 @@ You can add words, import a text database, mutate words by gematria relations, a
 - Polyphony controls:
   - Polyphony voices (1-4)
   - Voice spread
+  - Voice distance (0-1)
+  - Voice distance context
+  - Strict CP (counterpoint guard)
+  - Rhythm style (preset bundles)
+  - Beat library (deep rhythm pattern family)
+  - Rhythmic divergence (0-1)
+  - Rhythm gate strength (0-1)
+  - Rhythm stretch strength (0-1)
+  - Rhythm rotation
 - Melody speed coefficient
 - Minimum note duration with automatic duration scaling
 - ADSR controls + graphical ADSR envelope display
@@ -161,8 +170,17 @@ The control window is adaptive and scrollable.
 ### Audio controls
 - **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
 - **Frequency mapping**: choose mapping system for generated frequencies
+- **Rhythm style**: applies bundled rhythm-generation parameter sets
+- **Beat library**: explicit beat-pattern family selector for deep rhythm control
 - **Polyphony voices**: 1-4 voices
 - **Voice spread**: detune/spread amount between voices
+- **Voice distance (0-1)**: blend target-following vs history-led motion
+- **Voice distance context**: history window length used by voice-distance metric and rhythm routing
+- **Strict CP**: stricter anti-parallel/hidden-perfect interval checks
+- **Rhythmic divergence (0-1)**: overall amount of per-voice rhythm separation
+- **Rhythm gate strength (0-1)**: how strongly beat-pattern gate slots create rests/silences
+- **Rhythm stretch strength (0-1)**: how strongly beat-pattern stretch multipliers affect note duration
+- **Rhythm rotation**: circular offset applied to beat-pattern slots
 - **Melody speed coeff**: scales note durations
 - **Minimum note duration (s)**: floor for shortest note; melody is scaled to respect this floor
 - **ADSR envelope**:

@@ -1,0 +1,217 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{margin=2.4cm}
+
+\title{SanaVerkko Complete Parameter Reference}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Purpose}
+This document is a single-reference overview of all runtime parameters in \texttt{SanaVerkko} (legacy + new), including model logic, selection behavior, rhyme/LTM settings, audio synthesis, polyphony/counterpoint, and deep rhythm controls.
+
+\section{Signal Path Overview}
+At a high level:
+\begin{enumerate}
+  \item UI parameters are stored in \texttt{self.params} in \texttt{sanaVerkkoCore.py}.
+  \item Selection/mutation logic uses these values to choose candidate word replacements.
+  \item \texttt{updateAudio()} computes effective values and calls \texttt{sanasyna.generate\_melody(...)}.
+  \item \texttt{sanasyna.py} builds per-voice melodic targets (scale/chord routing), applies counterpoint guards, then renders waves.
+  \item Rhythm controls affect per-voice durations, beat gating, stretch shaping, and pattern rotation.
+\end{enumerate}
+
+\section{Complete Parameter Catalog}
+This section follows \texttt{self.params} as initialized in \texttt{sanaVerkkoCore.py}.
+
+\subsection*{A. Core matching and learning}
+\begin{itemize}
+  \item \texttt{set\_weight\_by\_gematria} (default \texttt{False}) --- optional gematria-driven weight behavior.
+  \item \texttt{use\_pos\_matching} (default \texttt{False}) --- enforce POS-compatible replacements.
+  \item \texttt{fluid\_pos} (default \texttt{False}) --- relaxes rigid POS behavior.
+  \item \texttt{common\_word\_penalty} (default \texttt{True}) --- reduces overuse of overly common words.
+  \item \texttt{learning\_rate} (default \texttt{0.1}) --- learning step for connection updates.
+  \item \texttt{error} (default \texttt{0}) --- error signal term in learning path.
+  \item \texttt{target} (default \texttt{0}) --- target signal term in learning path.
+  \item \texttt{activation\_increase} (default \texttt{0.0001}) --- per-step activation drift.
+  \item \texttt{activation\_limit} (default \texttt{2}) --- clamp for neuron activation magnitude.
+  \item \texttt{sigmoid\_scale} (default \texttt{2}) --- scale factor used by sigmoid activation shaping.
+  \item \texttt{word\_change\_threshold} (default \texttt{0.777}) --- threshold for replacement triggering.
+  \item \texttt{zoom} (default \texttt{0.1}) --- network display scale.
+  \item \texttt{process\_interval} (default \texttt{0.08}) --- main loop interval in seconds.
+  \item \texttt{logic\_iteration\_limit} (default \texttt{48}) --- max internal logic steps per process cycle.
+\end{itemize}
+
+\subsection*{B. Candidate selection and jump behavior}
+\begin{itemize}
+  \item \texttt{selection\_exploration} (default \texttt{0.18}) --- probability/intensity of non-greedy candidate choice.
+  \item \texttt{selection\_top\_k} (default \texttt{4}) --- top-k pool used by exploratory selection.
+  \item \texttt{jump\_probability} (default \texttt{0.08}) --- chance to use jump search.
+  \item \texttt{jump\_radius} (default \texttt{120}) --- gematria search radius for jump logic.
+  \item \texttt{fluid\_root} (default \texttt{False}) --- allow broader root-crossing behavior in jump mode.
+  \item \texttt{fluid\_gematria} (default \texttt{False}) --- broaden matching beyond exact gematria.
+\end{itemize}
+
+\subsection*{C. Rhyme and long-term memory}
+\begin{itemize}
+  \item \texttt{use\_long\_term\_memory} (default \texttt{False}) --- enable LTM-assisted ranking.
+  \item \texttt{ltm\_weight} (default \texttt{0.35}) --- blend weight for LTM guidance in candidate scoring.
+  \item \texttt{use\_phoneme\_rhyme} (default \texttt{True}) --- enable phoneme-rhyme contribution.
+  \item \texttt{rhyme\_weight} (default \texttt{0.28}) --- rhyme bonus weight in blended scoring.
+  \item \texttt{rhyme\_min\_similarity} (default \texttt{0.34}) --- minimum similarity threshold for rhyme bonus.
+\end{itemize}
+
+\subsection*{D. Import and mode toggles}
+\begin{itemize}
+  \item \texttt{import\_mode} (default \texttt{"append"}) --- \texttt{append} or \texttt{replace} database import mode.
+  \item \texttt{audio\_wave\_mode} (default \texttt{"dynamic"}) --- waveform macro mode.
+  \item \texttt{frequency\_mapping\_mode} (default \texttt{"original\_notes"}) --- tonal mapping system for generated frequencies.
+\end{itemize}
+
+\subsection*{E. Polyphony, harmony, and counterpoint}
+\begin{itemize}
+  \item \texttt{voice\_count} (default \texttt{1}, normalized \texttt{1..4}) --- polyphony depth.
+  \item \texttt{voice\_spread} (default \texttt{1.0}, normalized \texttt{0.3..5.0}) --- register spacing between voices.
+  \item \texttt{voice\_distance} (default \texttt{0.65}, normalized \texttt{0..1}) --- target-vs-history voice-leading blend.
+  \item \texttt{voice\_distance\_context} (default \texttt{4}, normalized \texttt{1..32}) --- history window for distance metric.
+  \item \texttt{strict\_counterpoint} (default \texttt{True}) --- stronger parallel/hidden perfect checks.
+\end{itemize}
+
+\subsection*{F. Rhythm macro and deep rhythm control}
+\begin{itemize}
+  \item \texttt{rhythm\_style} (default \texttt{"manual"}) --- high-level preset bundle.
+  \item \texttt{rhythmic\_divergence} (default \texttt{0.35}, normalized \texttt{0..1}) --- overall per-voice rhythm separation amount.
+  \item \texttt{beat\_library\_style} (default \texttt{"auto"}) --- explicit beat-pattern family override or auto-selection.
+  \item \texttt{rhythm\_gate\_strength} (default \texttt{0.85}, normalized \texttt{0..1}) --- gate-to-silence intensity.
+  \item \texttt{rhythm\_stretch\_strength} (default \texttt{1.0}, normalized \texttt{0..1}) --- stretch multiplier intensity.
+  \item \texttt{rhythm\_rotation} (default \texttt{0}, normalized \texttt{0..31}) --- circular slot offset for beat patterns.
+\end{itemize}
+
+\subsection*{G. Melody timing and contour}
+\begin{itemize}
+  \item \texttt{melody\_coherence} (default \texttt{0.65}, normalized \texttt{0..1}) --- contour smoothing/coherence amount.
+  \item \texttt{melody\_speed} (default \texttt{1.0}, normalized \texttt{0.2..6.0}) --- global duration coefficient.
+  \item \texttt{min\_note\_duration} (default \texttt{0.03}, normalized \texttt{0.01..1.0}) --- lower duration floor in seconds.
+\end{itemize}
+
+\subsection*{H. ADSR envelope}
+\begin{itemize}
+  \item \texttt{adsr\_attack} (default \texttt{0.01}) --- attack time.
+  \item \texttt{adsr\_decay} (default \texttt{0.04}) --- decay time.
+  \item \texttt{adsr\_sustain} (default \texttt{0.85}, normalized \texttt{0..1}) --- sustain level.
+  \item \texttt{adsr\_release} (default \texttt{0.03}) --- release time.
+\end{itemize}
+
+\section{Audio and Rhythm Mechanics}
+\subsection*{Polyphony voices (1--4)}
+Sets voice count. Voice count controls:
+\begin{itemize}
+  \item how many simultaneous voices are rendered,
+  \item whether dyads, triads, or 4-note stacks are produced,
+  \item which beat-library families become available.
+\end{itemize}
+
+\subsection*{Voice spread}
+Controls register width between voices. Larger values increase vertical spacing and potential textural width.
+
+\subsection*{Voice distance (0--1)}
+Blend factor between:
+\begin{itemize}
+  \item target-following (harmonic target), and
+  \item history-following (voice-leading continuity).
+\end{itemize}
+Low values follow harmonic target more directly; high values prefer smoother continuity from recent voice history.
+
+\subsection*{Voice distance context}
+Context length for history-aware scoring. Also influences rhythm-route complexity and pattern selection depth.
+
+\subsection*{Strict CP}
+Enables stricter counterpoint safeguards (parallel and hidden perfect handling). Useful for reducing obvious parallel motion artifacts.
+
+\section{Rhythm Style and Deep Rhythm Controls}
+\subsection*{Rhythm style}
+High-level preset macro. Selecting a style sets a bundled group of rhythm-related parameters (voice count, divergence, context, beat family, gate/stretch strengths, etc.).
+
+\subsection*{Beat library}
+Selects beat-pattern family used by rhythm shaping logic. \texttt{Auto} chooses pattern from context and divergence; explicit styles lock to named families.
+
+\subsection*{Rhythmic divergence (0--1)}
+Global intensity of per-voice rhythmic separation.
+\begin{itemize}
+  \item Near 0: voices tend toward shared rhythm.
+  \item Near 1: voices strongly diverge with independent timing behavior.
+\end{itemize}
+
+\subsection*{Rhythm gate strength (0--1)}
+Controls how strongly beat-pattern gate slots produce silences/rests for individual voices. Higher values produce clearer hocket/polyrhythmic separation.
+
+\subsection*{Rhythm stretch strength (0--1)}
+Controls how strongly beat-pattern stretch multipliers warp each voice's note durations.
+\begin{itemize}
+  \item 0: minimal stretch influence.
+  \item 1: full stretch profile influence.
+\end{itemize}
+
+\subsection*{Rhythm rotation}
+Circular offset of beat-pattern slot indexing. Rotating shifts accent/rest positions without changing selected pattern family.
+
+\section{Duration and Timing Parameters}
+\subsection*{Melody speed coeff}
+Global duration scaling before polyphonic rhythm shaping.
+
+\subsection*{Minimum note duration (s)}
+Lower bound to prevent unusably short notes. Applied before final render.
+
+\section{Normalization and Commit Behavior}
+\begin{itemize}
+  \item Most numeric controls are clamped/normalized in \texttt{\_normalize\_params()}.
+  \item Text controls are explicit-commit fields (apply on Enter).
+  \item Preset loading applies normalization before synchronizing UI state.
+  \item Editing deep rhythm controls manually typically pushes \texttt{rhythm\_style} to \texttt{manual} so style state remains truthful.
+\end{itemize}
+
+\section{Interaction Notes}
+\begin{itemize}
+  \item \textbf{Rhythm style} sets multiple deep controls at once; manual edits can then fine-tune.
+  \item \textbf{Rhythmic divergence} should be interpreted together with \textbf{gate strength} and \textbf{stretch strength}.
+  \item \textbf{Voice distance context} influences both voice-leading memory and rhythm pattern behavior.
+  \item \textbf{Selection exploration/top-k/jump} and \textbf{rhyme/LTM} shape word evolution, indirectly changing audio trajectory by changing lexical stream.
+  \item Strong rhythm divergence with high strict counterpoint can produce sparse but more articulated polyphony.
+\end{itemize}
+
+\section{Practical Starting Points}
+\subsection*{Tight but musical}
+\begin{itemize}
+  \item Voices: 2
+  \item Rhythmic divergence: 0.25
+  \item Gate strength: 0.20
+  \item Stretch strength: 0.35
+  \item Rotation: 0
+\end{itemize}
+
+\subsection*{Clear polyrhythm}
+\begin{itemize}
+  \item Voices: 3
+  \item Beat library: Trio 3 over 2 (or Trio tresillo)
+  \item Rhythmic divergence: 0.85
+  \item Gate strength: 0.9
+  \item Stretch strength: 0.85
+  \item Rotation: 2
+\end{itemize}
+
+\subsection*{Maximal fractured texture}
+\begin{itemize}
+  \item Voices: 4
+  \item Beat library: Quartet hyperbanana
+  \item Rhythmic divergence: 1.0
+  \item Gate strength: 1.0
+  \item Stretch strength: 1.0
+  \item Rotation: 3--4
+\end{itemize}
+
+\end{document}
