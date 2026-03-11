@@ -147,6 +147,7 @@ class SanaVerkkoKontrolleri:
         self.params["voice_spread"] = 1.0
         self.params["voice_distance"] = 0.65
         self.params["voice_distance_context"] = 4
+        self.params["rhythmic_divergence"] = 0.35
         self.params["strict_counterpoint"] = True
         self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
@@ -336,6 +337,10 @@ class SanaVerkkoKontrolleri:
         self.voice_distance_context_ctrl = wx.TextCtrl(panel, -1, str(self.params["voice_distance_context"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.voice_distance_context_ctrl, self.OnVoiceDistanceContext)
 
+        self.rhythmic_divergence_label = wx.StaticText(panel, -1, "Rhythmic divergence (0-1)")
+        self.rhythmic_divergence_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythmic_divergence"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythmic_divergence_ctrl, self.OnRhythmicDivergence)
+
         self.melody_coherence_label = wx.StaticText(panel, -1, "Melody coherence (0-1)")
         self.melody_coherence_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_coherence"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.melody_coherence_ctrl, self.OnMelodyCoherence)
@@ -457,6 +462,8 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.voice_distance_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.voice_distance_context_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_distance_context_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythmic_divergence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythmic_divergence_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_coherence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.melody_coherence_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -1042,6 +1049,10 @@ class SanaVerkkoKontrolleri:
         self._commit_int_param(self.voice_distance_context_ctrl, "voice_distance_context", minimum=1, maximum=32)
         self.last_audio_sentence_signature = None
 
+    def OnRhythmicDivergence(self, event):
+        self._commit_float_param(self.rhythmic_divergence_ctrl, "rhythmic_divergence", minimum=0.0, maximum=1.0)
+        self.last_audio_sentence_signature = None
+
     def OnMelodyCoherence(self, event):
         self._commit_float_param(self.melody_coherence_ctrl, "melody_coherence", minimum=0.0, maximum=1.0)
         self.last_audio_sentence_signature = None
@@ -1555,6 +1566,7 @@ class SanaVerkkoKontrolleri:
         voice_spread = float(self.params.get("voice_spread", 1.0))
         voice_distance = min(1.0, max(0.0, float(self.params.get("voice_distance", 0.65))))
         voice_distance_context = max(1, int(self.params.get("voice_distance_context", 4)))
+        rhythmic_divergence = min(1.0, max(0.0, float(self.params.get("rhythmic_divergence", 0.35))))
         strict_counterpoint = bool(self.params.get("strict_counterpoint", False))
         melody_coherence = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         melody_speed = float(self.params.get("melody_speed", 1.0))
@@ -1573,6 +1585,7 @@ class SanaVerkkoKontrolleri:
             round(voice_spread, 2),
             round(voice_distance, 2),
             int(voice_distance_context),
+            round(rhythmic_divergence, 2),
             round(melody_coherence, 2),
             round(melody_speed, 2),
             round(min_note_duration, 3),
@@ -1604,6 +1617,7 @@ class SanaVerkkoKontrolleri:
             voice_spread=effective_voice_spread,
             voice_distance=voice_distance,
             voice_distance_context=voice_distance_context,
+            rhythmic_divergence=rhythmic_divergence,
             mapping_mode=mapping_mode,
             duration_coeff=1.0,
         )
@@ -2182,6 +2196,7 @@ class SanaVerkkoKontrolleri:
         self.params["voice_spread"] = min(5.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
         self.params["voice_distance"] = min(1.0, max(0.0, float(self.params.get("voice_distance", 0.65))))
         self.params["voice_distance_context"] = max(1, min(32, int(float(self.params.get("voice_distance_context", 4)))))
+        self.params["rhythmic_divergence"] = min(1.0, max(0.0, float(self.params.get("rhythmic_divergence", 0.35))))
         self.params["melody_coherence"] = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
         self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
@@ -2235,6 +2250,7 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.voice_spread_ctrl, self.params["voice_spread"])
             self._setCtrlValueSilently(self.voice_distance_ctrl, self.params["voice_distance"])
             self._setCtrlValueSilently(self.voice_distance_context_ctrl, self.params["voice_distance_context"])
+            self._setCtrlValueSilently(self.rhythmic_divergence_ctrl, self.params["rhythmic_divergence"])
             self._setCtrlValueSilently(self.melody_coherence_ctrl, self.params["melody_coherence"])
             self._setCtrlValueSilently(self.melody_speed_ctrl, self.params["melody_speed"])
             self._setCtrlValueSilently(self.min_note_duration_ctrl, self.params["min_note_duration"])
