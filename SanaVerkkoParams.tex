@@ -6,7 +6,7 @@
 \usepackage{hyperref}
 \geometry{margin=2.4cm}
 
-\title{SanaVerkko Complete Parameter Reference}
+\title{SanaVerkkoParams: Complete Parameter Reference}
 \author{}
 \date{\today}
 
@@ -90,6 +90,7 @@ This section follows \texttt{self.params} as initialized in \texttt{sanaVerkkoCo
   \item \texttt{rhythm\_gate\_strength} (default \texttt{0.85}, normalized \texttt{0..1}) --- gate-to-silence intensity.
   \item \texttt{rhythm\_stretch\_strength} (default \texttt{1.0}, normalized \texttt{0..1}) --- stretch multiplier intensity.
   \item \texttt{rhythm\_rotation} (default \texttt{0}, normalized \texttt{0..31}) --- circular slot offset for beat patterns.
+  \item \texttt{rhythm\_radicality} (default \texttt{0.5}, normalized \texttt{0..1}) --- controls how extreme rhythmic contrast becomes (shorter shorts, longer longs, stronger gating/stretch impact).
 \end{itemize}
 
 \subsection*{G. Melody timing and contour}
@@ -160,6 +161,13 @@ Controls how strongly beat-pattern stretch multipliers warp each voice's note du
 \subsection*{Rhythm rotation}
 Circular offset of beat-pattern slot indexing. Rotating shifts accent/rest positions without changing selected pattern family.
 
+\subsection*{Rhythm radicality (0--1)}
+Controls how radical rhythmic contrast becomes across voices.
+\begin{itemize}
+  \item Near 0: conservative timing spread and milder gating behavior.
+  \item Near 1: aggressive duration extremes and stronger per-voice rhythmic separation.
+\end{itemize}
+
 \section{Duration and Timing Parameters}
 \subsection*{Melody speed coeff}
 Global duration scaling before polyphonic rhythm shaping.
@@ -192,6 +200,7 @@ Lower bound to prevent unusably short notes. Applied before final render.
   \item Gate strength: 0.20
   \item Stretch strength: 0.35
   \item Rotation: 0
+  \item Radicality: 0.20
 \end{itemize}
 
 \subsection*{Clear polyrhythm}
@@ -202,6 +211,7 @@ Lower bound to prevent unusably short notes. Applied before final render.
   \item Gate strength: 0.9
   \item Stretch strength: 0.85
   \item Rotation: 2
+  \item Radicality: 0.82
 \end{itemize}
 
 \subsection*{Maximal fractured texture}
@@ -212,6 +222,14 @@ Lower bound to prevent unusably short notes. Applied before final render.
   \item Gate strength: 1.0
   \item Stretch strength: 1.0
   \item Rotation: 3--4
+  \item Radicality: 1.0
+\end{itemize}
+
+\section{Preset Radicality Progression (Mirrored from README)}
+Bundled preset \texttt{rhythm\_radicality} values from 01 to 10:
+\begin{itemize}
+  \item \texttt{0.05}, \texttt{0.15}, \texttt{0.25}, \texttt{0.40}, \texttt{0.55},
+  \item \texttt{0.68}, \texttt{0.80}, \texttt{0.90}, \texttt{0.97}, \texttt{1.00}
 \end{itemize}
 
 \end{document}
