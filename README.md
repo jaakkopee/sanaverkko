@@ -44,8 +44,9 @@ You can add words, import a text database, mutate words by gematria relations, a
   - Original notes
   - Pythagorean pentatonic
   - Pythagorean 8 note
+  - Just intonation 5-limit
   - Equal tempered modal mappings (Ionian, Dorian, Frygian, Lydian, Mixolydian, Aeolian, Locrian)
-  - Equal tempered 12 / 24 / 36 / 48 note mappings
+  - Equal tempered 12 / 19 / 24 / 31 / 36 / 48 note mappings
 - Polyphony controls:
   - Polyphony voices (1-4)
   - Voice spread
@@ -170,6 +171,9 @@ The control window is adaptive and scrollable.
 ### Audio controls
 - **Audio waveform mode**: Dynamic / Pure sine / Noise-heavy / Classic analog
 - **Frequency mapping**: choose mapping system for generated frequencies
+  - Includes: Original notes, Pythagorean pentatonic, Pythagorean 8 note, Just intonation 5-limit
+  - Includes ET modes: Ionian, Dorian, Frygian, Lydian, Mixolydian, Aeolian, Locrian
+  - Includes ET full mappings: 12 / 19 / 24 / 31 / 36 / 48 note
 - **Rhythm style**: applies bundled rhythm-generation parameter sets
 - **Beat library**: explicit beat-pattern family selector for deep rhythm control
 - **Polyphony voices**: 1-4 voices
