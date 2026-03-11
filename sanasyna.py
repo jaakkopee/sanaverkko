@@ -309,40 +309,270 @@ def _direction_profile(base_motion, voice_count):
     return [motion]
 
 
+def _voice_motion_slopes(voice_count):
+    if voice_count == 2:
+        return [1.0, 0.8]
+    if voice_count == 3:
+        return [1.0, 0.55, 0.85]
+    if voice_count >= 4:
+        return [1.0, 0.8, 0.65, 0.95]
+    return [1.0]
+
+
+def _freq_to_midi(freq):
+    if freq <= 0.0:
+        return None
+    return 69.0 + 12.0 * math.log2(float(freq) / 440.0)
+
+
+def _midi_to_freq(midi_value):
+    return 440.0 * (2.0 ** ((float(midi_value) - 69.0) / 12.0))
+
+
+def _motion_sign(current_value, previous_value):
+    if current_value > previous_value:
+        return 1
+    if current_value < previous_value:
+        return -1
+    return 0
+
+
+def _is_perfect_interval(interval_semitones):
+    interval_class = abs(int(round(interval_semitones))) % 12
+    return interval_class in (0, 7)
+
+
+def _voice_distance_cost(candidate_midi, history_midis, context_size):
+    if candidate_midi is None:
+        return 0.0
+
+    recent = [value for value in history_midis[-max(1, int(context_size)):] if value is not None]
+    if not recent:
+        return 0.0
+
+    weighted_sum = 0.0
+    total_weight = 0.0
+    for index, midi_value in enumerate(reversed(recent)):
+        weight = float(index + 1)
+        weighted_sum += weight * abs(float(candidate_midi) - float(midi_value))
+        total_weight += weight
+
+    average_distance = weighted_sum / max(1.0, total_weight)
+    immediate_step = abs(float(candidate_midi) - float(recent[-1]))
+    return 0.55 * immediate_step + 0.45 * average_distance
+
+
+def _choose_voice_candidate(
+    target_midi,
+    moved_midi,
+    previous_history,
+    base_midi,
+    max_register_distance,
+    voice_distance,
+    voice_distance_context,
+):
+    if target_midi is None:
+        return None
+
+    primary = moved_midi if moved_midi is not None else target_midi
+    center = (1.0 - voice_distance) * target_midi + voice_distance * primary
+
+    best_midi = None
+    best_score = None
+
+    for semitone_offset in range(-8, 9):
+        candidate = center + float(semitone_offset)
+
+        if base_midi is not None:
+            while candidate - base_midi > max_register_distance:
+                candidate -= 12.0
+            while base_midi - candidate > max_register_distance:
+                candidate += 12.0
+
+        target_cost = abs(candidate - target_midi)
+        path_cost = _voice_distance_cost(candidate, previous_history, voice_distance_context)
+        score = (1.0 - voice_distance) * target_cost + voice_distance * path_cost
+
+        if best_score is None or score < best_score:
+            best_score = score
+            best_midi = candidate
+
+    return best_midi
+
+
+def _avoid_parallel_perfects(candidate_midis, previous_midis):
+    if not candidate_midis or not previous_midis:
+        return candidate_midis
+
+    adjusted = list(candidate_midis)
+    max_iterations = 3
+    for iteration in range(max_iterations):
+        changed = False
+        for lower_index in range(len(adjusted) - 1):
+            for upper_index in range(lower_index + 1, len(adjusted)):
+                prev_low = previous_midis[lower_index]
+                prev_high = previous_midis[upper_index]
+                curr_low = adjusted[lower_index]
+                curr_high = adjusted[upper_index]
+
+                if prev_low is None or prev_high is None or curr_low is None or curr_high is None:
+                    continue
+
+                low_motion = _motion_sign(curr_low, prev_low)
+                high_motion = _motion_sign(curr_high, prev_high)
+                if low_motion == 0 or high_motion == 0 or low_motion != high_motion:
+                    continue
+
+                prev_interval = prev_high - prev_low
+                curr_interval = curr_high - curr_low
+                if not (_is_perfect_interval(prev_interval) and _is_perfect_interval(curr_interval)):
+                    continue
+
+                moved_direction = high_motion
+                candidate_offsets = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7]
+                if moved_direction < 0:
+                    candidate_offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7]
+
+                best_proposal = None
+                best_distance = float('inf')
+                for offset in candidate_offsets:
+                    proposal = curr_high + offset
+                    if proposal - curr_low < 2.0:
+                        continue
+                    proposed_interval = proposal - curr_low
+                    if _is_perfect_interval(proposed_interval):
+                        continue
+                    distance_from_original = abs(offset)
+                    if distance_from_original < best_distance:
+                        best_distance = distance_from_original
+                        best_proposal = proposal
+
+                if best_proposal is not None:
+                    adjusted[upper_index] = best_proposal
+                    changed = True
+
+        if not changed:
+            break
+
+    return adjusted
+
+
+def _avoid_hidden_perfects(candidate_midis, previous_midis):
+    if not candidate_midis or not previous_midis:
+        return candidate_midis
+
+    adjusted = list(candidate_midis)
+    max_iterations = 3
+    for iteration in range(max_iterations):
+        changed = False
+        for lower_index in range(len(adjusted) - 1):
+            for upper_index in range(lower_index + 1, len(adjusted)):
+                prev_low = previous_midis[lower_index]
+                prev_high = previous_midis[upper_index]
+                curr_low = adjusted[lower_index]
+                curr_high = adjusted[upper_index]
+
+                if prev_low is None or prev_high is None or curr_low is None or curr_high is None:
+                    continue
+
+                low_motion = _motion_sign(curr_low, prev_low)
+                high_motion = _motion_sign(curr_high, prev_high)
+                if low_motion == 0 or high_motion == 0 or low_motion != high_motion:
+                    continue
+
+                current_interval = curr_high - curr_low
+                if not _is_perfect_interval(current_interval):
+                    continue
+
+                upper_leap = abs(curr_high - prev_high)
+                lower_leap = abs(curr_low - prev_low)
+                if upper_leap <= 2.0 and lower_leap <= 2.0:
+                    continue
+
+                preferred_offsets = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7]
+                if high_motion < 0:
+                    preferred_offsets = [-1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7]
+
+                best_proposal = None
+                best_distance = float('inf')
+                for offset in preferred_offsets:
+                    proposal = curr_high + offset
+                    if proposal - curr_low < 2.0:
+                        continue
+                    if _is_perfect_interval(proposal - curr_low):
+                        continue
+                    distance_from_original = abs(offset)
+                    if distance_from_original < best_distance:
+                        best_distance = distance_from_original
+                        best_proposal = proposal
+
+                if best_proposal is not None:
+                    adjusted[upper_index] = best_proposal
+                    changed = True
+
+        if not changed:
+            break
+
+    return adjusted
+
+
 def _spread_intervals(voice_count, spread):
     spread = max(0.3, min(5.0, float(spread)))
     if voice_count == 1:
         semitone_offsets = [0.0]
     elif voice_count == 2:
-        semitone_offsets = [-5.0 * spread, 5.0 * spread]
+        semitone_offsets = [-3.0 * spread, 3.0 * spread]
     elif voice_count == 3:
-        semitone_offsets = [-6.0 * spread, 0.0, 6.0 * spread]
+        semitone_offsets = [-5.0 * spread, 0.0, 5.0 * spread]
     else:
-        semitone_offsets = [-9.0 * spread, -3.0 * spread, 3.0 * spread, 9.0 * spread]
+        semitone_offsets = [-7.0 * spread, -2.0 * spread, 2.0 * spread, 7.0 * spread]
     return [2.0 ** (semitones / 12.0) for semitones in semitone_offsets]
 
 
-def _build_counterpoint_voices(base_notes, voice_count=1, voice_spread=1.0):
+def _build_counterpoint_voices(
+    base_notes,
+    voice_count=1,
+    voice_spread=1.0,
+    strict_counterpoint=False,
+    voice_distance=0.65,
+    voice_distance_context=4,
+):
     voice_count = max(1, min(4, int(voice_count)))
     if voice_count <= 1:
         return [list(base_notes)]
 
     interval_ratios = _spread_intervals(voice_count, voice_spread)
+    voice_distance = min(1.0, max(0.0, float(voice_distance)))
+    voice_distance_context = max(1, int(voice_distance_context))
+
     voices = [[] for _ in range(voice_count)]
     previous_freqs = [0.0] * voice_count
+    previous_midis = [None] * voice_count
+    voice_histories = [[] for _ in range(voice_count)]
+    slope_profile = _voice_motion_slopes(voice_count)
 
     for note_index, (base_freq, note_duration) in enumerate(base_notes):
         if base_freq <= 0.0:
             for voice_idx in range(voice_count):
                 voices[voice_idx].append((0.0, note_duration))
                 previous_freqs[voice_idx] = 0.0
+                previous_midis[voice_idx] = None
+                voice_histories[voice_idx].append(None)
             continue
+
+        base_midi = _freq_to_midi(base_freq)
+        target_midis = []
+        for voice_idx in range(voice_count):
+            target_freq = base_freq * interval_ratios[voice_idx]
+            target_midis.append(_freq_to_midi(target_freq))
 
         if note_index == 0:
             for voice_idx in range(voice_count):
-                voice_freq = base_freq * interval_ratios[voice_idx]
+                voice_freq = _midi_to_freq(target_midis[voice_idx])
                 voices[voice_idx].append((voice_freq, note_duration))
                 previous_freqs[voice_idx] = voice_freq
+                previous_midis[voice_idx] = target_midis[voice_idx]
+                voice_histories[voice_idx].append(target_midis[voice_idx])
             continue
 
         prev_base_freq = base_notes[note_index - 1][0]
@@ -352,29 +582,73 @@ def _build_counterpoint_voices(base_notes, voice_count=1, voice_spread=1.0):
 
         semitone_step = abs(_semitone_distance(prev_base_freq, base_freq))
         spread = max(0.3, min(5.0, float(voice_spread)))
-        semitone_step = max(1, min(7, semitone_step)) if base_motion != 0 else 0
-        semitone_step = max(1, int(round(semitone_step * (0.85 + 0.35 * spread)))) if semitone_step > 0 else 0
+        semitone_step = max(1, min(4, semitone_step)) if base_motion != 0 else 0
+        semitone_step = max(1, int(round(semitone_step * (0.7 + 0.15 * spread)))) if semitone_step > 0 else 0
 
         direction_by_voice = _direction_profile(base_motion, voice_count)
+        candidate_midis = [None] * voice_count
 
         for voice_idx in range(voice_count):
-            target_freq = base_freq * interval_ratios[voice_idx]
-            prev_voice_freq = previous_freqs[voice_idx]
+            target_midi = target_midis[voice_idx]
+            prev_voice_midi = previous_midis[voice_idx]
 
-            if prev_voice_freq <= 0.0:
-                voice_freq = target_freq
+            if prev_voice_midi is None:
+                voice_midi = target_midi
             else:
                 direction = direction_by_voice[voice_idx]
                 if direction == 0 or semitone_step == 0:
-                    moved_freq = prev_voice_freq
+                    moved_midi = prev_voice_midi
                 else:
-                    moved_freq = prev_voice_freq * (2.0 ** ((direction * semitone_step) / 12.0))
+                    slope = slope_profile[voice_idx]
+                    local_step = max(1, int(round(float(semitone_step) * float(slope))))
+                    moved_midi = prev_voice_midi + direction * local_step
 
-                voice_freq = 0.68 * moved_freq + 0.32 * target_freq
+                max_register_distance = 18.0 + 4.0 * spread
+                voice_midi = _choose_voice_candidate(
+                    target_midi=target_midi,
+                    moved_midi=moved_midi,
+                    previous_history=voice_histories[voice_idx],
+                    base_midi=base_midi,
+                    max_register_distance=max_register_distance,
+                    voice_distance=voice_distance,
+                    voice_distance_context=voice_distance_context,
+                )
+
+            if voice_midi is not None and base_midi is not None:
+                max_register_distance = 18.0 + 4.0 * spread
+                while voice_midi - base_midi > max_register_distance:
+                    voice_midi -= 12.0
+                while base_midi - voice_midi > max_register_distance:
+                    voice_midi += 12.0
+
+            candidate_midis[voice_idx] = voice_midi
+
+        for voice_idx in range(1, voice_count):
+            if candidate_midis[voice_idx] is not None and candidate_midis[voice_idx - 1] is not None:
+                min_spacing = 2.0
+                if candidate_midis[voice_idx] - candidate_midis[voice_idx - 1] < min_spacing:
+                    candidate_midis[voice_idx] = candidate_midis[voice_idx - 1] + min_spacing
+
+        candidate_midis = _avoid_parallel_perfects(candidate_midis, previous_midis)
+        if strict_counterpoint:
+            candidate_midis = _avoid_hidden_perfects(candidate_midis, previous_midis)
+            candidate_midis = _avoid_parallel_perfects(candidate_midis, previous_midis)
+
+        for voice_idx in range(voice_count):
+            voice_midi = candidate_midis[voice_idx]
+            if voice_midi is None:
+                voice_freq = 0.0
+            else:
+                voice_freq = _midi_to_freq(voice_midi)
 
             voice_freq = max(70.0, min(2200.0, voice_freq))
             voices[voice_idx].append((voice_freq, note_duration))
             previous_freqs[voice_idx] = voice_freq
+            stored_midi = _freq_to_midi(voice_freq)
+            previous_midis[voice_idx] = stored_midi
+            voice_histories[voice_idx].append(stored_midi)
+            if len(voice_histories[voice_idx]) > max(4, voice_distance_context * 2):
+                voice_histories[voice_idx] = voice_histories[voice_idx][-max(4, voice_distance_context * 2):]
 
     return voices
 
@@ -463,7 +737,10 @@ def generate_melody(
     waveform="sine",
     voices=1,
     counterpoint=True,
+    strict_counterpoint=False,
     voice_spread=1.0,
+    voice_distance=0.65,
+    voice_distance_context=4,
     duration_coeff=1.0,
 ):
     _ensure_audio(sample_rate=sample_rate)
@@ -482,7 +759,14 @@ def generate_melody(
         _set_current_sound(rendered)
         return
 
-    voice_sequences = _build_counterpoint_voices(parsed_notes, voice_count=voice_count, voice_spread=voice_spread)
+    voice_sequences = _build_counterpoint_voices(
+        parsed_notes,
+        voice_count=voice_count,
+        voice_spread=voice_spread,
+        strict_counterpoint=bool(strict_counterpoint),
+        voice_distance=voice_distance,
+        voice_distance_context=voice_distance_context,
+    )
     voice_renders = [_render_note_sequence(sequence, amplitude, waveform) for sequence in voice_sequences]
 
     min_length = min(render.shape[0] for render in voice_renders)

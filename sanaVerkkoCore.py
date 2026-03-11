@@ -145,6 +145,10 @@ class SanaVerkkoKontrolleri:
         self.params["frequency_mapping_mode"] = "original_notes"
         self.params["voice_count"] = 1
         self.params["voice_spread"] = 1.0
+        self.params["voice_distance"] = 0.65
+        self.params["voice_distance_context"] = 4
+        self.params["strict_counterpoint"] = True
+        self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
         self.params["min_note_duration"] = 0.03
         self.params["adsr_attack"] = 0.01
@@ -316,9 +320,25 @@ class SanaVerkkoKontrolleri:
         self.voice_count_choice.SetSelection(0)
         self.voice_count_choice.Bind(wx.EVT_CHOICE, self.OnVoiceCount)
 
+        self.strict_counterpoint_checkbox = wx.CheckBox(panel, -1, "Strict CP")
+        self.strict_counterpoint_checkbox.SetValue(self.params["strict_counterpoint"])
+        self.strict_counterpoint_checkbox.Bind(wx.EVT_CHECKBOX, self.OnStrictCounterpoint)
+
         self.voice_spread_label = wx.StaticText(panel, -1, "Voice spread")
         self.voice_spread_ctrl = wx.TextCtrl(panel, -1, str(self.params["voice_spread"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.voice_spread_ctrl, self.OnVoiceSpread)
+
+        self.voice_distance_label = wx.StaticText(panel, -1, "Voice distance (0-1)")
+        self.voice_distance_ctrl = wx.TextCtrl(panel, -1, str(self.params["voice_distance"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.voice_distance_ctrl, self.OnVoiceDistance)
+
+        self.voice_distance_context_label = wx.StaticText(panel, -1, "Voice distance context")
+        self.voice_distance_context_ctrl = wx.TextCtrl(panel, -1, str(self.params["voice_distance_context"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.voice_distance_context_ctrl, self.OnVoiceDistanceContext)
+
+        self.melody_coherence_label = wx.StaticText(panel, -1, "Melody coherence (0-1)")
+        self.melody_coherence_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_coherence"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.melody_coherence_ctrl, self.OnMelodyCoherence)
 
         self.melody_speed_label = wx.StaticText(panel, -1, "Melody speed coeff")
         self.melody_speed_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_speed"]), style=wx.TE_PROCESS_ENTER)
@@ -430,8 +450,15 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.frequency_mapping_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_count_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_count_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.strict_counterpoint_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.voice_spread_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_spread_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.voice_distance_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.voice_distance_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.voice_distance_context_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.voice_distance_context_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.melody_coherence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.melody_coherence_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.melody_speed_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.min_note_duration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -997,8 +1024,26 @@ class SanaVerkkoKontrolleri:
             self.params["voice_count"] = 1
         self.last_audio_sentence_signature = None
 
+    def OnStrictCounterpoint(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["strict_counterpoint"] = bool(self.strict_counterpoint_checkbox.GetValue())
+        self.last_audio_sentence_signature = None
+
     def OnVoiceSpread(self, event):
         self._commit_float_param(self.voice_spread_ctrl, "voice_spread", minimum=0.3, maximum=5.0)
+        self.last_audio_sentence_signature = None
+
+    def OnVoiceDistance(self, event):
+        self._commit_float_param(self.voice_distance_ctrl, "voice_distance", minimum=0.0, maximum=1.0)
+        self.last_audio_sentence_signature = None
+
+    def OnVoiceDistanceContext(self, event):
+        self._commit_int_param(self.voice_distance_context_ctrl, "voice_distance_context", minimum=1, maximum=32)
+        self.last_audio_sentence_signature = None
+
+    def OnMelodyCoherence(self, event):
+        self._commit_float_param(self.melody_coherence_ctrl, "melody_coherence", minimum=0.0, maximum=1.0)
         self.last_audio_sentence_signature = None
 
     def OnMelodySpeed(self, event):
@@ -1360,34 +1405,90 @@ class SanaVerkkoKontrolleri:
         self.audio_wave_index = (self.audio_wave_index + 1 + dynamic_offset) % len(self.audio_waveforms)
         return self.audio_waveforms[self.audio_wave_index]
 
+    def _melody_pitch_pool(self, mode_key):
+        definition = self._frequency_mapping_definition(mode_key)
+        if definition is None:
+            return [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0]
+
+        kind = definition.get("kind")
+        if kind == "ratio":
+            pool = []
+            for ratio in definition.get("ratios", []):
+                if ratio <= 0.0:
+                    continue
+                pool.append(12.0 * math.log2(float(ratio)))
+            return pool or [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0]
+
+        if kind == "et_mode":
+            return [float(step) for step in definition.get("steps", [])] or [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0]
+
+        if kind == "et_full":
+            divisions = max(1, int(definition.get("divisions", 12)))
+            return [12.0 * (float(step) / float(divisions)) for step in range(divisions)]
+
+        return [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0]
+
+    def _freq_to_midi(self, frequency):
+        if frequency <= 0.0:
+            return 0.0
+        return 69.0 + 12.0 * math.log2(float(frequency) / 440.0)
+
+    def _midi_to_freq(self, midi_value):
+        return 440.0 * (2.0 ** ((float(midi_value) - 69.0) / 12.0))
+
     def _word_melody_from_gematria(self, word_text, activation_value=0.0):
         letter_values = [gematria_table[letter] for letter in word_text if letter in gematria_table]
         if not letter_values:
             return []
 
         total = sum(letter_values)
-        base_freq = 120.0 + float(total % 540)
         pattern = []
         max_activation = max(0.001, float(self.params.get("activation_limit", 2.0)))
         activation_norm = min(1.0, max(0.0, abs(float(activation_value)) / max_activation))
         mapping_mode = str(self.params.get("frequency_mapping_mode", "original_notes"))
+        melody_coherence = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
+        pitch_pool = self._melody_pitch_pool(mapping_mode)
+        if not pitch_pool:
+            pitch_pool = [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0]
+
+        root_midi = 45.0 + float(total % 12) + float(digital_root(total)) * 0.65
+        previous_midi = None
+        previous_frequency = 0.0
 
         for index, value in enumerate(letter_values):
-            step = (float(value) % 240.0) * 1.35
-            direction = 1.0 if index % 2 == 0 else -1.0
-            frequency = max(80.0, min(1400.0, base_freq + direction * step))
+            pool_index = int((value + index + digital_root(total)) % len(pitch_pool))
+            octave_span = 1 if melody_coherence >= 0.5 else 2
+            octave_shift = ((index + value // max(1, len(pitch_pool))) % (octave_span * 2 + 1)) - octave_span
+            target_midi = root_midi + pitch_pool[pool_index] + 12.0 * float(octave_shift)
+            root_pull = 0.12 + 0.28 * melody_coherence
+            target_midi = target_midi * (1.0 - root_pull) + root_midi * root_pull
+
+            if previous_midi is not None:
+                max_leap = 8.0 - 4.5 * melody_coherence
+                while target_midi - previous_midi > max_leap:
+                    target_midi -= 12.0
+                while previous_midi - target_midi > max_leap:
+                    target_midi += 12.0
+                smooth_mix = 0.45 + 0.35 * melody_coherence
+                target_midi = previous_midi * smooth_mix + target_midi * (1.0 - smooth_mix)
+
+            frequency = self._midi_to_freq(target_midi)
+            frequency = max(90.0, min(1100.0, frequency))
             mapping_entry = self._map_frequency_value(frequency, mapping_mode)
             frequency = mapping_entry["mapped_freq"]
-            if index == 0:
-                step_delta = abs(float(value) - float(letter_values[-1]))
-            else:
-                step_delta = abs(float(value) - float(letter_values[index - 1]))
 
-            pattern_norm = min(1.0, step_delta / 200.0)
+            if previous_frequency > 0.0:
+                melodic_delta = abs(self._freq_to_midi(frequency) - self._freq_to_midi(previous_frequency))
+            else:
+                melodic_delta = abs(target_midi - root_midi)
+
+            pattern_norm = min(1.0, melodic_delta / 7.0)
             base_duration = 0.07 + (1.0 - pattern_norm) * 0.08
             duration = base_duration * (1.0 - 0.45 * activation_norm)
             duration = min(0.2, max(0.001, duration))
             pattern.append((frequency, duration))
+            previous_frequency = frequency
+            previous_midi = self._freq_to_midi(frequency)
 
         reflected = pattern + list(reversed(pattern))
         return reflected
@@ -1452,8 +1553,13 @@ class SanaVerkkoKontrolleri:
 
         voice_count = max(1, min(4, int(self.params.get("voice_count", 1))))
         voice_spread = float(self.params.get("voice_spread", 1.0))
+        voice_distance = min(1.0, max(0.0, float(self.params.get("voice_distance", 0.65))))
+        voice_distance_context = max(1, int(self.params.get("voice_distance_context", 4)))
+        strict_counterpoint = bool(self.params.get("strict_counterpoint", False))
+        melody_coherence = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         melody_speed = float(self.params.get("melody_speed", 1.0))
         min_note_duration = float(self.params.get("min_note_duration", 0.03))
+        effective_voice_spread = max(0.3, min(5.0, voice_spread * (1.15 - 0.55 * melody_coherence)))
 
         melody = self._apply_duration_policy(melody, speed_coeff=melody_speed)
 
@@ -1463,7 +1569,11 @@ class SanaVerkkoKontrolleri:
             waveform,
             mapping_mode,
             voice_count,
+            strict_counterpoint,
             round(voice_spread, 2),
+            round(voice_distance, 2),
+            int(voice_distance_context),
+            round(melody_coherence, 2),
             round(melody_speed, 2),
             round(min_note_duration, 3),
             len(melody),
@@ -1490,7 +1600,10 @@ class SanaVerkkoKontrolleri:
             waveform=waveform,
             voices=voice_count,
             counterpoint=True,
-            voice_spread=voice_spread,
+            strict_counterpoint=strict_counterpoint,
+            voice_spread=effective_voice_spread,
+            voice_distance=voice_distance,
+            voice_distance_context=voice_distance_context,
             duration_coeff=1.0,
         )
 
@@ -2028,6 +2141,7 @@ class SanaVerkkoKontrolleri:
         self.params["fluid_root"] = bool(self.params.get("fluid_root", False))
         self.params["fluid_gematria"] = bool(self.params.get("fluid_gematria", False))
         self.params["use_phoneme_rhyme"] = bool(self.params.get("use_phoneme_rhyme", True))
+        self.params["strict_counterpoint"] = bool(self.params.get("strict_counterpoint", False))
         self.params["ltm_weight"] = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
         self.params["rhyme_weight"] = min(1.0, max(0.0, float(self.params.get("rhyme_weight", 0.28))))
         self.params["rhyme_min_similarity"] = min(1.0, max(0.0, float(self.params.get("rhyme_min_similarity", 0.34))))
@@ -2065,6 +2179,9 @@ class SanaVerkkoKontrolleri:
 
         self.params["voice_count"] = max(1, min(4, int(float(self.params.get("voice_count", 1)))))
         self.params["voice_spread"] = min(5.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
+        self.params["voice_distance"] = min(1.0, max(0.0, float(self.params.get("voice_distance", 0.65))))
+        self.params["voice_distance_context"] = max(1, min(32, int(float(self.params.get("voice_distance_context", 4)))))
+        self.params["melody_coherence"] = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
         self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
 
@@ -2084,6 +2201,7 @@ class SanaVerkkoKontrolleri:
             self.fluid_root_checkbox.SetValue(self.params["fluid_root"])
             self.fluid_gematria_checkbox.SetValue(self.params["fluid_gematria"])
             self.use_phoneme_rhyme_checkbox.SetValue(self.params["use_phoneme_rhyme"])
+            self.strict_counterpoint_checkbox.SetValue(self.params["strict_counterpoint"])
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
@@ -2114,6 +2232,9 @@ class SanaVerkkoKontrolleri:
             self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
             self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
             self._setCtrlValueSilently(self.voice_spread_ctrl, self.params["voice_spread"])
+            self._setCtrlValueSilently(self.voice_distance_ctrl, self.params["voice_distance"])
+            self._setCtrlValueSilently(self.voice_distance_context_ctrl, self.params["voice_distance_context"])
+            self._setCtrlValueSilently(self.melody_coherence_ctrl, self.params["melody_coherence"])
             self._setCtrlValueSilently(self.melody_speed_ctrl, self.params["melody_speed"])
             self._setCtrlValueSilently(self.min_note_duration_ctrl, self.params["min_note_duration"])
 
