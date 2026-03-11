@@ -158,6 +158,7 @@ class SanaVerkkoKontrolleri:
         self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
         self.params["min_note_duration"] = 0.03
+        self.params["melody_from_own_time"] = True
         self.params["adsr_attack"] = 0.01
         self.params["adsr_decay"] = 0.04
         self.params["adsr_sustain"] = 0.85
@@ -283,6 +284,10 @@ class SanaVerkkoKontrolleri:
         self.process_interval_label = wx.StaticText(panel, -1, "Process interval (s)")
         self.process_interval_ctrl = wx.TextCtrl(panel, -1, str(self.params["process_interval"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.process_interval_ctrl, self.OnProcessInterval)
+
+        self.melody_from_own_time_checkbox = wx.CheckBox(panel, -1, "From melody")
+        self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
+        self.melody_from_own_time_checkbox.Bind(wx.EVT_CHECKBOX, self.OnMelodyFromOwnTime)
 
         self.selection_exploration_label = wx.StaticText(panel, -1, "Selection exploration (0-1)")
         self.selection_exploration_ctrl = wx.TextCtrl(panel, -1, str(self.params["selection_exploration"]), style=wx.TE_PROCESS_ENTER)
@@ -461,7 +466,10 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.zoom_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.process_interval_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
-        self.sizer.Add(self.process_interval_ctrl, 0, wx.ALL, 5)
+        _pi_row = wx.BoxSizer(wx.HORIZONTAL)
+        _pi_row.Add(self.process_interval_ctrl, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 8)
+        _pi_row.Add(self.melody_from_own_time_checkbox, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.sizer.Add(_pi_row, 0, wx.ALL, 5)
 
         self.sizer.Add(self.selection_exploration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.selection_exploration_ctrl, 0, wx.ALL, 5)
@@ -1012,6 +1020,10 @@ class SanaVerkkoKontrolleri:
             sanasyna.set_transition_crossfade(transition_crossfade)
         except Exception:
             pass
+
+    def OnMelodyFromOwnTime(self, event):
+        self.params["melody_from_own_time"] = self.melody_from_own_time_checkbox.GetValue()
+        self.last_audio_sentence_signature = None
 
     def OnSelectionExploration(self, event):
         self._commit_float_param(self.selection_exploration_ctrl, "selection_exploration", minimum=0.0, maximum=1.0)
@@ -1820,6 +1832,21 @@ class SanaVerkkoKontrolleri:
 
         melody = self._apply_duration_policy(melody, speed_coeff=melody_speed)
 
+        melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
+        if not melody_from_own_time:
+            _cutoff_dur = float(self.params.get("process_interval", 0.08))
+            _trimmed = []
+            _accum = 0.0
+            for _freq, _dur in melody:
+                if _accum + _dur > _cutoff_dur:
+                    _rem = _cutoff_dur - _accum
+                    if _rem > 0.001:
+                        _trimmed.append((_freq, _rem))
+                    break
+                _trimmed.append((_freq, _dur))
+                _accum += _dur
+            melody = _trimmed if _trimmed else melody
+
         activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
         signature = (
             tuple(word.word for word in self.words),
@@ -1841,6 +1868,7 @@ class SanaVerkkoKontrolleri:
             round(melody_speed, 2),
             round(min_note_duration, 3),
             len(melody),
+            melody_from_own_time,
             activation_signature,
         )
         if signature == self.last_audio_sentence_signature and self.audio_playing:
@@ -2453,6 +2481,7 @@ class SanaVerkkoKontrolleri:
         self.params["word_change_threshold"] = float(self.params.get("word_change_threshold", 0.777))
         self.params["zoom"] = max(0.001, float(self.params.get("zoom", 0.1)))
         self.params["process_interval"] = max(0.01, float(self.params.get("process_interval", 0.08)))
+        self.params["melody_from_own_time"] = bool(self.params.get("melody_from_own_time", True))
         self.params["logic_iteration_limit"] = max(1, int(float(self.params.get("logic_iteration_limit", 48))))
         self.params["selection_exploration"] = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
         self.params["selection_top_k"] = max(1, int(float(self.params.get("selection_top_k", 4))))
@@ -2517,6 +2546,7 @@ class SanaVerkkoKontrolleri:
             self.fluid_gematria_checkbox.SetValue(self.params["fluid_gematria"])
             self.use_phoneme_rhyme_checkbox.SetValue(self.params["use_phoneme_rhyme"])
             self.strict_counterpoint_checkbox.SetValue(self.params["strict_counterpoint"])
+            self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
