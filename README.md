@@ -206,6 +206,14 @@ Bundled presets in `presets/`:
 - `09_fractal_rupture.json` – near-chaotic search and rapid transitions
 - `10_abyssal_glitch.json` – maximum-chaos profile
 
+All bundled presets now include modern audio/rhythm parameters, including:
+- `voice_distance`, `voice_distance_context`, `strict_counterpoint`, `melody_coherence`
+- `rhythm_style`, `beat_library_style`, `rhythmic_divergence`
+- `rhythm_gate_strength`, `rhythm_stretch_strength`, `rhythm_rotation`, `rhythm_radicality`
+
+Preset `rhythm_radicality` progression (01 → 10):
+- `0.05`, `0.15`, `0.25`, `0.40`, `0.55`, `0.68`, `0.80`, `0.90`, `0.97`, `1.00`
+
 Preset scale is intended to move from conservative/consistent behavior to highly exploratory/chaotic behavior.
 
 ## Output format (`output.txt`)

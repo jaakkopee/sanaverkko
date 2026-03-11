@@ -153,6 +153,7 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_gate_strength"] = 0.85
         self.params["rhythm_stretch_strength"] = 1.0
         self.params["rhythm_rotation"] = 0
+        self.params["rhythm_radicality"] = 0.5
         self.params["strict_counterpoint"] = True
         self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
@@ -368,6 +369,10 @@ class SanaVerkkoKontrolleri:
         self.rhythm_rotation_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_rotation"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.rhythm_rotation_ctrl, self.OnRhythmRotation)
 
+        self.rhythm_radicality_label = wx.StaticText(panel, -1, "Rhythm radicality (0-1)")
+        self.rhythm_radicality_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_radicality"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythm_radicality_ctrl, self.OnRhythmRadicality)
+
         self.melody_coherence_label = wx.StaticText(panel, -1, "Melody coherence (0-1)")
         self.melody_coherence_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_coherence"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.melody_coherence_ctrl, self.OnMelodyCoherence)
@@ -501,6 +506,8 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.rhythm_stretch_strength_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.rhythm_rotation_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhythm_rotation_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythm_radicality_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_radicality_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_coherence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.melody_coherence_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -1139,6 +1146,13 @@ class SanaVerkkoKontrolleri:
             self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
+    def OnRhythmRadicality(self, event):
+        self._commit_float_param(self.rhythm_radicality_ctrl, "rhythm_radicality", minimum=0.0, maximum=1.0)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self.last_audio_sentence_signature = None
+
     def OnMelodyCoherence(self, event):
         self._commit_float_param(self.melody_coherence_ctrl, "melody_coherence", minimum=0.0, maximum=1.0)
         self.last_audio_sentence_signature = None
@@ -1336,6 +1350,7 @@ class SanaVerkkoKontrolleri:
                 "rhythm_gate_strength": 0.20,
                 "rhythm_stretch_strength": 0.35,
                 "rhythm_rotation": 0,
+                "rhythm_radicality": 0.20,
                 "melody_speed": 1.10,
                 "min_note_duration": 0.04,
             },
@@ -1347,6 +1362,7 @@ class SanaVerkkoKontrolleri:
                 "rhythm_gate_strength": 0.85,
                 "rhythm_stretch_strength": 0.75,
                 "rhythm_rotation": 1,
+                "rhythm_radicality": 0.70,
                 "melody_speed": 1.05,
                 "min_note_duration": 0.03,
             },
@@ -1358,6 +1374,7 @@ class SanaVerkkoKontrolleri:
                 "rhythm_gate_strength": 0.90,
                 "rhythm_stretch_strength": 0.85,
                 "rhythm_rotation": 2,
+                "rhythm_radicality": 0.82,
                 "melody_speed": 1.0,
                 "min_note_duration": 0.025,
             },
@@ -1369,6 +1386,7 @@ class SanaVerkkoKontrolleri:
                 "rhythm_gate_strength": 1.0,
                 "rhythm_stretch_strength": 0.90,
                 "rhythm_rotation": 3,
+                "rhythm_radicality": 0.92,
                 "melody_speed": 0.95,
                 "min_note_duration": 0.02,
             },
@@ -1380,6 +1398,7 @@ class SanaVerkkoKontrolleri:
                 "rhythm_gate_strength": 1.0,
                 "rhythm_stretch_strength": 1.0,
                 "rhythm_rotation": 4,
+                "rhythm_radicality": 1.0,
                 "melody_speed": 1.2,
                 "min_note_duration": 0.015,
             },
@@ -1772,6 +1791,7 @@ class SanaVerkkoKontrolleri:
         rhythm_gate_strength = min(1.0, max(0.0, float(self.params.get("rhythm_gate_strength", 0.85))))
         rhythm_stretch_strength = min(1.0, max(0.0, float(self.params.get("rhythm_stretch_strength", 1.0))))
         rhythm_rotation = max(0, int(self.params.get("rhythm_rotation", 0)))
+        rhythm_radicality = min(1.0, max(0.0, float(self.params.get("rhythm_radicality", 0.5))))
         rhythm_style = str(self.params.get("rhythm_style", "manual"))
         strict_counterpoint = bool(self.params.get("strict_counterpoint", False))
         melody_coherence = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
@@ -1796,6 +1816,7 @@ class SanaVerkkoKontrolleri:
             round(rhythm_gate_strength, 2),
             round(rhythm_stretch_strength, 2),
             int(rhythm_rotation),
+            round(rhythm_radicality, 2),
             rhythm_style,
             round(melody_coherence, 2),
             round(melody_speed, 2),
@@ -1833,6 +1854,7 @@ class SanaVerkkoKontrolleri:
             rhythm_gate_strength=rhythm_gate_strength,
             rhythm_stretch_strength=rhythm_stretch_strength,
             rhythm_rotation=rhythm_rotation,
+            rhythm_radicality=rhythm_radicality,
             mapping_mode=mapping_mode,
             duration_coeff=1.0,
         )
@@ -2427,6 +2449,7 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_gate_strength"] = min(1.0, max(0.0, float(self.params.get("rhythm_gate_strength", 0.85))))
         self.params["rhythm_stretch_strength"] = min(1.0, max(0.0, float(self.params.get("rhythm_stretch_strength", 1.0))))
         self.params["rhythm_rotation"] = max(0, min(31, int(float(self.params.get("rhythm_rotation", 0)))))
+        self.params["rhythm_radicality"] = min(1.0, max(0.0, float(self.params.get("rhythm_radicality", 0.5))))
         self.params["melody_coherence"] = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
         self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
@@ -2486,6 +2509,7 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.rhythm_gate_strength_ctrl, self.params["rhythm_gate_strength"])
             self._setCtrlValueSilently(self.rhythm_stretch_strength_ctrl, self.params["rhythm_stretch_strength"])
             self._setCtrlValueSilently(self.rhythm_rotation_ctrl, self.params["rhythm_rotation"])
+            self._setCtrlValueSilently(self.rhythm_radicality_ctrl, self.params["rhythm_radicality"])
             self._setCtrlValueSilently(self.melody_coherence_ctrl, self.params["melody_coherence"])
             self._setCtrlValueSilently(self.melody_speed_ctrl, self.params["melody_speed"])
             self._setCtrlValueSilently(self.min_note_duration_ctrl, self.params["min_note_duration"])

@@ -298,12 +298,13 @@ def _semitone_distance(freq_a, freq_b):
     return int(round(12.0 * math.log2(float(freq_b) / float(freq_a))))
 
 
-def _voice_duration_profile(base_duration, voice_count, note_index, context_size, voice_distance, rhythmic_divergence):
+def _voice_duration_profile(base_duration, voice_count, note_index, context_size, voice_distance, rhythmic_divergence, rhythm_radicality=0.5):
     base = max(0.01, float(base_duration))
     count = max(1, int(voice_count))
     context = max(1, int(context_size))
     divergence = max(0.0, min(1.0, float(rhythmic_divergence)))
-    contour_depth = min(0.30, (0.03 + 0.02 * float(context)) * (0.25 + 0.95 * divergence))
+    radicality = max(0.0, min(1.0, float(rhythm_radicality)))
+    contour_depth = min(0.45, (0.03 + 0.02 * float(context)) * (0.25 + 0.95 * divergence) * (0.65 + 0.9 * radicality))
     stability_bias = 1.0 - 0.35 * max(0.0, min(1.0, float(voice_distance)))
     voice_identities = [1.0, 4.0 / 3.0, 3.0 / 2.0, 5.0 / 3.0]
 
@@ -316,18 +317,18 @@ def _voice_duration_profile(base_duration, voice_count, note_index, context_size
 
         identity_ratio = voice_identities[min(voice_idx, len(voice_identities) - 1)]
         cycle_variant = (note_index + voice_idx) % 4
-        cycle_ratios = [1.0, 0.75, 1.25, 1.5]
+        cycle_ratios = [1.0, 0.75 - 0.15 * radicality, 1.25 + 0.20 * radicality, 1.5 + 0.35 * radicality]
         cycle_ratio = cycle_ratios[cycle_variant]
 
         identity_blend = (1.0 - divergence) * 1.0 + divergence * identity_ratio
         cycle_blend = (1.0 - divergence) * 1.0 + divergence * cycle_ratio
 
         multiplier = (1.0 + shape * stability_bias) * identity_blend * cycle_blend
-        multiplier = max(0.40, min(2.40, multiplier))
+        multiplier = max(0.25, min(3.20, multiplier))
         durations.append(base * multiplier)
 
-    minimum = max(0.01, base * (0.95 - 0.65 * divergence))
-    maximum = max(minimum + 0.01, base * (1.08 + 1.60 * divergence))
+    minimum = max(0.01, base * (0.95 - (0.65 + 0.20 * radicality) * divergence))
+    maximum = max(minimum + 0.01, base * (1.08 + (1.60 + 1.10 * radicality) * divergence))
     return [max(minimum, min(maximum, value)) for value in durations]
 
 
@@ -468,6 +469,7 @@ def _shape_duration_by_beat(
     rhythm_gate_strength=0.85,
     rhythm_stretch_strength=1.0,
     rhythm_rotation=0,
+    rhythm_radicality=0.5,
 ):
     if beat_pattern is None:
         return max(0.01, float(base_duration)), False
@@ -476,6 +478,7 @@ def _shape_duration_by_beat(
     gate_strength = max(0.0, min(1.0, float(rhythm_gate_strength)))
     stretch_strength = max(0.0, min(1.0, float(rhythm_stretch_strength)))
     rotation = max(0, int(rhythm_rotation))
+    radicality = max(0.0, min(1.0, float(rhythm_radicality)))
     steps_by_voice = beat_pattern.get("steps", [])
     stretch_by_voice = beat_pattern.get("stretch", [])
 
@@ -490,10 +493,11 @@ def _shape_duration_by_beat(
     gate = int(local_steps[slot])
     stretch = float(local_stretch[slot % len(local_stretch)])
 
-    blended_stretch = 1.0 + stretch_strength * (stretch - 1.0)
+    blended_stretch = 1.0 + stretch_strength * (1.0 + 1.5 * radicality) * (stretch - 1.0)
     shaped = max(0.01, float(base_duration) * ((1.0 - divergence) + divergence * blended_stretch))
-    gate_trigger = divergence * gate_strength
-    silence_gate = (gate == 0 and gate_trigger >= 0.25)
+    gate_trigger = divergence * gate_strength * (0.8 + 0.9 * radicality)
+    silence_threshold = max(0.15, 0.25 - 0.12 * radicality)
+    silence_gate = (gate == 0 and gate_trigger >= silence_threshold)
     return shaped, silence_gate
 
 
@@ -963,6 +967,7 @@ def _build_counterpoint_voices(
     rhythm_gate_strength=0.85,
     rhythm_stretch_strength=1.0,
     rhythm_rotation=0,
+    rhythm_radicality=0.5,
     mapping_mode="original_notes",
 ):
     voice_count = max(1, min(4, int(voice_count)))
@@ -996,6 +1001,7 @@ def _build_counterpoint_voices(
             context_size=voice_distance_context,
             voice_distance=voice_distance,
             rhythmic_divergence=rhythmic_divergence,
+            rhythm_radicality=rhythm_radicality,
         )
         per_voice_silence = [False] * voice_count
         for voice_idx in range(voice_count):
@@ -1008,6 +1014,7 @@ def _build_counterpoint_voices(
                 rhythm_gate_strength=rhythm_gate_strength,
                 rhythm_stretch_strength=rhythm_stretch_strength,
                 rhythm_rotation=rhythm_rotation,
+                rhythm_radicality=rhythm_radicality,
             )
             per_voice_durations[voice_idx] = shaped_duration
             per_voice_silence[voice_idx] = silence_gate
@@ -1249,6 +1256,7 @@ def generate_melody(
     rhythm_gate_strength=0.85,
     rhythm_stretch_strength=1.0,
     rhythm_rotation=0,
+    rhythm_radicality=0.5,
     mapping_mode="original_notes",
     duration_coeff=1.0,
 ):
@@ -1280,6 +1288,7 @@ def generate_melody(
         rhythm_gate_strength=rhythm_gate_strength,
         rhythm_stretch_strength=rhythm_stretch_strength,
         rhythm_rotation=rhythm_rotation,
+        rhythm_radicality=rhythm_radicality,
         mapping_mode=mapping_mode,
     )
     voice_renders = [_render_note_sequence(sequence, amplitude, waveform) for sequence in voice_sequences]
