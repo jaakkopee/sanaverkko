@@ -426,10 +426,26 @@ def _beat_library_for_voice_count(voice_count):
     ]
 
 
-def _select_beat_pattern(voice_count, context_size, rhythmic_divergence):
+def _select_beat_pattern(voice_count, context_size, rhythmic_divergence, beat_library_style="auto"):
     library = _beat_library_for_voice_count(voice_count)
     if not library:
         return None
+
+    style_aliases = {
+        "duo_cross": "duo-cross",
+        "duo_hocket": "duo-hocket",
+        "trio_3over2": "trio-3over2",
+        "trio_tresillo": "trio-tresillo",
+        "quartet_grid_fracture": "quartet-grid-fracture",
+        "quartet_hyperbanana": "quartet-hyperbanana",
+    }
+
+    selected_key = str(beat_library_style or "auto")
+    selected_name = style_aliases.get(selected_key)
+    if selected_name is not None:
+        for entry in library:
+            if str(entry.get("name")) == selected_name:
+                return entry
 
     divergence = max(0.0, min(1.0, float(rhythmic_divergence)))
     if divergence < 0.12:
@@ -443,11 +459,23 @@ def _select_beat_pattern(voice_count, context_size, rhythmic_divergence):
     return library[index]
 
 
-def _shape_duration_by_beat(base_duration, voice_idx, note_index, rhythmic_divergence, beat_pattern):
+def _shape_duration_by_beat(
+    base_duration,
+    voice_idx,
+    note_index,
+    rhythmic_divergence,
+    beat_pattern,
+    rhythm_gate_strength=0.85,
+    rhythm_stretch_strength=1.0,
+    rhythm_rotation=0,
+):
     if beat_pattern is None:
         return max(0.01, float(base_duration)), False
 
     divergence = max(0.0, min(1.0, float(rhythmic_divergence)))
+    gate_strength = max(0.0, min(1.0, float(rhythm_gate_strength)))
+    stretch_strength = max(0.0, min(1.0, float(rhythm_stretch_strength)))
+    rotation = max(0, int(rhythm_rotation))
     steps_by_voice = beat_pattern.get("steps", [])
     stretch_by_voice = beat_pattern.get("stretch", [])
 
@@ -458,12 +486,14 @@ def _shape_duration_by_beat(base_duration, voice_idx, note_index, rhythmic_diver
     if not local_stretch:
         local_stretch = [1.0]
 
-    slot = int(note_index) % len(local_steps)
+    slot = (int(note_index) + rotation) % len(local_steps)
     gate = int(local_steps[slot])
     stretch = float(local_stretch[slot % len(local_stretch)])
 
-    shaped = max(0.01, float(base_duration) * ((1.0 - divergence) + divergence * stretch))
-    silence_gate = (gate == 0 and divergence >= 0.35)
+    blended_stretch = 1.0 + stretch_strength * (stretch - 1.0)
+    shaped = max(0.01, float(base_duration) * ((1.0 - divergence) + divergence * blended_stretch))
+    gate_trigger = divergence * gate_strength
+    silence_gate = (gate == 0 and gate_trigger >= 0.25)
     return shaped, silence_gate
 
 
@@ -929,6 +959,10 @@ def _build_counterpoint_voices(
     voice_distance=0.65,
     voice_distance_context=4,
     rhythmic_divergence=0.35,
+    beat_library_style="auto",
+    rhythm_gate_strength=0.85,
+    rhythm_stretch_strength=1.0,
+    rhythm_rotation=0,
     mapping_mode="original_notes",
 ):
     voice_count = max(1, min(4, int(voice_count)))
@@ -938,7 +972,12 @@ def _build_counterpoint_voices(
     interval_ratios = _spread_intervals(voice_count, voice_spread)
     scale_steps = _mode_scale_steps(mapping_mode)
     interval_library = _build_scale_interval_library(scale_steps, voice_distance_context)
-    beat_pattern = _select_beat_pattern(voice_count, voice_distance_context, rhythmic_divergence)
+    beat_pattern = _select_beat_pattern(
+        voice_count,
+        voice_distance_context,
+        rhythmic_divergence,
+        beat_library_style=beat_library_style,
+    )
     voice_distance = min(1.0, max(0.0, float(voice_distance)))
     voice_distance_context = max(1, int(voice_distance_context))
 
@@ -966,6 +1005,9 @@ def _build_counterpoint_voices(
                 note_index=note_index,
                 rhythmic_divergence=rhythmic_divergence,
                 beat_pattern=beat_pattern,
+                rhythm_gate_strength=rhythm_gate_strength,
+                rhythm_stretch_strength=rhythm_stretch_strength,
+                rhythm_rotation=rhythm_rotation,
             )
             per_voice_durations[voice_idx] = shaped_duration
             per_voice_silence[voice_idx] = silence_gate
@@ -1203,6 +1245,10 @@ def generate_melody(
     voice_distance=0.65,
     voice_distance_context=4,
     rhythmic_divergence=0.35,
+    beat_library_style="auto",
+    rhythm_gate_strength=0.85,
+    rhythm_stretch_strength=1.0,
+    rhythm_rotation=0,
     mapping_mode="original_notes",
     duration_coeff=1.0,
 ):
@@ -1230,6 +1276,10 @@ def generate_melody(
         voice_distance=voice_distance,
         voice_distance_context=voice_distance_context,
         rhythmic_divergence=rhythmic_divergence,
+        beat_library_style=beat_library_style,
+        rhythm_gate_strength=rhythm_gate_strength,
+        rhythm_stretch_strength=rhythm_stretch_strength,
+        rhythm_rotation=rhythm_rotation,
         mapping_mode=mapping_mode,
     )
     voice_renders = [_render_note_sequence(sequence, amplitude, waveform) for sequence in voice_sequences]

@@ -148,6 +148,11 @@ class SanaVerkkoKontrolleri:
         self.params["voice_distance"] = 0.65
         self.params["voice_distance_context"] = 4
         self.params["rhythmic_divergence"] = 0.35
+        self.params["rhythm_style"] = "manual"
+        self.params["beat_library_style"] = "auto"
+        self.params["rhythm_gate_strength"] = 0.85
+        self.params["rhythm_stretch_strength"] = 1.0
+        self.params["rhythm_rotation"] = 0
         self.params["strict_counterpoint"] = True
         self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
@@ -321,6 +326,16 @@ class SanaVerkkoKontrolleri:
         self.voice_count_choice.SetSelection(0)
         self.voice_count_choice.Bind(wx.EVT_CHOICE, self.OnVoiceCount)
 
+        self.rhythm_style_label = wx.StaticText(panel, -1, "Rhythm style")
+        self.rhythm_style_choice = wx.Choice(panel, -1, choices=[label for _, label in self._rhythm_style_modes()])
+        self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key(self.params.get("rhythm_style", "manual")))
+        self.rhythm_style_choice.Bind(wx.EVT_CHOICE, self.OnRhythmStyle)
+
+        self.beat_library_style_label = wx.StaticText(panel, -1, "Beat library")
+        self.beat_library_style_choice = wx.Choice(panel, -1, choices=[label for _, label in self._beat_library_modes()])
+        self.beat_library_style_choice.SetStringSelection(self._beat_library_label_from_key(self.params.get("beat_library_style", "auto")))
+        self.beat_library_style_choice.Bind(wx.EVT_CHOICE, self.OnBeatLibraryStyle)
+
         self.strict_counterpoint_checkbox = wx.CheckBox(panel, -1, "Strict CP")
         self.strict_counterpoint_checkbox.SetValue(self.params["strict_counterpoint"])
         self.strict_counterpoint_checkbox.Bind(wx.EVT_CHECKBOX, self.OnStrictCounterpoint)
@@ -340,6 +355,18 @@ class SanaVerkkoKontrolleri:
         self.rhythmic_divergence_label = wx.StaticText(panel, -1, "Rhythmic divergence (0-1)")
         self.rhythmic_divergence_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythmic_divergence"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.rhythmic_divergence_ctrl, self.OnRhythmicDivergence)
+
+        self.rhythm_gate_strength_label = wx.StaticText(panel, -1, "Rhythm gate strength (0-1)")
+        self.rhythm_gate_strength_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_gate_strength"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythm_gate_strength_ctrl, self.OnRhythmGateStrength)
+
+        self.rhythm_stretch_strength_label = wx.StaticText(panel, -1, "Rhythm stretch strength (0-1)")
+        self.rhythm_stretch_strength_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_stretch_strength"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythm_stretch_strength_ctrl, self.OnRhythmStretchStrength)
+
+        self.rhythm_rotation_label = wx.StaticText(panel, -1, "Rhythm rotation")
+        self.rhythm_rotation_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_rotation"]), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythm_rotation_ctrl, self.OnRhythmRotation)
 
         self.melody_coherence_label = wx.StaticText(panel, -1, "Melody coherence (0-1)")
         self.melody_coherence_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_coherence"]), style=wx.TE_PROCESS_ENTER)
@@ -453,6 +480,10 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.frequency_mapping_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.frequency_mapping_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_style_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_style_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.beat_library_style_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.beat_library_style_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_count_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.voice_count_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.strict_counterpoint_checkbox, 0, wx.ALL, 5)
@@ -464,6 +495,12 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.voice_distance_context_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.rhythmic_divergence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhythmic_divergence_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythm_gate_strength_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_gate_strength_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythm_stretch_strength_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_stretch_strength_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythm_rotation_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_rotation_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_coherence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.melody_coherence_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -1029,6 +1066,28 @@ class SanaVerkkoKontrolleri:
             self.params["voice_count"] = max(1, min(4, int(selected_voice_count)))
         except Exception:
             self.params["voice_count"] = 1
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self.last_audio_sentence_signature = None
+
+    def OnRhythmStyle(self, event):
+        if self._suppress_param_events:
+            return
+        selected_label = self.rhythm_style_choice.GetStringSelection()
+        style_key = self._rhythm_style_key_from_label(selected_label)
+        self.params["rhythm_style"] = style_key
+        self._apply_rhythm_style_preset(style_key)
+        self._sync_controls_from_params()
+        self.last_audio_sentence_signature = None
+
+    def OnBeatLibraryStyle(self, event):
+        if self._suppress_param_events:
+            return
+        selected_label = self.beat_library_style_choice.GetStringSelection()
+        self.params["beat_library_style"] = self._beat_library_key_from_label(selected_label)
+        self.params["rhythm_style"] = "manual"
+        self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
     def OnStrictCounterpoint(self, event):
@@ -1047,10 +1106,37 @@ class SanaVerkkoKontrolleri:
 
     def OnVoiceDistanceContext(self, event):
         self._commit_int_param(self.voice_distance_context_ctrl, "voice_distance_context", minimum=1, maximum=32)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
     def OnRhythmicDivergence(self, event):
         self._commit_float_param(self.rhythmic_divergence_ctrl, "rhythmic_divergence", minimum=0.0, maximum=1.0)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self.last_audio_sentence_signature = None
+
+    def OnRhythmGateStrength(self, event):
+        self._commit_float_param(self.rhythm_gate_strength_ctrl, "rhythm_gate_strength", minimum=0.0, maximum=1.0)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self.last_audio_sentence_signature = None
+
+    def OnRhythmStretchStrength(self, event):
+        self._commit_float_param(self.rhythm_stretch_strength_ctrl, "rhythm_stretch_strength", minimum=0.0, maximum=1.0)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self.last_audio_sentence_signature = None
+
+    def OnRhythmRotation(self, event):
+        self._commit_int_param(self.rhythm_rotation_ctrl, "rhythm_rotation", minimum=0, maximum=31)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
     def OnMelodyCoherence(self, event):
@@ -1059,10 +1145,16 @@ class SanaVerkkoKontrolleri:
 
     def OnMelodySpeed(self, event):
         self._commit_float_param(self.melody_speed_ctrl, "melody_speed", minimum=0.2, maximum=6.0)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
     def OnMinNoteDuration(self, event):
         self._commit_float_param(self.min_note_duration_ctrl, "min_note_duration", minimum=0.01, maximum=1.0)
+        self.params["rhythm_style"] = "manual"
+        if hasattr(self, "rhythm_style_choice"):
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
     def _applyADSRToAudio(self):
@@ -1187,6 +1279,115 @@ class SanaVerkkoKontrolleri:
             ("equal_tempered_36_note", "Equal tempered 36 note"),
             ("equal_tempered_48_note", "Equal tempered 48 note"),
         ]
+
+    def _rhythm_style_modes(self):
+        return [
+            ("manual", "Manual"),
+            ("tight_pulse", "Tight pulse"),
+            ("hocket_duo", "Hocket duo"),
+            ("polyrhythm_trio", "Polyrhythm trio"),
+            ("fractured_quartet", "Fractured quartet"),
+            ("hyperbanana", "Hyperbanana cadence"),
+        ]
+
+    def _beat_library_modes(self):
+        return [
+            ("auto", "Auto"),
+            ("duo_cross", "Duo cross"),
+            ("duo_hocket", "Duo hocket"),
+            ("trio_3over2", "Trio 3 over 2"),
+            ("trio_tresillo", "Trio tresillo"),
+            ("quartet_grid_fracture", "Quartet grid fracture"),
+            ("quartet_hyperbanana", "Quartet hyperbanana"),
+        ]
+
+    def _beat_library_label_from_key(self, style_key):
+        for key, label in self._beat_library_modes():
+            if key == style_key:
+                return label
+        return "Auto"
+
+    def _beat_library_key_from_label(self, style_label):
+        for key, label in self._beat_library_modes():
+            if label == style_label:
+                return key
+        return "auto"
+
+    def _rhythm_style_label_from_key(self, style_key):
+        for key, label in self._rhythm_style_modes():
+            if key == style_key:
+                return label
+        return "Manual"
+
+    def _rhythm_style_key_from_label(self, style_label):
+        for key, label in self._rhythm_style_modes():
+            if label == style_label:
+                return key
+        return "manual"
+
+    def _apply_rhythm_style_preset(self, style_key):
+        presets = {
+            "manual": {},
+            "tight_pulse": {
+                "voice_count": 2,
+                "rhythmic_divergence": 0.20,
+                "voice_distance_context": 3,
+                "beat_library_style": "duo_cross",
+                "rhythm_gate_strength": 0.20,
+                "rhythm_stretch_strength": 0.35,
+                "rhythm_rotation": 0,
+                "melody_speed": 1.10,
+                "min_note_duration": 0.04,
+            },
+            "hocket_duo": {
+                "voice_count": 2,
+                "rhythmic_divergence": 0.75,
+                "voice_distance_context": 5,
+                "beat_library_style": "duo_hocket",
+                "rhythm_gate_strength": 0.85,
+                "rhythm_stretch_strength": 0.75,
+                "rhythm_rotation": 1,
+                "melody_speed": 1.05,
+                "min_note_duration": 0.03,
+            },
+            "polyrhythm_trio": {
+                "voice_count": 3,
+                "rhythmic_divergence": 0.85,
+                "voice_distance_context": 6,
+                "beat_library_style": "trio_3over2",
+                "rhythm_gate_strength": 0.90,
+                "rhythm_stretch_strength": 0.85,
+                "rhythm_rotation": 2,
+                "melody_speed": 1.0,
+                "min_note_duration": 0.025,
+            },
+            "fractured_quartet": {
+                "voice_count": 4,
+                "rhythmic_divergence": 0.92,
+                "voice_distance_context": 7,
+                "beat_library_style": "quartet_grid_fracture",
+                "rhythm_gate_strength": 1.0,
+                "rhythm_stretch_strength": 0.90,
+                "rhythm_rotation": 3,
+                "melody_speed": 0.95,
+                "min_note_duration": 0.02,
+            },
+            "hyperbanana": {
+                "voice_count": 4,
+                "rhythmic_divergence": 1.0,
+                "voice_distance_context": 8,
+                "beat_library_style": "quartet_hyperbanana",
+                "rhythm_gate_strength": 1.0,
+                "rhythm_stretch_strength": 1.0,
+                "rhythm_rotation": 4,
+                "melody_speed": 1.2,
+                "min_note_duration": 0.015,
+            },
+        }
+
+        preset = presets.get(style_key, {})
+        for key, value in preset.items():
+            self.params[key] = value
 
     def _frequency_mapping_label_from_key(self, mode_key):
         for key, label in self._frequency_mapping_modes():
@@ -1567,6 +1768,11 @@ class SanaVerkkoKontrolleri:
         voice_distance = min(1.0, max(0.0, float(self.params.get("voice_distance", 0.65))))
         voice_distance_context = max(1, int(self.params.get("voice_distance_context", 4)))
         rhythmic_divergence = min(1.0, max(0.0, float(self.params.get("rhythmic_divergence", 0.35))))
+        beat_library_style = str(self.params.get("beat_library_style", "auto"))
+        rhythm_gate_strength = min(1.0, max(0.0, float(self.params.get("rhythm_gate_strength", 0.85))))
+        rhythm_stretch_strength = min(1.0, max(0.0, float(self.params.get("rhythm_stretch_strength", 1.0))))
+        rhythm_rotation = max(0, int(self.params.get("rhythm_rotation", 0)))
+        rhythm_style = str(self.params.get("rhythm_style", "manual"))
         strict_counterpoint = bool(self.params.get("strict_counterpoint", False))
         melody_coherence = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         melody_speed = float(self.params.get("melody_speed", 1.0))
@@ -1586,6 +1792,11 @@ class SanaVerkkoKontrolleri:
             round(voice_distance, 2),
             int(voice_distance_context),
             round(rhythmic_divergence, 2),
+            beat_library_style,
+            round(rhythm_gate_strength, 2),
+            round(rhythm_stretch_strength, 2),
+            int(rhythm_rotation),
+            rhythm_style,
             round(melody_coherence, 2),
             round(melody_speed, 2),
             round(min_note_duration, 3),
@@ -1618,6 +1829,10 @@ class SanaVerkkoKontrolleri:
             voice_distance=voice_distance,
             voice_distance_context=voice_distance_context,
             rhythmic_divergence=rhythmic_divergence,
+            beat_library_style=beat_library_style,
+            rhythm_gate_strength=rhythm_gate_strength,
+            rhythm_stretch_strength=rhythm_stretch_strength,
+            rhythm_rotation=rhythm_rotation,
             mapping_mode=mapping_mode,
             duration_coeff=1.0,
         )
@@ -2192,11 +2407,26 @@ class SanaVerkkoKontrolleri:
             frequency_mapping_mode = "original_notes"
         self.params["frequency_mapping_mode"] = frequency_mapping_mode
 
+        rhythm_style = str(self.params.get("rhythm_style", "manual"))
+        valid_rhythm_styles = {key for key, _ in self._rhythm_style_modes()}
+        if rhythm_style not in valid_rhythm_styles:
+            rhythm_style = "manual"
+        self.params["rhythm_style"] = rhythm_style
+
+        beat_library_style = str(self.params.get("beat_library_style", "auto"))
+        valid_beat_styles = {key for key, _ in self._beat_library_modes()}
+        if beat_library_style not in valid_beat_styles:
+            beat_library_style = "auto"
+        self.params["beat_library_style"] = beat_library_style
+
         self.params["voice_count"] = max(1, min(4, int(float(self.params.get("voice_count", 1)))))
         self.params["voice_spread"] = min(5.0, max(0.3, float(self.params.get("voice_spread", 1.0))))
         self.params["voice_distance"] = min(1.0, max(0.0, float(self.params.get("voice_distance", 0.65))))
         self.params["voice_distance_context"] = max(1, min(32, int(float(self.params.get("voice_distance_context", 4)))))
         self.params["rhythmic_divergence"] = min(1.0, max(0.0, float(self.params.get("rhythmic_divergence", 0.35))))
+        self.params["rhythm_gate_strength"] = min(1.0, max(0.0, float(self.params.get("rhythm_gate_strength", 0.85))))
+        self.params["rhythm_stretch_strength"] = min(1.0, max(0.0, float(self.params.get("rhythm_stretch_strength", 1.0))))
+        self.params["rhythm_rotation"] = max(0, min(31, int(float(self.params.get("rhythm_rotation", 0)))))
         self.params["melody_coherence"] = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
         self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
@@ -2246,11 +2476,16 @@ class SanaVerkkoKontrolleri:
             else:
                 self.audio_wave_mode_choice.SetStringSelection("Dynamic")
             self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key(self.params.get("rhythm_style", "manual")))
+            self.beat_library_style_choice.SetStringSelection(self._beat_library_label_from_key(self.params.get("beat_library_style", "auto")))
             self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
             self._setCtrlValueSilently(self.voice_spread_ctrl, self.params["voice_spread"])
             self._setCtrlValueSilently(self.voice_distance_ctrl, self.params["voice_distance"])
             self._setCtrlValueSilently(self.voice_distance_context_ctrl, self.params["voice_distance_context"])
             self._setCtrlValueSilently(self.rhythmic_divergence_ctrl, self.params["rhythmic_divergence"])
+            self._setCtrlValueSilently(self.rhythm_gate_strength_ctrl, self.params["rhythm_gate_strength"])
+            self._setCtrlValueSilently(self.rhythm_stretch_strength_ctrl, self.params["rhythm_stretch_strength"])
+            self._setCtrlValueSilently(self.rhythm_rotation_ctrl, self.params["rhythm_rotation"])
             self._setCtrlValueSilently(self.melody_coherence_ctrl, self.params["melody_coherence"])
             self._setCtrlValueSilently(self.melody_speed_ctrl, self.params["melody_speed"])
             self._setCtrlValueSilently(self.min_note_duration_ctrl, self.params["min_note_duration"])
