@@ -210,6 +210,11 @@ def init_sanasyna():
     return 0
 
 
+def is_playing():
+    with _state_lock:
+        return _is_playing
+
+
 def init_audio(sample_rate=44100):
     _ensure_audio(sample_rate=sample_rate)
 

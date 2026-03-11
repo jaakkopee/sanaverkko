@@ -1022,8 +1022,13 @@ class SanaVerkkoKontrolleri:
             pass
 
     def OnMelodyFromOwnTime(self, event):
-        self.params["melody_from_own_time"] = self.melody_from_own_time_checkbox.GetValue()
+        enabled = self.melody_from_own_time_checkbox.GetValue()
+        self.params["melody_from_own_time"] = enabled
         self.last_audio_sentence_signature = None
+        self.audio_playing = False
+        if enabled:
+            # Stop any looping playback so the simulationStep gate (is_playing) can pass
+            sanasyna.stop()
 
     def OnSelectionExploration(self, event):
         self._commit_float_param(self.selection_exploration_ctrl, "selection_exploration", minimum=0.0, maximum=1.0)
@@ -1833,19 +1838,8 @@ class SanaVerkkoKontrolleri:
         melody = self._apply_duration_policy(melody, speed_coeff=melody_speed)
 
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
-        if not melody_from_own_time:
-            _cutoff_dur = float(self.params.get("process_interval", 0.08))
-            _trimmed = []
-            _accum = 0.0
-            for _freq, _dur in melody:
-                if _accum + _dur > _cutoff_dur:
-                    _rem = _cutoff_dur - _accum
-                    if _rem > 0.001:
-                        _trimmed.append((_freq, _rem))
-                    break
-                _trimmed.append((_freq, _dur))
-                _accum += _dur
-            melody = _trimmed if _trimmed else melody
+        # melody_from_own_time=True  → play once, next period starts when playback ends
+        # melody_from_own_time=False → loop until the process_interval timer fires
 
         activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
         signature = (
@@ -1901,6 +1895,7 @@ class SanaVerkkoKontrolleri:
         _rr_snap = rhythm_rotation
         _rrad_snap = rhythm_radicality
         _mm_snap = mapping_mode
+        _loop_snap = not melody_from_own_time  # True=loop (cut by timer), False=play once
 
         # Mark signature eagerly — prevents re-queuing the same synthesis on the next tick
         self.last_audio_sentence_signature = signature
@@ -1932,7 +1927,7 @@ class SanaVerkkoKontrolleri:
                 mapping_mode=_mm_snap,
                 duration_coeff=1.0,
             )
-            sanasyna.play(loop=True)
+            sanasyna.play(loop=_loop_snap)
 
         self._synthesis_thread = threading.Thread(target=_run_synthesis, daemon=True)
         self._synthesis_thread.start()
@@ -2857,8 +2852,15 @@ class SanaVerkkoKontrolleri:
 
     def simulationStep(self):
         now = time.time()
-        if now - self.last_process_time < self.params["process_interval"]:
-            return
+        melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
+        if melody_from_own_time:
+            # Wait for both the synthesis thread and the one-shot playback to finish
+            thread_active = self._synthesis_thread is not None and self._synthesis_thread.is_alive()
+            if thread_active or sanasyna.is_playing():
+                return
+        else:
+            if now - self.last_process_time < self.params["process_interval"]:
+                return
         self.last_process_time = now
 
         for event in pygame.event.get():
