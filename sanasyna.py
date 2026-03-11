@@ -549,6 +549,7 @@ def _mode_scale_steps(mapping_mode):
         "original_notes": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
         "pythagorean_pentatonic": _ratio_steps([1.0, 9.0 / 8.0, 81.0 / 64.0, 3.0 / 2.0, 27.0 / 16.0]),
         "pythagorean_8_note": _ratio_steps([1.0, 9.0 / 8.0, 81.0 / 64.0, 4.0 / 3.0, 3.0 / 2.0, 27.0 / 16.0, 243.0 / 128.0]),
+        "just_intonation_5_limit": _ratio_steps([1.0, 9.0 / 8.0, 5.0 / 4.0, 4.0 / 3.0, 3.0 / 2.0, 5.0 / 3.0, 15.0 / 8.0]),
         "equal_tempered_ionian": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
         "equal_tempered_dorian": [0.0, 2.0, 3.0, 5.0, 7.0, 9.0, 10.0],
         "equal_tempered_frygian": [0.0, 1.0, 3.0, 5.0, 7.0, 8.0, 10.0],
@@ -556,6 +557,8 @@ def _mode_scale_steps(mapping_mode):
         "equal_tempered_mixolydian": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 10.0],
         "equal_tempered_aeolian": [0.0, 2.0, 3.0, 5.0, 7.0, 8.0, 10.0],
         "equal_tempered_locrian": [0.0, 1.0, 3.0, 5.0, 6.0, 8.0, 10.0],
+        "equal_tempered_19_note": [12.0 * (float(index) / 19.0) for index in range(19)],
+        "equal_tempered_31_note": [12.0 * (float(index) / 31.0) for index in range(31)],
     }
 
     if mode in mode_steps:

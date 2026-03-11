@@ -1282,6 +1282,7 @@ class SanaVerkkoKontrolleri:
             ("original_notes", "Original notes"),
             ("pythagorean_pentatonic", "Pythagorean pentatonic"),
             ("pythagorean_8_note", "Pythagorean 8 note"),
+            ("just_intonation_5_limit", "Just intonation 5-limit"),
             ("equal_tempered_ionian", "Equal tempered ionian"),
             ("equal_tempered_dorian", "Equal tempered dorian"),
             ("equal_tempered_frygian", "Equal tempered frygian"),
@@ -1290,7 +1291,9 @@ class SanaVerkkoKontrolleri:
             ("equal_tempered_aeolian", "Equal tempered aeolian"),
             ("equal_tempered_locrian", "Equal tempered locrian"),
             ("equal_tempered_12_note", "Equal tempered 12 note"),
+            ("equal_tempered_19_note", "Equal tempered 19 note"),
             ("equal_tempered_24_note", "Equal tempered 24 note"),
+            ("equal_tempered_31_note", "Equal tempered 31 note"),
             ("equal_tempered_36_note", "Equal tempered 36 note"),
             ("equal_tempered_48_note", "Equal tempered 48 note"),
         ]
@@ -1433,6 +1436,11 @@ class SanaVerkkoKontrolleri:
                 "ratios": [1.0, 9.0 / 8.0, 81.0 / 64.0, 4.0 / 3.0, 3.0 / 2.0, 27.0 / 16.0, 243.0 / 128.0, 2.0],
                 "prefix": "PY8",
             },
+            "just_intonation_5_limit": {
+                "kind": "ratio",
+                "ratios": [1.0, 9.0 / 8.0, 5.0 / 4.0, 4.0 / 3.0, 3.0 / 2.0, 5.0 / 3.0, 15.0 / 8.0, 2.0],
+                "prefix": "JI5",
+            },
             "equal_tempered_ionian": {
                 "kind": "et_mode",
                 "steps": [0, 2, 4, 5, 7, 9, 11],
@@ -1480,10 +1488,20 @@ class SanaVerkkoKontrolleri:
                 "divisions": 12,
                 "prefix": "ET12",
             },
+            "equal_tempered_19_note": {
+                "kind": "et_full",
+                "divisions": 19,
+                "prefix": "ET19",
+            },
             "equal_tempered_24_note": {
                 "kind": "et_full",
                 "divisions": 24,
                 "prefix": "ET24",
+            },
+            "equal_tempered_31_note": {
+                "kind": "et_full",
+                "divisions": 31,
+                "prefix": "ET31",
             },
             "equal_tempered_36_note": {
                 "kind": "et_full",
