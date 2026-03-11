@@ -9,7 +9,16 @@ import threading
 import sys
 import os
 import json
+import shutil
+import subprocess
+import tempfile
+import wave
 import sanasyna
+
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 
 try:
     import sv_ltm
@@ -25,6 +34,11 @@ try:
     import pygame.font as pygame_font
 except Exception:
     pygame_font = None
+
+try:
+    import pygame._sdl2.video as pygame_sdl2_video
+except Exception:
+    pygame_sdl2_video = None
 
 
 MONOSPACE_FONT_CANDIDATES = [
@@ -159,6 +173,16 @@ class SanaVerkkoKontrolleri:
         self.params["melody_speed"] = 1.0
         self.params["min_note_duration"] = 0.03
         self.params["melody_from_own_time"] = True
+        self.params["vocoder_on"] = False
+        self.params["vocoder_mix"] = 0.65
+        self.params["vocoder_sharpness"] = 1.0
+        self.params["vocoder_carrier"] = "synth"
+        self.params["vocoder_phoneme_hold"] = 2
+        self.params["piper_tts_on"] = False
+        self.params["piper_model_path"] = os.environ.get("PIPER_MODEL", "")
+        self.params["piper_volume"] = 0.5
+        self.params["synth_volume"] = 1.0
+        self.params["fullscreen"] = False
         self.params["adsr_attack"] = 0.01
         self.params["adsr_decay"] = 0.04
         self.params["adsr_sustain"] = 0.85
@@ -180,6 +204,8 @@ class SanaVerkkoKontrolleri:
         self.screen = None
         self.size = None
         self.clock = None
+        self._windowed_size = (1024, 768)
+        self._pygame_window = None
 
         self.conn_color_r = 0
         self.conn_color_g = 0
@@ -210,6 +236,10 @@ class SanaVerkkoKontrolleri:
         self._logic_state_lock = threading.Lock()
         self._logic_inflight = False
         self._logic_changed_ready = False
+        self._piper_speak_thread = None
+        self._last_spoken_sentence = ""
+        self._piper_audio_channel = None
+        self._piper_audio_sound = None
 
         self.initPygame()
         self.initAudio()
@@ -292,6 +322,9 @@ class SanaVerkkoKontrolleri:
         self.melody_from_own_time_checkbox = wx.CheckBox(panel, -1, "From melody")
         self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
         self.melody_from_own_time_checkbox.Bind(wx.EVT_CHECKBOX, self.OnMelodyFromOwnTime)
+        self.fullscreen_checkbox = wx.CheckBox(panel, -1, "Fullscreen network window (green/F11)")
+        self.fullscreen_checkbox.SetValue(bool(self.params.get("fullscreen", False)))
+        self.fullscreen_checkbox.Bind(wx.EVT_CHECKBOX, self.OnFullscreen)
         self.logic_worker_status_label = wx.StaticText(panel, -1, "Logic worker: idle")
 
         self.selection_exploration_label = wx.StaticText(panel, -1, "Selection exploration (0-1)")
@@ -329,6 +362,46 @@ class SanaVerkkoKontrolleri:
         ])
         self.audio_wave_mode_choice.SetSelection(0)
         self.audio_wave_mode_choice.Bind(wx.EVT_CHOICE, self.OnAudioWaveMode)
+
+        self.vocoder_on_checkbox = wx.CheckBox(panel, -1, "Vocoder on")
+        self.vocoder_on_checkbox.SetValue(bool(self.params.get("vocoder_on", False)))
+        self.vocoder_on_checkbox.Bind(wx.EVT_CHECKBOX, self.OnVocoderOn)
+        self.vocoder_mix_label = wx.StaticText(panel, -1, "Vocoder mix (0-1)")
+        self.vocoder_mix_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("vocoder_mix", 0.65)), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.vocoder_mix_ctrl, self.OnVocoderMix)
+        self.vocoder_sharpness_label = wx.StaticText(panel, -1, "Vocoder sharpness")
+        self.vocoder_sharpness_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("vocoder_sharpness", 1.0)), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.vocoder_sharpness_ctrl, self.OnVocoderSharpness)
+        self.vocoder_carrier_label = wx.StaticText(panel, -1, "Vocoder carrier")
+        self.vocoder_carrier_choice = wx.Choice(panel, -1, choices=["Synth", "Noise", "Buzz", "Pulse"])
+        self.vocoder_carrier_choice.SetStringSelection("Synth")
+        self.vocoder_carrier_choice.Bind(wx.EVT_CHOICE, self.OnVocoderCarrier)
+        self.vocoder_phoneme_hold_label = wx.StaticText(panel, -1, "Phoneme hold (frames)")
+        self.vocoder_phoneme_hold_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("vocoder_phoneme_hold", 2)), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.vocoder_phoneme_hold_ctrl, self.OnVocoderPhonemeHold)
+
+        self.piper_tts_checkbox = wx.CheckBox(panel, -1, "Piper TTS mode")
+        self.piper_tts_checkbox.SetValue(bool(self.params.get("piper_tts_on", False)))
+        self.piper_tts_checkbox.Bind(wx.EVT_CHECKBOX, self.OnPiperTTS)
+        self.piper_model_label = wx.StaticText(panel, -1, "Piper model (.onnx)")
+        self.piper_model_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("piper_model_path", "")), style=wx.TE_PROCESS_ENTER)
+        self.piper_model_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnPiperModelPath)
+        self.piper_model_browse_button = wx.Button(panel, -1, "Browse...")
+        self.piper_model_browse_button.Bind(wx.EVT_BUTTON, self.OnPiperModelBrowse)
+        self.piper_tts_status_label = wx.StaticText(panel, -1, "Piper TTS: idle")
+
+        self.synth_volume_label = wx.StaticText(panel, -1, "Synth volume: 100%")
+        _sv_init = int(self.params.get("synth_volume", 1.0) * 100)
+        self.synth_volume_slider = wx.Slider(panel, -1, _sv_init, 0, 100, style=wx.SL_HORIZONTAL)
+        self.synth_volume_slider.Bind(wx.EVT_SLIDER, self.OnSynthVolume)
+
+        _pv_pct = int(self.params.get("piper_volume", 0.5) * 100)
+        self.piper_volume_label = wx.StaticText(panel, -1, f"Piper volume: {_pv_pct}%")
+        self.piper_volume_slider = wx.Slider(panel, -1, _pv_pct, 0, 100, style=wx.SL_HORIZONTAL)
+        self.piper_volume_slider.Bind(wx.EVT_SLIDER, self.OnPiperVolume)
+
+        self.vocoder_state_label = wx.StaticText(panel, -1, "Vocoder state: idle")
+        self.vocoder_state_label.SetForegroundColour(wx.Colour(120, 180, 120))
 
         self.frequency_mapping_label = wx.StaticText(panel, -1, "Frequency mapping")
         self.frequency_mapping_choice = wx.Choice(panel, -1, choices=[label for _, label in self._frequency_mapping_modes()])
@@ -478,6 +551,7 @@ class SanaVerkkoKontrolleri:
         _pi_row.Add(self.process_interval_ctrl, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 8)
         _pi_row.Add(self.melody_from_own_time_checkbox, 0, wx.ALIGN_CENTER_VERTICAL)
         self.sizer.Add(_pi_row, 0, wx.ALL, 5)
+        self.sizer.Add(self.fullscreen_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.logic_worker_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         self.sizer.Add(self.selection_exploration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -500,6 +574,27 @@ class SanaVerkkoKontrolleri:
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.vocoder_on_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.vocoder_mix_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.vocoder_mix_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.vocoder_sharpness_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.vocoder_sharpness_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.vocoder_carrier_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.vocoder_carrier_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.vocoder_phoneme_hold_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.vocoder_phoneme_hold_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.piper_tts_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.piper_model_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        _piper_model_row = wx.BoxSizer(wx.HORIZONTAL)
+        _piper_model_row.Add(self.piper_model_ctrl, 1, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 5)
+        _piper_model_row.Add(self.piper_model_browse_button, 0, wx.ALIGN_CENTER_VERTICAL)
+        self.sizer.Add(_piper_model_row, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.piper_tts_status_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.synth_volume_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.synth_volume_slider, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.piper_volume_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.piper_volume_slider, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.vocoder_state_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.frequency_mapping_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.frequency_mapping_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhythm_style_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -1039,6 +1134,11 @@ class SanaVerkkoKontrolleri:
             # Stop any looping playback so the simulationStep gate (is_playing) can pass
             sanasyna.stop()
 
+    def OnFullscreen(self, event):
+        if self._suppress_param_events:
+            return
+        self._apply_fullscreen_mode(bool(self.fullscreen_checkbox.GetValue()))
+
     def OnSelectionExploration(self, event):
         self._commit_float_param(self.selection_exploration_ctrl, "selection_exploration", minimum=0.0, maximum=1.0)
 
@@ -1061,6 +1161,173 @@ class SanaVerkkoKontrolleri:
 
     def OnRhymeMinSimilarity(self, event):
         self._commit_float_param(self.rhyme_min_similarity_ctrl, "rhyme_min_similarity", minimum=0.0, maximum=1.0)
+
+    def OnVocoderOn(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["vocoder_on"] = bool(self.vocoder_on_checkbox.GetValue())
+        self.last_audio_sentence_signature = None
+
+    def OnVocoderMix(self, event):
+        value = self._commit_float_param(self.vocoder_mix_ctrl, "vocoder_mix", minimum=0.0, maximum=1.0)
+        if value is not None:
+            self.last_audio_sentence_signature = None
+
+    def OnVocoderSharpness(self, event):
+        value = self._commit_float_param(self.vocoder_sharpness_ctrl, "vocoder_sharpness", minimum=0.25, maximum=4.0)
+        if value is not None:
+            self.last_audio_sentence_signature = None
+
+    def OnVocoderCarrier(self, event):
+        if self._suppress_param_events:
+            return
+        label = self.vocoder_carrier_choice.GetStringSelection()
+        carrier_map = {
+            "Synth": "synth",
+            "Noise": "noise",
+            "Buzz": "buzz",
+            "Pulse": "pulse",
+        }
+        self.params["vocoder_carrier"] = carrier_map.get(label, "synth")
+        self.last_audio_sentence_signature = None
+
+    def OnVocoderPhonemeHold(self, event):
+        value = self._commit_int_param(self.vocoder_phoneme_hold_ctrl, "vocoder_phoneme_hold", minimum=1, maximum=8)
+        if value is not None:
+            self.last_audio_sentence_signature = None
+
+    def OnPiperTTS(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["piper_tts_on"] = bool(self.piper_tts_checkbox.GetValue())
+        self.last_audio_sentence_signature = None
+
+    def OnPiperModelPath(self, event):
+        if self._suppress_param_events or self._in_param_commit:
+            return
+        self.params["piper_model_path"] = str(self.piper_model_ctrl.GetValue()).strip()
+
+    def OnSynthVolume(self, event):
+        val = int(self.synth_volume_slider.GetValue())
+        self.params["synth_volume"] = val / 100.0
+        self.synth_volume_label.SetLabel(f"Synth volume: {val}%")
+
+    def OnPiperVolume(self, event):
+        val = int(self.piper_volume_slider.GetValue())
+        self.params["piper_volume"] = val / 100.0
+        self.piper_volume_label.SetLabel(f"Piper volume: {val}%")
+
+    def OnPiperModelBrowse(self, event):
+        with wx.FileDialog(
+            self.frame,
+            "Select Piper model",
+            wildcard="Piper ONNX model (*.onnx)|*.onnx|All files (*.*)|*.*",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+        ) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+            selected_path = file_dialog.GetPath()
+
+        self.params["piper_model_path"] = str(selected_path).strip()
+        self._setCtrlValueSilently(self.piper_model_ctrl, self.params["piper_model_path"])
+        self._set_piper_status(f"Piper model: {os.path.basename(self.params['piper_model_path'])}")
+
+    def _set_piper_status(self, message):
+        if not hasattr(self, "piper_tts_status_label"):
+            return
+        try:
+            wx.CallAfter(self.piper_tts_status_label.SetLabel, str(message))
+        except Exception:
+            pass
+
+    def _speak_sentence_with_piper(self, sentence):
+        text = str(sentence).strip()
+        if text == "":
+            return
+
+        piper_bin = shutil.which("piper")
+        if piper_bin is not None:
+            command = [piper_bin]
+        else:
+            command = [sys.executable, "-m", "piper"]
+
+        model_path = str(self.params.get("piper_model_path", "")).strip()
+        if model_path == "" or not os.path.isfile(model_path):
+            self._set_piper_status("Piper TTS: set valid .onnx model path")
+            return
+
+        tmp_wav = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+                tmp_wav = tmp_file.name
+
+            result = subprocess.run(
+                command + ["--model", model_path, "--output_file", tmp_wav],
+                input=text.encode("utf-8"),
+                capture_output=True,
+                check=False,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                stderr_text = result.stderr.decode("utf-8", errors="ignore").strip()
+                if stderr_text == "":
+                    stderr_text = "unknown synthesis error"
+                self._set_piper_status(f"Piper TTS error: {stderr_text}")
+                return
+
+            # Play WAV via sounddevice (pygame.mixer not available in this build)
+            if sd is None:
+                self._set_piper_status("Piper TTS failed: sounddevice not available")
+                return
+
+            with wave.open(tmp_wav, "rb") as wav_file:
+                channels = wav_file.getnchannels()
+                sample_width = wav_file.getsampwidth()
+                sample_rate = wav_file.getframerate()
+                raw_frames = wav_file.readframes(wav_file.getnframes())
+
+            if sample_width != 2:
+                self._set_piper_status("Piper TTS failed: unsupported WAV sample width")
+                return
+
+            audio_data = np.frombuffer(raw_frames, dtype=np.int16)
+            if channels > 1:
+                audio_data = audio_data.reshape(-1, channels)
+            audio_data = audio_data.astype(np.float32) / 32768.0
+
+            piper_vol = min(1.0, max(0.0, float(self.params.get("piper_volume", 0.5))))
+            audio_data = audio_data * piper_vol
+
+            # sd.play() with a generous blocksize prevents underruns without
+            # opening a new exclusive OutputStream (which conflicts with pygame
+            # on macOS/AUHAL, causing error -50).
+            self._set_piper_status("Piper TTS: speaking")
+            sd.play(audio_data, samplerate=sample_rate, blocksize=4096)
+            sd.wait()
+        except Exception as error:
+            self._set_piper_status(f"Piper TTS failed: {error}")
+        finally:
+            if tmp_wav is not None:
+                try:
+                    os.remove(tmp_wav)
+                except Exception:
+                    pass
+
+    def _speak_sentence_with_piper_async(self, sentence):
+        text = str(sentence).strip()
+        if text == "" or text == self._last_spoken_sentence:
+            return
+        self._last_spoken_sentence = text
+
+        if self._piper_speak_thread is not None and self._piper_speak_thread.is_alive():
+            return
+
+        self._piper_speak_thread = threading.Thread(
+            target=self._speak_sentence_with_piper,
+            args=(text,),
+            daemon=True,
+        )
+        self._piper_speak_thread.start()
 
     def OnImportMode(self, event):
         if self._suppress_param_events:
@@ -1263,6 +1530,11 @@ class SanaVerkkoKontrolleri:
         if self.timer is not None:
             self.timer.Stop()
             self.timer = None
+        try:
+            if self._piper_audio_channel is not None and self._piper_audio_channel.get_busy():
+                self._piper_audio_channel.stop()
+        except Exception:
+            pass
         sanasyna.stop()
         sanasyna.close()
         pygame.quit()
@@ -1282,11 +1554,102 @@ class SanaVerkkoKontrolleri:
     def setParam(self, param, value):
         self.params[param] = value
 
+    def _get_display_window(self):
+        if pygame_sdl2_video is None:
+            return None
+        try:
+            self._pygame_window = pygame_sdl2_video.Window.from_display_module()
+        except Exception:
+            self._pygame_window = None
+        return self._pygame_window
+
+    def _is_effective_fullscreen(self):
+        if bool(self.params.get("fullscreen", False)):
+            return True
+        if not pygame.display.get_init():
+            return False
+        try:
+            current_size = tuple(pygame.display.get_window_size())
+        except Exception:
+            return False
+        info = pygame.display.Info()
+        display_size = (
+            max(1, int(getattr(info, "current_w", 0) or 0)),
+            max(1, int(getattr(info, "current_h", 0) or 0)),
+        )
+        return current_size == display_size and current_size != tuple(self._windowed_size)
+
+    def _sync_display_window_state(self):
+        if not pygame.display.get_init():
+            return
+        try:
+            current_size = tuple(pygame.display.get_window_size())
+        except Exception:
+            current_size = tuple(self.size) if self.size is not None else tuple(self._windowed_size)
+
+        effective_fullscreen = self._is_effective_fullscreen()
+        self.params["fullscreen"] = effective_fullscreen
+        self.size = current_size
+        if not effective_fullscreen:
+            self._windowed_size = current_size
+
+        if hasattr(self, "fullscreen_checkbox") and self.fullscreen_checkbox is not None:
+            self.fullscreen_checkbox.SetValue(effective_fullscreen)
+
+    def _apply_fullscreen_mode(self, enabled):
+        enabled = bool(enabled)
+        flags = pygame.RESIZABLE
+
+        if self.screen is None:
+            self.screen = pygame.display.set_mode(tuple(self._windowed_size), flags)
+
+        window = self._get_display_window()
+
+        if enabled:
+            self._sync_display_window_state()
+            if not self.params.get("fullscreen", False) and self.size is not None:
+                self._windowed_size = tuple(self.size)
+
+            if window is not None:
+                try:
+                    window.resizable = True
+                except Exception:
+                    pass
+                window.set_fullscreen(desktop=True)
+                try:
+                    self.size = tuple(window.size)
+                except Exception:
+                    self.size = tuple(pygame.display.get_window_size())
+                self.screen = pygame.display.get_surface()
+            else:
+                info = pygame.display.Info()
+                self.size = (
+                    max(1, int(getattr(info, "current_w", 0) or self._windowed_size[0])),
+                    max(1, int(getattr(info, "current_h", 0) or self._windowed_size[1])),
+                )
+                self.screen = pygame.display.set_mode(self.size, pygame.FULLSCREEN)
+        else:
+            if window is not None:
+                window.set_windowed()
+                try:
+                    window.size = tuple(self._windowed_size)
+                except Exception:
+                    pass
+                self.screen = pygame.display.get_surface()
+            else:
+                self.screen = pygame.display.set_mode(tuple(self._windowed_size), flags)
+            self.size = tuple(self._windowed_size)
+
+        self.params["fullscreen"] = enabled
+
+        pygame.display.set_caption("SanaVerkko")
+
+        if hasattr(self, "fullscreen_checkbox") and self.fullscreen_checkbox is not None:
+            self.fullscreen_checkbox.SetValue(enabled)
+
     def initPygame(self):
         pygame.init()
-        self.size = width, height = 1024, 768
-        self.screen = pygame.display.set_mode(self.size)
-        pygame.display.set_caption("SanaVerkko")
+        self._apply_fullscreen_mode(bool(self.params.get("fullscreen", False)))
         self.clock = pygame.time.Clock()
 
     def initAudio(self):
@@ -1782,6 +2145,111 @@ class SanaVerkkoKontrolleri:
             melody.extend(self._word_melody_from_gematria(word.word, activation_value=word.neuron.activation))
         return melody
 
+    def _phoneme_to_formants(self, phoneme):
+        p = str(phoneme).lower()
+        table = {
+            "a": ((800.0, 90.0, 1.0), (1150.0, 120.0, 0.9), (2900.0, 180.0, 0.6)),
+            "ah": ((700.0, 95.0, 1.0), (1220.0, 125.0, 0.9), (2600.0, 190.0, 0.6)),
+            "e": ((500.0, 80.0, 1.0), (1700.0, 130.0, 0.9), (2500.0, 180.0, 0.6)),
+            "i": ((300.0, 70.0, 1.0), (2200.0, 150.0, 0.9), (3000.0, 220.0, 0.6)),
+            "o": ((450.0, 85.0, 1.0), (800.0, 110.0, 0.9), (2830.0, 180.0, 0.6)),
+            "u": ((325.0, 75.0, 1.0), (700.0, 100.0, 0.9), (2530.0, 170.0, 0.6)),
+            "ä": ((660.0, 90.0, 1.0), (1700.0, 130.0, 0.9), (2500.0, 180.0, 0.6)),
+            "ö": ((430.0, 85.0, 1.0), (1500.0, 130.0, 0.9), (2400.0, 170.0, 0.6)),
+            "å": ((520.0, 90.0, 1.0), (1000.0, 120.0, 0.9), (2500.0, 180.0, 0.6)),
+            "sh": ((2500.0, 220.0, 0.7), (3500.0, 320.0, 0.9), (5500.0, 450.0, 0.7)),
+            "ch": ((2200.0, 220.0, 0.7), (3200.0, 320.0, 0.9), (5000.0, 450.0, 0.7)),
+            "s": ((3000.0, 240.0, 0.6), (4200.0, 360.0, 0.8), (6500.0, 550.0, 0.6)),
+            "z": ((2800.0, 230.0, 0.6), (3900.0, 350.0, 0.8), (6000.0, 520.0, 0.6)),
+        }
+        return table.get(p, ((500.0, 100.0, 0.55), (1500.0, 140.0, 0.50), (2500.0, 200.0, 0.45)))
+
+    def _sentence_formant_data(self):
+        if not self.words:
+            return []
+
+        accum_f = [0.0, 0.0, 0.0]
+        accum_bw = [0.0, 0.0, 0.0]
+        accum_w = [0.0, 0.0, 0.0]
+
+        for word in self.words:
+            phonemes = self.graphemeToPhonemes(word.word)
+            if not phonemes:
+                continue
+            for phoneme in phonemes[:8]:
+                triplet = self._phoneme_to_formants(phoneme)
+                for i, (freq, bandwidth, gain) in enumerate(triplet):
+                    weight = max(0.05, float(gain))
+                    accum_f[i] += float(freq) * weight
+                    accum_bw[i] += float(bandwidth) * weight
+                    accum_w[i] += weight
+
+        formants = []
+        for i in range(3):
+            if accum_w[i] > 1e-6:
+                formants.append({
+                    "freq": accum_f[i] / accum_w[i],
+                    "bandwidth": accum_bw[i] / accum_w[i],
+                    "gain": 1.0 - 0.18 * float(i),
+                })
+
+        if not formants:
+            return [
+                {"freq": 500.0, "bandwidth": 100.0, "gain": 1.0},
+                {"freq": 1500.0, "bandwidth": 150.0, "gain": 0.85},
+                {"freq": 2500.0, "bandwidth": 220.0, "gain": 0.70},
+            ]
+        return formants
+
+    def _sentence_formant_frames(self):
+        frames = []
+        if not self.words:
+            return frames
+
+        for word in self.words:
+            activation = max(-2.0, min(2.0, float(word.neuron.activation)))
+            shift = 1.0 + 0.08 * activation
+            phonemes = self.graphemeToPhonemes(word.word)
+            if not phonemes:
+                continue
+            for phoneme in phonemes[:8]:
+                triplet = self._phoneme_to_formants(phoneme)
+                frame = []
+                for idx, (freq, bandwidth, gain) in enumerate(triplet):
+                    frame.append({
+                        "freq": max(120.0, min(7800.0, float(freq) * shift)),
+                        "bandwidth": max(45.0, float(bandwidth) * (1.0 + 0.12 * abs(activation))),
+                        "gain": max(0.05, float(gain) * (1.05 - 0.10 * idx)),
+                    })
+                frames.append(frame)
+                if len(frames) >= 64:
+                    return frames
+        return frames
+
+    def _expand_formant_frames_to_melody(self, formant_frames, melody):
+        """Expand formant frames to match melody length.
+        
+        Maps each note in melody to a formant frame, stretching/repeating
+        so the formants stay dynamic throughout playback instead of cycling.
+        """
+        if not formant_frames or not melody:
+            return formant_frames
+        
+        melody_len = len(melody)
+        num_frames = len(formant_frames)
+        
+        if num_frames >= melody_len:
+            return formant_frames[:melody_len]
+        
+        # Fewer frames than notes: stretch by repeating each intelligently
+        expanded = []
+        for note_idx in range(melody_len):
+            frame_pos = (note_idx / float(melody_len)) * float(num_frames)
+            frame_idx = min(int(frame_pos), num_frames - 1)
+            expanded.append(formant_frames[frame_idx])
+        
+        return expanded
+
     def _apply_duration_policy(self, melody, speed_coeff=1.0):
         if not melody:
             return melody
@@ -1849,6 +2317,11 @@ class SanaVerkkoKontrolleri:
         melody_coherence = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         melody_speed = float(self.params.get("melody_speed", 1.0))
         min_note_duration = float(self.params.get("min_note_duration", 0.03))
+        vocoder_on = bool(self.params.get("vocoder_on", False))
+        vocoder_mix = min(1.0, max(0.0, float(self.params.get("vocoder_mix", 0.65))))
+        vocoder_sharpness = max(0.25, min(4.0, float(self.params.get("vocoder_sharpness", 1.0))))
+        vocoder_carrier = str(self.params.get("vocoder_carrier", "synth"))
+        vocoder_phoneme_hold = max(1, min(8, int(self.params.get("vocoder_phoneme_hold", 2))))
         effective_voice_spread = max(0.3, min(5.0, voice_spread * (1.15 - 0.55 * melody_coherence)))
 
         melody = self._apply_duration_policy(melody, speed_coeff=melody_speed)
@@ -1863,6 +2336,19 @@ class SanaVerkkoKontrolleri:
             thread_active = self._synthesis_thread is not None and self._synthesis_thread.is_alive()
             if thread_active or sanasyna.is_playing():
                 return
+
+        vocoder_formants = self._sentence_formant_data() if vocoder_on else []
+        vocoder_formant_frames_raw = self._sentence_formant_frames() if vocoder_on else []
+        vocoder_formant_frames = self._expand_formant_frames_to_melody(vocoder_formant_frames_raw, melody) if vocoder_on else []
+        vocoder_signature = tuple(
+            (round(float(formant.get("freq", 0.0)), 1), round(float(formant.get("bandwidth", 0.0)), 1))
+            for formant in vocoder_formants[:3]
+        )
+        vocoder_frames_signature = tuple(
+            round(float(frame[0].get("freq", 0.0)), 1)
+            for frame in vocoder_formant_frames[:8]
+            if frame
+        )
 
         activation_signature = tuple(round(word.neuron.activation, 2) for word in self.words)
         signature = (
@@ -1884,22 +2370,45 @@ class SanaVerkkoKontrolleri:
             round(melody_coherence, 2),
             round(melody_speed, 2),
             round(min_note_duration, 3),
+            vocoder_on,
+            round(vocoder_mix, 2),
+            round(vocoder_sharpness, 2),
+            vocoder_carrier,
+            int(vocoder_phoneme_hold),
+            vocoder_signature,
+            len(vocoder_formant_frames),
+            vocoder_frames_signature,
             len(melody),
             melody_from_own_time,
             activation_signature,
         )
+        # Always update vocoder params so formant frames refresh even during playback
+        if vocoder_on:
+            sanasyna.set_vocoder_params({
+                "enabled": True,
+                "mix": vocoder_mix,
+                "floor": 0.22,
+                "sharpness": vocoder_sharpness,
+                "carrier": vocoder_carrier,
+                "phoneme_hold": vocoder_phoneme_hold,
+                "formants": vocoder_formants,
+                "formant_frames": vocoder_formant_frames,
+                "current_sentence": " ".join(word.word for word in self.words),
+            })
+
         if signature == self.last_audio_sentence_signature and self.audio_playing:
             return
 
-        melody_amplitude = amplitude
+        synth_volume = min(1.0, max(0.0, float(self.params.get("synth_volume", 1.0))))
+        melody_amplitude = amplitude * synth_volume
         if waveform == "square":
-            melody_amplitude = amplitude * 0.80
+            melody_amplitude = amplitude * synth_volume * 0.80
         elif waveform == "sawtooth":
-            melody_amplitude = amplitude * 0.85
+            melody_amplitude = amplitude * synth_volume * 0.85
         elif waveform == "triangle":
-            melody_amplitude = amplitude * 0.95
+            melody_amplitude = amplitude * synth_volume * 0.95
         elif waveform == "noise":
-            melody_amplitude = max(0.03, amplitude * 0.55)
+            melody_amplitude = max(0.0, amplitude * synth_volume * 0.55)
 
         # Push current neural activation state so neuro_* waveforms can read it during synthesis
         sanasyna.set_neuro_params({
@@ -2494,9 +3003,19 @@ class SanaVerkkoKontrolleri:
         self.params["fluid_gematria"] = bool(self.params.get("fluid_gematria", False))
         self.params["use_phoneme_rhyme"] = bool(self.params.get("use_phoneme_rhyme", True))
         self.params["strict_counterpoint"] = bool(self.params.get("strict_counterpoint", False))
+        self.params["vocoder_on"] = bool(self.params.get("vocoder_on", False))
+        self.params["piper_tts_on"] = bool(self.params.get("piper_tts_on", False))
         self.params["ltm_weight"] = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
         self.params["rhyme_weight"] = min(1.0, max(0.0, float(self.params.get("rhyme_weight", 0.28))))
         self.params["rhyme_min_similarity"] = min(1.0, max(0.0, float(self.params.get("rhyme_min_similarity", 0.34))))
+        self.params["vocoder_mix"] = min(1.0, max(0.0, float(self.params.get("vocoder_mix", 0.65))))
+        self.params["vocoder_sharpness"] = max(0.25, min(4.0, float(self.params.get("vocoder_sharpness", 1.0))))
+        vocoder_carrier = str(self.params.get("vocoder_carrier", "synth"))
+        if vocoder_carrier not in {"synth", "noise", "buzz", "pulse"}:
+            vocoder_carrier = "synth"
+        self.params["vocoder_carrier"] = vocoder_carrier
+        self.params["vocoder_phoneme_hold"] = max(1, min(8, int(float(self.params.get("vocoder_phoneme_hold", 2)))))
+        self.params["piper_model_path"] = str(self.params.get("piper_model_path", "")).strip()
 
         self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
         self.params["error"] = float(self.params.get("error", 0))
@@ -2576,11 +3095,25 @@ class SanaVerkkoKontrolleri:
             self.use_phoneme_rhyme_checkbox.SetValue(self.params["use_phoneme_rhyme"])
             self.strict_counterpoint_checkbox.SetValue(self.params["strict_counterpoint"])
             self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
+            self.vocoder_on_checkbox.SetValue(self.params.get("vocoder_on", False))
+            self.piper_tts_checkbox.SetValue(self.params.get("piper_tts_on", False))
+            self.fullscreen_checkbox.SetValue(bool(self.params.get("fullscreen", False)))
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
             self._setCtrlValueSilently(self.rhyme_weight_ctrl, self.params["rhyme_weight"])
             self._setCtrlValueSilently(self.rhyme_min_similarity_ctrl, self.params["rhyme_min_similarity"])
+            self._setCtrlValueSilently(self.vocoder_mix_ctrl, self.params.get("vocoder_mix", 0.65))
+            self._setCtrlValueSilently(self.vocoder_sharpness_ctrl, self.params.get("vocoder_sharpness", 1.0))
+            self._setCtrlValueSilently(self.vocoder_phoneme_hold_ctrl, self.params.get("vocoder_phoneme_hold", 2))
+            self._setCtrlValueSilently(self.piper_model_ctrl, self.params.get("piper_model_path", ""))
+            carrier_to_label = {
+                "synth": "Synth",
+                "noise": "Noise",
+                "buzz": "Buzz",
+                "pulse": "Pulse",
+            }
+            self.vocoder_carrier_choice.SetStringSelection(carrier_to_label.get(self.params.get("vocoder_carrier", "synth"), "Synth"))
 
             self._setCtrlValueSilently(self.learning_rate_ctrl, self.params["learning_rate"])
             self._setCtrlValueSilently(self.error_ctrl, self.params["error"])
@@ -2609,6 +3142,7 @@ class SanaVerkkoKontrolleri:
                 _wave_mode_to_label.get(self.params["audio_wave_mode"], "Dynamic")
             )
             self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
+            self._apply_fullscreen_mode(bool(self.params.get("fullscreen", False)))
             self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key(self.params.get("rhythm_style", "manual")))
             self.beat_library_style_choice.SetStringSelection(self._beat_library_label_from_key(self.params.get("beat_library_style", "auto")))
             self.voice_count_choice.SetStringSelection(str(self.params["voice_count"]))
@@ -2935,6 +3469,13 @@ class SanaVerkkoKontrolleri:
                 self.running = False
                 self.OnClose(None)
                 return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    self._apply_fullscreen_mode(not self._is_effective_fullscreen())
+                elif event.key == pygame.K_ESCAPE and self._is_effective_fullscreen():
+                    self._apply_fullscreen_mode(False)
+
+        self._sync_display_window_state()
 
         self.screen.fill((0, 0, 0))
         logic_triggered = False
@@ -3038,6 +3579,9 @@ class SanaVerkkoKontrolleri:
             else:
                 self.last_result_reduction_line = f"Reduction: {starting_gematria}"
 
+            if bool(self.params.get("piper_tts_on", False)):
+                self._speak_sentence_with_piper_async(self.last_result_sentence)
+
         if self.last_result_sentence != "":
             draw_text_centered(self.screen, self.last_result_sentence, 18, (0, 255, 127), self.size[0]/2, 20)
         if self.last_result_gematria_line != "":
@@ -3057,6 +3601,22 @@ class SanaVerkkoKontrolleri:
             self.OnClose(None)
             return
         self.simulationStep()
+        
+        # Update vocoder state label if available
+        try:
+            if hasattr(sanasyna, 'get_vocoder_state'):
+                state = sanasyna.get_vocoder_state()
+                f1 = int(state.get("f1", 0))
+                f2 = int(state.get("f2", 0))
+                f3 = int(state.get("f3", 0))
+                frame_idx = int(state.get("frame_index", 0))
+                if f1 > 0 and f2 > 0:
+                    label_text = f"Vocoder: F1={f1}Hz F2={f2}Hz F3={f3}Hz fr#{frame_idx}"
+                    self.vocoder_state_label.SetLabel(label_text)
+                else:
+                    self.vocoder_state_label.SetLabel("Vocoder state: idle")
+        except Exception:
+            pass
 
     def runMacMainLoop(self):
         self.timer = wx.Timer(self.frame)

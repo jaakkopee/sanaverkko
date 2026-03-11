@@ -45,6 +45,180 @@ def set_neuro_params(d):
         _neuro_params = dict(d)
 
 
+_vocoder_params = {
+    "enabled": False,
+    "mix": 0.0,
+    "floor": 0.25,
+    "sharpness": 1.0,
+    "carrier": "synth",
+    "phoneme_hold": 2,
+    "formants": [],
+    "formant_frames": [],
+}
+_vocoder_params_lock = threading.Lock()
+
+_vocoder_state = {"phoneme": "", "f1": 0.0, "f2": 0.0, "f3": 0.0, "frame_index": 0}
+_vocoder_state_lock = threading.Lock()
+
+
+def get_vocoder_state():
+    """Return current vocoder state (phoneme being processed, formant freqs)."""
+    with _vocoder_state_lock:
+        return dict(_vocoder_state)
+
+
+def set_vocoder_params(d):
+    """Set vocoder/formant control parameters used during melody rendering."""
+    global _vocoder_params
+    with _vocoder_params_lock:
+        _vocoder_params = dict(d)
+
+
+def _apply_vocoder_fft(samples):
+    if samples is None or len(samples) < 128:
+        return samples
+
+    with _vocoder_params_lock:
+        config = dict(_vocoder_params)
+
+    enabled = bool(config.get("enabled", False))
+    mix = min(1.0, max(0.0, float(config.get("mix", 0.0))))
+    if not enabled or mix <= 0.0:
+        return samples
+
+    formants = list(config.get("formants", []))
+    formant_frames = list(config.get("formant_frames", []))
+    if not formants and not formant_frames:
+        return samples
+
+    floor = min(1.0, max(0.0, float(config.get("floor", 0.25))))
+    sharpness = max(0.25, float(config.get("sharpness", 1.0)))
+    carrier = str(config.get("carrier", "synth")).lower()
+    phoneme_hold = max(1, int(config.get("phoneme_hold", 2)))
+
+    n = int(len(samples))
+    dry = np.asarray(samples, dtype=np.float64)
+    window = np.hanning(n)
+    spectrum = np.fft.rfft(dry * window)
+    freqs = np.fft.rfftfreq(n, d=1.0 / float(_sample_rate))
+
+    def _envelope_from_formants(local_freqs, local_formants):
+        envelope_local = np.full_like(local_freqs, floor, dtype=np.float64)
+        for formant in local_formants[:8]:
+            if isinstance(formant, dict):
+                center = float(formant.get("freq", 0.0))
+                bandwidth = float(formant.get("bandwidth", 180.0))
+                gain = float(formant.get("gain", 1.0))
+            else:
+                try:
+                    center, bandwidth, gain = float(formant[0]), float(formant[1]), float(formant[2])
+                except Exception:
+                    continue
+
+            if center <= 0.0:
+                continue
+            bandwidth = max(35.0, bandwidth / sharpness)
+            gain = max(0.0, gain)
+            envelope_local += gain * np.exp(-0.5 * ((local_freqs - center) / bandwidth) ** 2)
+
+        max_env_local = float(np.max(envelope_local))
+        if max_env_local > 1e-9:
+            envelope_local /= max_env_local
+        return np.power(np.maximum(envelope_local, 1e-6), 0.70)
+
+    def _carrier_signal(sample_count):
+        if carrier == "synth":
+            return np.array(dry, copy=True)
+
+        t = np.arange(sample_count, dtype=np.float64) / float(_sample_rate)
+        mag = np.abs(spectrum)
+        mag_sum = float(np.sum(mag))
+        if mag_sum > 1e-9:
+            centroid = float(np.sum(freqs * mag) / mag_sum)
+            base_freq = max(70.0, min(450.0, centroid * 0.45))
+        else:
+            base_freq = 140.0
+
+        if carrier == "noise":
+            carrier_td = np.random.uniform(-1.0, 1.0, sample_count)
+        elif carrier == "buzz":
+            carrier_td = np.zeros(sample_count, dtype=np.float64)
+            for harmonic in range(1, 13):
+                carrier_td += (1.0 / float(harmonic)) * np.sin(2.0 * math.pi * base_freq * float(harmonic) * t)
+        elif carrier == "pulse":
+            duty = 0.12 + 0.10 * mix
+            phase = (base_freq * t) % 1.0
+            carrier_td = np.where(phase < duty, 1.0, -1.0)
+        else:
+            carrier_td = np.array(dry, copy=True)
+
+        peak_td = float(np.max(np.abs(carrier_td)))
+        if peak_td > 1e-9:
+            carrier_td = carrier_td / peak_td
+        return carrier_td
+
+    carrier_td = _carrier_signal(n)
+    if formant_frames and n >= 1024:
+        frame_size = min(2048, n)
+        hop = max(128, frame_size // 4)
+        frame_win = np.hanning(frame_size)
+        frame_freqs = np.fft.rfftfreq(frame_size, d=1.0 / float(_sample_rate))
+
+        ola = np.zeros(n + frame_size, dtype=np.float64)
+        wsum = np.zeros(n + frame_size, dtype=np.float64)
+
+        frame_index = 0
+        for start in range(0, n - frame_size + 1, hop):
+            local = carrier_td[start:start + frame_size] * frame_win
+            local_spec = np.fft.rfft(local)
+            held_index = (frame_index // phoneme_hold) % len(formant_frames)
+            local_formants = formant_frames[held_index]
+            
+            # Update vocoder state for GUI display
+            with _vocoder_state_lock:
+                _vocoder_state["frame_index"] = frame_index
+                _vocoder_state["phoneme"] = str(config.get("current_phoneme", ""))
+                if len(local_formants) >= 1:
+                    _vocoder_state["f1"] = float(local_formants[0].get("freq", 0.0) if isinstance(local_formants[0], dict) else (local_formants[0][0] if local_formants[0] else 0.0))
+                if len(local_formants) >= 2:
+                    _vocoder_state["f2"] = float(local_formants[1].get("freq", 0.0) if isinstance(local_formants[1], dict) else (local_formants[1][0] if local_formants[1] else 0.0))
+                if len(local_formants) >= 3:
+                    _vocoder_state["f3"] = float(local_formants[2].get("freq", 0.0) if isinstance(local_formants[2], dict) else (local_formants[2][0] if local_formants[2] else 0.0))
+            
+            env = _envelope_from_formants(frame_freqs, local_formants)
+            wet_local = np.fft.irfft(local_spec * env, n=frame_size)
+            ola[start:start + frame_size] += wet_local * frame_win
+            wsum[start:start + frame_size] += frame_win * frame_win
+            frame_index += 1
+
+        valid = wsum[:n] > 1e-9
+        wet = np.array(dry, copy=True)
+        wet[valid] = ola[:n][valid] / wsum[:n][valid]
+    else:
+        envelope_shaped = _envelope_from_formants(freqs, formants)
+        carrier_spectrum = np.fft.rfft(carrier_td * window)
+        wet = np.fft.irfft(carrier_spectrum * envelope_shaped, n=n)
+
+    dry_rms = math.sqrt(float(np.mean(dry * dry)) + 1e-12)
+    wet_rms = math.sqrt(float(np.mean(wet * wet)) + 1e-12)
+    if wet_rms > 1e-9:
+        wet = wet * (dry_rms / wet_rms)
+
+    # Mix law tuned so low mix values preserve the synth identity clearly.
+    mix_curve = mix ** 1.8
+    dry_gain = math.sqrt(max(0.0, 1.0 - mix_curve))
+    wet_gain = math.sqrt(mix_curve)
+    if carrier != "synth":
+        wet_gain *= 0.85
+    wet = dry_gain * dry + wet_gain * wet
+
+    wet32 = wet.astype(np.float32)
+    peak = float(np.max(np.abs(wet32)))
+    if peak > 1.0:
+        wet32 /= peak
+    return wet32
+
+
 def _ensure_stream():
     global _stream, _stream_rate
 
@@ -1386,6 +1560,7 @@ def generate_melody(
 
     if voice_count == 1 or not counterpoint:
         rendered = _render_note_sequence(parsed_notes, amplitude, waveform)
+        rendered = _apply_vocoder_fft(rendered)
         _set_current_sound(rendered)
         return
 
@@ -1417,6 +1592,7 @@ def generate_melody(
 
     normalization = max(1.0, float(voice_count) * 0.9)
     mixed /= normalization
+    mixed = _apply_vocoder_fft(mixed)
     _set_current_sound(mixed)
 
 

@@ -4,3 +4,5 @@ wxPython
 sounddevice
 nltk
 torch
+piper-tts
+pathvalidate
