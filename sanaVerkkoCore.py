@@ -1266,6 +1266,7 @@ class SanaVerkkoKontrolleri:
         self.audio_playing = False
         self.audio_wave_index = 0
         self.audio_waveforms = ["sine", "triangle", "square", "sawtooth", "noise"]
+        self._synthesis_thread = None
         self.last_audio_sentence_signature = None
         self.frequency_mapping_cache = {}
         self.frequency_mapping_boundaries = {}
@@ -1837,31 +1838,58 @@ class SanaVerkkoKontrolleri:
         elif waveform == "noise":
             melody_amplitude = max(0.03, amplitude * 0.55)
 
-        sanasyna.generate_melody(
-            melody,
-            melody_amplitude,
-            self.audio_sample_rate,
-            duration_per_note=0.09,
-            waveform=waveform,
-            voices=voice_count,
-            counterpoint=True,
-            strict_counterpoint=strict_counterpoint,
-            voice_spread=effective_voice_spread,
-            voice_distance=voice_distance,
-            voice_distance_context=voice_distance_context,
-            rhythmic_divergence=rhythmic_divergence,
-            beat_library_style=beat_library_style,
-            rhythm_gate_strength=rhythm_gate_strength,
-            rhythm_stretch_strength=rhythm_stretch_strength,
-            rhythm_rotation=rhythm_rotation,
-            rhythm_radicality=rhythm_radicality,
-            mapping_mode=mapping_mode,
-            duration_coeff=1.0,
-        )
+        # Snapshot all inputs before spawning the thread so later UI changes don't race
+        _melody_snap = list(melody)
+        _amplitude_snap = melody_amplitude
+        _rate_snap = self.audio_sample_rate
+        _waveform_snap = waveform
+        _vc_snap = voice_count
+        _sc_snap = strict_counterpoint
+        _evs_snap = effective_voice_spread
+        _vd_snap = voice_distance
+        _vdc_snap = voice_distance_context
+        _rd_snap = rhythmic_divergence
+        _bls_snap = beat_library_style
+        _rgs_snap = rhythm_gate_strength
+        _rss_snap = rhythm_stretch_strength
+        _rr_snap = rhythm_rotation
+        _rrad_snap = rhythm_radicality
+        _mm_snap = mapping_mode
 
-        sanasyna.play(loop=True)
-        self.audio_playing = True
+        # Mark signature eagerly — prevents re-queuing the same synthesis on the next tick
         self.last_audio_sentence_signature = signature
+        self.audio_playing = True
+
+        # If a synthesis is already running it will land via _pending_samples / crossfade
+        if self._synthesis_thread is not None and self._synthesis_thread.is_alive():
+            return
+
+        def _run_synthesis():
+            sanasyna.generate_melody(
+                _melody_snap,
+                _amplitude_snap,
+                _rate_snap,
+                duration_per_note=0.09,
+                waveform=_waveform_snap,
+                voices=_vc_snap,
+                counterpoint=True,
+                strict_counterpoint=_sc_snap,
+                voice_spread=_evs_snap,
+                voice_distance=_vd_snap,
+                voice_distance_context=_vdc_snap,
+                rhythmic_divergence=_rd_snap,
+                beat_library_style=_bls_snap,
+                rhythm_gate_strength=_rgs_snap,
+                rhythm_stretch_strength=_rss_snap,
+                rhythm_rotation=_rr_snap,
+                rhythm_radicality=_rrad_snap,
+                mapping_mode=_mm_snap,
+                duration_coeff=1.0,
+            )
+            sanasyna.play(loop=True)
+
+        self._synthesis_thread = threading.Thread(target=_run_synthesis, daemon=True)
+        self._synthesis_thread.start()
 
     def makeWordCircle(self, words):
         zoom = self.params["zoom"]

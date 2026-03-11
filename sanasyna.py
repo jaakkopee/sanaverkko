@@ -1,6 +1,7 @@
 import math
 import threading
 import wave
+from functools import lru_cache
 
 import numpy as np
 
@@ -332,6 +333,7 @@ def _voice_duration_profile(base_duration, voice_count, note_index, context_size
     return [max(minimum, min(maximum, value)) for value in durations]
 
 
+@lru_cache(maxsize=8)
 def _beat_library_for_voice_count(voice_count):
     if voice_count <= 1:
         return [
@@ -532,12 +534,21 @@ def _midi_to_freq(midi_value):
     return 440.0 * (2.0 ** ((float(midi_value) - 69.0) / 12.0))
 
 
+@lru_cache(maxsize=32)
 def _mode_scale_steps(mapping_mode):
     mode = str(mapping_mode or "original_notes")
+    def _ratio_steps(ratios):
+        steps = []
+        for ratio in ratios:
+            if ratio is None or float(ratio) <= 0.0:
+                continue
+            steps.append(12.0 * math.log2(float(ratio)))
+        return steps
+
     mode_steps = {
         "original_notes": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
-        "pythagorean_pentatonic": [0.0, 2.0, 4.0, 7.0, 9.0],
-        "pythagorean_8_note": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
+        "pythagorean_pentatonic": _ratio_steps([1.0, 9.0 / 8.0, 81.0 / 64.0, 3.0 / 2.0, 27.0 / 16.0]),
+        "pythagorean_8_note": _ratio_steps([1.0, 9.0 / 8.0, 81.0 / 64.0, 4.0 / 3.0, 3.0 / 2.0, 27.0 / 16.0, 243.0 / 128.0]),
         "equal_tempered_ionian": [0.0, 2.0, 4.0, 5.0, 7.0, 9.0, 11.0],
         "equal_tempered_dorian": [0.0, 2.0, 3.0, 5.0, 7.0, 9.0, 10.0],
         "equal_tempered_frygian": [0.0, 1.0, 3.0, 5.0, 7.0, 8.0, 10.0],
@@ -568,6 +579,14 @@ def _nearest_scale_step(value, scale_steps):
     return min(scale_steps, key=lambda step: abs(float(step) - float(value)))
 
 
+def _quantize_midi_to_scale(midi_value, scale_steps):
+    if midi_value is None or not scale_steps:
+        return midi_value
+    chroma = float(midi_value) % 12.0
+    nearest = _nearest_scale_step(chroma, scale_steps)
+    return float(midi_value) - chroma + float(nearest)
+
+
 def _scale_degree_offset(scale_steps, degree_offset):
     if not scale_steps:
         return 0.0
@@ -582,8 +601,10 @@ def _scale_degree_offset(scale_steps, degree_offset):
     return ordered[local_index] + 12.0 * float(octave_shift)
 
 
-def _build_scale_interval_library(scale_steps, context_size):
-    ordered = sorted(set(float(step) for step in scale_steps))
+@lru_cache(maxsize=64)
+def _cached_scale_interval_library(scale_steps_tuple, context_size):
+    """Cached core — arguments are hashable (tuple + int)."""
+    ordered = sorted(set(float(step) for step in scale_steps_tuple))
     if len(ordered) < 2:
         ordered = [0.0, 7.0]
 
@@ -649,6 +670,13 @@ def _build_scale_interval_library(scale_steps, context_size):
         "route_map": route_map,
         "by_interval": by_interval,
     }
+
+
+def _build_scale_interval_library(scale_steps, context_size):
+    """Public wrapper — converts list to hashable tuple for the LRU cache."""
+    return _cached_scale_interval_library(
+        tuple(float(s) for s in scale_steps), int(context_size)
+    )
 
 
 def _choose_dyad_interval(interval_library, previous_interval, context_size, target_interval):
@@ -796,6 +824,7 @@ def _choose_voice_candidate(
     max_register_distance,
     voice_distance,
     voice_distance_context,
+    scale_steps,
 ):
     if target_midi is None:
         return None
@@ -814,6 +843,8 @@ def _choose_voice_candidate(
                 candidate -= 12.0
             while base_midi - candidate > max_register_distance:
                 candidate += 12.0
+
+        candidate = _quantize_midi_to_scale(candidate, scale_steps)
 
         target_cost = abs(candidate - target_midi)
         path_cost = _voice_distance_cost(candidate, previous_history, voice_distance_context)
@@ -1044,17 +1075,18 @@ def _build_counterpoint_voices(
                 target_midis.append(routed_target_midis[voice_idx])
             else:
                 target_freq = base_freq * interval_ratios[voice_idx]
-                target_midis.append(_freq_to_midi(target_freq))
+                target_midis.append(_quantize_midi_to_scale(_freq_to_midi(target_freq), scale_steps))
 
         if note_index == 0:
             for voice_idx in range(voice_count):
-                voice_freq = _midi_to_freq(target_midis[voice_idx])
+                quantized_target = _quantize_midi_to_scale(target_midis[voice_idx], scale_steps)
+                voice_freq = _midi_to_freq(quantized_target)
                 if per_voice_silence[voice_idx]:
                     voice_freq = 0.0
                 voices[voice_idx].append((voice_freq, per_voice_durations[voice_idx]))
                 previous_freqs[voice_idx] = voice_freq
-                previous_midis[voice_idx] = target_midis[voice_idx]
-                voice_histories[voice_idx].append(target_midis[voice_idx])
+                previous_midis[voice_idx] = quantized_target
+                voice_histories[voice_idx].append(quantized_target)
             _update_dominant_state(dominant_state, routed_root_midi, voice_distance_context)
             continue
 
@@ -1095,6 +1127,7 @@ def _build_counterpoint_voices(
                     max_register_distance=max_register_distance,
                     voice_distance=voice_distance,
                     voice_distance_context=voice_distance_context,
+                    scale_steps=scale_steps,
                 )
 
             if voice_midi is not None and base_midi is not None:
@@ -1136,6 +1169,10 @@ def _build_counterpoint_voices(
                     if proposal - candidate_midis[voice_idx - 1] >= 2.0:
                         candidate_midis[voice_idx] = proposal
                         break
+
+        for voice_idx in range(voice_count):
+            if candidate_midis[voice_idx] is not None:
+                candidate_midis[voice_idx] = _quantize_midi_to_scale(candidate_midis[voice_idx], scale_steps)
 
         for voice_idx in range(voice_count):
             voice_midi = candidate_midis[voice_idx]
