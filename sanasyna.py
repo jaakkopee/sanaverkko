@@ -30,6 +30,20 @@ _adsr_decay = 0.04
 _adsr_sustain = 0.85
 _adsr_release = 0.03
 
+# Neural activation parameters shared between the controller and synthesis thread
+_neuro_params = {
+    "signed_activation": 0.0,
+    "activation_spread": 0.5,
+}
+_neuro_params_lock = threading.Lock()
+
+
+def set_neuro_params(d):
+    """Update shared neural state read by neuro_* waveforms during synthesis."""
+    global _neuro_params
+    with _neuro_params_lock:
+        _neuro_params = dict(d)
+
 
 def _ensure_stream():
     global _stream, _stream_rate
@@ -274,6 +288,60 @@ def _wave_from_freq(freq, duration, waveform):
     if wave_name == "noise":
         sample_count = max(1, int(_sample_rate * float(duration)))
         return np.random.uniform(-1.0, 1.0, sample_count)
+
+    if wave_name.startswith("neuro_"):
+        with _neuro_params_lock:
+            _np = dict(_neuro_params)
+        signed_act = float(_np.get("signed_activation", 0.0))
+        spread = max(0.0, min(1.0, float(_np.get("activation_spread", 0.5))))
+
+        if wave_name == "neuro_pulse":
+            # Variable-width pulse: duty cycle tracks signed activation (0.1 – 0.9)
+            duty = 0.1 + 0.8 * min(1.0, max(0.0, signed_act * 0.5 + 0.5))
+            phase = (float(freq) * t) % 1.0
+            return np.where(phase < duty, 1.0, -1.0)
+
+        if wave_name == "neuro_ring":
+            # Ring modulation: modulator frequency = freq × (1 + spread × 3)
+            mod_ratio = 1.0 + spread * 3.0
+            carrier = np.sin(2.0 * math.pi * float(freq) * t)
+            modulator = np.sin(2.0 * math.pi * float(freq) * mod_ratio * t)
+            result = carrier * modulator
+            peak = float(np.max(np.abs(result)))
+            return result / peak if peak > 1e-6 else result
+
+        if wave_name == "neuro_fold":
+            # Wavefolder: sine boosted by spread-driven gain, then hard-folded
+            fold_gain = 1.0 + 4.0 * spread
+            x = fold_gain * np.sin(2.0 * math.pi * float(freq) * t)
+            for _ in range(3):
+                x = np.where(x > 1.0, 2.0 - x, x)
+                x = np.where(x < -1.0, -2.0 - x, x)
+            return x
+
+        if wave_name == "neuro_fm":
+            # FM synthesis: index = spread × 8, operator ratio = |activation| → integer harmonic
+            mod_index = spread * 8.0
+            op_ratio = 1.0 + min(5, max(0, int(abs(signed_act) * 3.0 + 0.5)))
+            modulator = np.sin(2.0 * math.pi * float(freq) * op_ratio * t)
+            return np.sin(2.0 * math.pi * float(freq) * t + mod_index * modulator)
+
+        if wave_name == "neuro_formant":
+            # Additive formant synthesis: brightness center shifts with activation,
+            # bandwidth widens with spread
+            brightness = max(1.0, (0.5 + signed_act * 0.4) * 8.0)
+            bandwidth = 0.5 + spread * 2.5
+            result = np.zeros(len(t), dtype=np.float64)
+            for harmonic in range(1, 10):
+                weight = math.exp(-0.5 * ((float(harmonic) - brightness) / bandwidth) ** 2)
+                if weight < 0.005:
+                    continue
+                result += weight * np.sin(2.0 * math.pi * float(freq) * harmonic * t)
+            peak = float(np.max(np.abs(result)))
+            return result / peak if peak > 1e-6 else result
+
+        # Unknown neuro_ name → fall through to sine
+
     return np.sin(2.0 * math.pi * float(freq) * t)
 
 

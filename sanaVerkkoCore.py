@@ -323,7 +323,10 @@ class SanaVerkkoKontrolleri:
         self._bindNumericCtrl(self.rhyme_min_similarity_ctrl, self.OnRhymeMinSimilarity)
 
         self.audio_wave_mode_label = wx.StaticText(panel, -1, "Audio waveform mode")
-        self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=["Dynamic", "Pure sine", "Noise-heavy", "Classic analog"])
+        self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=[
+            "Dynamic", "Pure sine", "Noise-heavy", "Classic analog",
+            "Neuro formant", "Neuro pulse", "Neuro ring", "Neuro fold", "Neuro FM",
+        ])
         self.audio_wave_mode_choice.SetSelection(0)
         self.audio_wave_mode_choice.Bind(wx.EVT_CHOICE, self.OnAudioWaveMode)
 
@@ -1072,14 +1075,18 @@ class SanaVerkkoKontrolleri:
         if self._suppress_param_events:
             return
         selected_mode = self.audio_wave_mode_choice.GetStringSelection()
-        if selected_mode == "Pure sine":
-            self.params["audio_wave_mode"] = "pure_sine"
-        elif selected_mode == "Noise-heavy":
-            self.params["audio_wave_mode"] = "noise_heavy"
-        elif selected_mode == "Classic analog":
-            self.params["audio_wave_mode"] = "classic_analog"
-        else:
-            self.params["audio_wave_mode"] = "dynamic"
+        _wave_label_map = {
+            "Pure sine": "pure_sine",
+            "Noise-heavy": "noise_heavy",
+            "Classic analog": "classic_analog",
+            "Neuro formant": "neuro_formant",
+            "Neuro pulse": "neuro_pulse",
+            "Neuro ring": "neuro_ring",
+            "Neuro fold": "neuro_fold",
+            "Neuro FM": "neuro_fm",
+        }
+        self.params["audio_wave_mode"] = _wave_label_map.get(selected_mode, "dynamic")
+        self.last_audio_sentence_signature = None
 
     def OnFrequencyMappingMode(self, event):
         if self._suppress_param_events:
@@ -1673,6 +1680,9 @@ class SanaVerkkoKontrolleri:
             classic_waves = ["triangle", "sawtooth", "triangle", "square", "sawtooth"]
             self.audio_wave_index = (self.audio_wave_index + 1) % len(classic_waves)
             return classic_waves[self.audio_wave_index]
+        # Neural-reactive waveforms pass through directly — sanasyna reads _neuro_params
+        if mode in ("neuro_formant", "neuro_pulse", "neuro_ring", "neuro_fold", "neuro_fm"):
+            return mode
 
         dynamic_offset = int((abs(signed_activation) + activation_spread) * 10)
         self.audio_wave_index = (self.audio_wave_index + 1 + dynamic_offset) % len(self.audio_waveforms)
@@ -1890,6 +1900,12 @@ class SanaVerkkoKontrolleri:
             melody_amplitude = amplitude * 0.95
         elif waveform == "noise":
             melody_amplitude = max(0.03, amplitude * 0.55)
+
+        # Push current neural activation state so neuro_* waveforms can read it during synthesis
+        sanasyna.set_neuro_params({
+            "signed_activation": signed_activation,
+            "activation_spread": activation_spread,
+        })
 
         # Snapshot all inputs before spawning the thread so later UI changes don't race
         _melody_snap = list(melody)
@@ -2504,7 +2520,10 @@ class SanaVerkkoKontrolleri:
         self.params["import_mode"] = import_mode
 
         audio_wave_mode = str(self.params.get("audio_wave_mode", "dynamic"))
-        if audio_wave_mode not in {"dynamic", "pure_sine", "noise_heavy", "classic_analog"}:
+        if audio_wave_mode not in {
+            "dynamic", "pure_sine", "noise_heavy", "classic_analog",
+            "neuro_formant", "neuro_pulse", "neuro_ring", "neuro_fold", "neuro_fm",
+        }:
             audio_wave_mode = "dynamic"
         self.params["audio_wave_mode"] = audio_wave_mode
 
@@ -2576,14 +2595,19 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.jump_probability_ctrl, self.params["jump_probability"])
             self._setCtrlValueSilently(self.jump_radius_ctrl, self.params["jump_radius"])
 
-            if self.params["audio_wave_mode"] == "pure_sine":
-                self.audio_wave_mode_choice.SetStringSelection("Pure sine")
-            elif self.params["audio_wave_mode"] == "noise_heavy":
-                self.audio_wave_mode_choice.SetStringSelection("Noise-heavy")
-            elif self.params["audio_wave_mode"] == "classic_analog":
-                self.audio_wave_mode_choice.SetStringSelection("Classic analog")
-            else:
-                self.audio_wave_mode_choice.SetStringSelection("Dynamic")
+            _wave_mode_to_label = {
+                "pure_sine": "Pure sine",
+                "noise_heavy": "Noise-heavy",
+                "classic_analog": "Classic analog",
+                "neuro_formant": "Neuro formant",
+                "neuro_pulse": "Neuro pulse",
+                "neuro_ring": "Neuro ring",
+                "neuro_fold": "Neuro fold",
+                "neuro_fm": "Neuro FM",
+            }
+            self.audio_wave_mode_choice.SetStringSelection(
+                _wave_mode_to_label.get(self.params["audio_wave_mode"], "Dynamic")
+            )
             self.frequency_mapping_choice.SetStringSelection(self._frequency_mapping_label_from_key(self.params["frequency_mapping_mode"]))
             self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key(self.params.get("rhythm_style", "manual")))
             self.beat_library_style_choice.SetStringSelection(self._beat_library_label_from_key(self.params.get("beat_library_style", "auto")))
