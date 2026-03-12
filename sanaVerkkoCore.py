@@ -152,6 +152,8 @@ class SanaVerkkoKontrolleri:
         self.params["use_phoneme_rhyme"] = True
         self.params["rhyme_weight"] = 0.28
         self.params["rhyme_min_similarity"] = 0.34
+        self.params["rhyme_strategy"] = "hybrid"
+        self.params["rhyme_tail_bias"] = 0.60
         self.params["fluid_root"] = False
         self.params["fluid_gematria"] = False
         self.params["import_mode"] = "append"
@@ -350,6 +352,15 @@ class SanaVerkkoKontrolleri:
         self.rhyme_min_similarity_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhyme_min_similarity"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.rhyme_min_similarity_ctrl, self.OnRhymeMinSimilarity)
 
+        self.rhyme_strategy_label = wx.StaticText(panel, -1, "Rhyme strategy")
+        self.rhyme_strategy_choice = wx.Choice(panel, -1, choices=[label for _, label in self._rhyme_strategy_modes()])
+        self.rhyme_strategy_choice.SetStringSelection(self._rhyme_strategy_label_from_key(self.params.get("rhyme_strategy", "hybrid")))
+        self.rhyme_strategy_choice.Bind(wx.EVT_CHOICE, self.OnRhymeStrategy)
+
+        self.rhyme_tail_bias_label = wx.StaticText(panel, -1, "Rhyme tail bias (0-1)")
+        self.rhyme_tail_bias_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("rhyme_tail_bias", 0.60)), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhyme_tail_bias_ctrl, self.OnRhymeTailBias)
+
         self.audio_wave_mode_label = wx.StaticText(panel, -1, "Audio waveform mode")
         self.audio_wave_mode_choice = wx.Choice(panel, -1, choices=[
             "Dynamic", "Pure sine", "Noise-heavy", "Classic analog",
@@ -546,6 +557,10 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.rhyme_weight_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.rhyme_min_similarity_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhyme_min_similarity_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhyme_strategy_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhyme_strategy_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhyme_tail_bias_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhyme_tail_bias_ctrl, 0, wx.ALL, 5)
 
         self.sizer.Add(self.audio_wave_mode_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.audio_wave_mode_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -1127,6 +1142,15 @@ class SanaVerkkoKontrolleri:
     def OnRhymeMinSimilarity(self, event):
         self._commit_float_param(self.rhyme_min_similarity_ctrl, "rhyme_min_similarity", minimum=0.0, maximum=1.0)
 
+    def OnRhymeStrategy(self, event):
+        if self._suppress_param_events:
+            return
+        selected_label = self.rhyme_strategy_choice.GetStringSelection()
+        self.params["rhyme_strategy"] = self._rhyme_strategy_key_from_label(selected_label)
+
+    def OnRhymeTailBias(self, event):
+        self._commit_float_param(self.rhyme_tail_bias_ctrl, "rhyme_tail_bias", minimum=0.0, maximum=1.0)
+
     def OnPiperTTS(self, event):
         if self._suppress_param_events:
             return
@@ -1654,6 +1678,25 @@ class SanaVerkkoKontrolleri:
             if label == style_label:
                 return key
         return "auto"
+
+    def _rhyme_strategy_modes(self):
+        return [
+            ("suffix", "Suffix only"),
+            ("whole_word", "Whole word"),
+            ("hybrid", "Hybrid"),
+        ]
+
+    def _rhyme_strategy_label_from_key(self, strategy_key):
+        for key, label in self._rhyme_strategy_modes():
+            if key == strategy_key:
+                return label
+        return "Hybrid"
+
+    def _rhyme_strategy_key_from_label(self, strategy_label):
+        for key, label in self._rhyme_strategy_modes():
+            if label == strategy_label:
+                return key
+        return "hybrid"
 
     def _rhythm_style_label_from_key(self, style_key):
         for key, label in self._rhythm_style_modes():
@@ -2631,12 +2674,7 @@ class SanaVerkkoKontrolleri:
 
         return phonemes
 
-    def phonemeRhymeSimilarity(self, source_word_text, candidate_word_text):
-        source_phonemes = self.graphemeToPhonemes(source_word_text)
-        candidate_phonemes = self.graphemeToPhonemes(candidate_word_text)
-        if not source_phonemes or not candidate_phonemes:
-            return 0.0
-
+    def _phoneme_suffix_similarity(self, source_phonemes, candidate_phonemes):
         source_tail = self._phoneme_rhyme_tail(source_phonemes)
         candidate_tail = self._phoneme_rhyme_tail(candidate_phonemes)
         if not source_tail or not candidate_tail:
@@ -2657,6 +2695,52 @@ class SanaVerkkoKontrolleri:
         if source_tail == candidate_tail:
             similarity = min(1.0, similarity + 0.15)
         return similarity
+
+    def _phoneme_full_similarity(self, source_phonemes, candidate_phonemes):
+        if not source_phonemes or not candidate_phonemes:
+            return 0.0
+
+        n = len(source_phonemes)
+        m = len(candidate_phonemes)
+        if n == 0 or m == 0:
+            return 0.0
+
+        prev = list(range(m + 1))
+        for i in range(1, n + 1):
+            curr = [i] + [0] * m
+            src = source_phonemes[i - 1]
+            for j in range(1, m + 1):
+                cost = 0 if src == candidate_phonemes[j - 1] else 1
+                curr[j] = min(
+                    prev[j] + 1,
+                    curr[j - 1] + 1,
+                    prev[j - 1] + cost,
+                )
+            prev = curr
+
+        distance = prev[m]
+        max_len = max(n, m)
+        if max_len == 0:
+            return 0.0
+        return max(0.0, 1.0 - (distance / float(max_len)))
+
+    def phonemeRhymeSimilarity(self, source_word_text, candidate_word_text):
+        source_phonemes = self.graphemeToPhonemes(source_word_text)
+        candidate_phonemes = self.graphemeToPhonemes(candidate_word_text)
+        if not source_phonemes or not candidate_phonemes:
+            return 0.0
+
+        suffix_similarity = self._phoneme_suffix_similarity(source_phonemes, candidate_phonemes)
+        full_similarity = self._phoneme_full_similarity(source_phonemes, candidate_phonemes)
+
+        strategy = str(self.params.get("rhyme_strategy", "hybrid"))
+        if strategy == "suffix":
+            return suffix_similarity
+        if strategy == "whole_word":
+            return full_similarity
+
+        tail_bias = min(1.0, max(0.0, float(self.params.get("rhyme_tail_bias", 0.60))))
+        return tail_bias * suffix_similarity + (1.0 - tail_bias) * full_similarity
 
     def _reference_blended_score(self, source_word, candidate, ltm_probabilities):
         source_gematria = source_word.gematria
@@ -2861,6 +2945,12 @@ class SanaVerkkoKontrolleri:
         self.params["adsr_sustain"] = min(1.0, max(0.0, float(self.params.get("adsr_sustain", 0.85))))
         self.params["adsr_release"] = max(0.0, float(self.params.get("adsr_release", 0.03)))
 
+        rhyme_strategy = str(self.params.get("rhyme_strategy", "hybrid"))
+        if rhyme_strategy not in {"suffix", "whole_word", "hybrid"}:
+            rhyme_strategy = "hybrid"
+        self.params["rhyme_strategy"] = rhyme_strategy
+        self.params["rhyme_tail_bias"] = min(1.0, max(0.0, float(self.params.get("rhyme_tail_bias", 0.60))))
+
     def _sync_controls_from_params(self):
         self._suppress_param_events = True
         try:
@@ -2881,6 +2971,8 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
             self._setCtrlValueSilently(self.rhyme_weight_ctrl, self.params["rhyme_weight"])
             self._setCtrlValueSilently(self.rhyme_min_similarity_ctrl, self.params["rhyme_min_similarity"])
+            self.rhyme_strategy_choice.SetStringSelection(self._rhyme_strategy_label_from_key(self.params.get("rhyme_strategy", "hybrid")))
+            self._setCtrlValueSilently(self.rhyme_tail_bias_ctrl, self.params.get("rhyme_tail_bias", 0.60))
             self._setCtrlValueSilently(self.piper_model_ctrl, self.params.get("piper_model_path", ""))
 
             self._setCtrlValueSilently(self.learning_rate_ctrl, self.params["learning_rate"])
