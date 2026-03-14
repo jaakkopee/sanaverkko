@@ -230,6 +230,7 @@ class SanaVerkkoKontrolleri:
         self.ltm_model_path = ""
         self.ltm_context_size = 3
         self._logic_thread = None
+
         self._logic_state_lock = threading.Lock()
         self._logic_inflight = False
         self._logic_changed_ready = False
@@ -1534,9 +1535,30 @@ class SanaVerkkoKontrolleri:
         )
         return current_size == display_size and current_size != tuple(self._windowed_size)
 
+    def _shift_network_to_window_center(self, previous_size, current_size):
+        if not self.words:
+            return
+        if previous_size is None or current_size is None:
+            return
+
+        old_width, old_height = float(previous_size[0]), float(previous_size[1])
+        new_width, new_height = float(current_size[0]), float(current_size[1])
+        delta_x = (new_width - old_width) / 2.0
+        delta_y = (new_height - old_height) / 2.0
+
+        if delta_x == 0.0 and delta_y == 0.0:
+            return
+
+        for word in self.words:
+            word.x += delta_x
+            word.y += delta_y
+            word.neuron.x += delta_x
+            word.neuron.y += delta_y
+
     def _sync_display_window_state(self):
         if not pygame.display.get_init():
             return
+        previous_size = tuple(self.size) if self.size is not None else None
         try:
             current_size = tuple(pygame.display.get_window_size())
         except Exception:
@@ -1545,6 +1567,10 @@ class SanaVerkkoKontrolleri:
         effective_fullscreen = self._is_effective_fullscreen()
         self.params["fullscreen"] = effective_fullscreen
         self.size = current_size
+
+        if previous_size is not None and previous_size != current_size and effective_fullscreen:
+            self._shift_network_to_window_center(previous_size, current_size)
+
         if not effective_fullscreen:
             self._windowed_size = current_size
 
