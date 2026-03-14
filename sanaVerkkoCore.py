@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import tempfile
 import wave
+from collections import deque
 import sanasyna
 
 try:
@@ -236,6 +237,11 @@ class SanaVerkkoKontrolleri:
         self._logic_changed_ready = False
         self._piper_speak_thread = None
         self._last_spoken_sentence = ""
+        self._last_queued_sentence = ""
+        self._piper_sentence_queue = deque()
+        self._piper_queue_lock = threading.Lock()
+        self._piper_queue_event = threading.Event()
+        self._piper_worker_stop = False
         self._piper_audio_channel = None
         self._piper_audio_sound = None
 
@@ -1200,6 +1206,8 @@ class SanaVerkkoKontrolleri:
         text = str(sentence).strip()
         if text == "":
             return
+        if not bool(self.params.get("piper_tts_on", False)):
+            return
 
         piper_bin = shutil.which("piper")
         if piper_bin is not None:
@@ -1254,12 +1262,20 @@ class SanaVerkkoKontrolleri:
             piper_vol = min(1.0, max(0.0, float(self.params.get("piper_volume", 0.5))))
             audio_data = audio_data * piper_vol
 
+            # If a newer finalized sentence arrived while this one was being
+            # synthesized, skip stale playback and let the worker continue.
+            with self._piper_queue_lock:
+                has_newer_pending = bool(self._piper_sentence_queue) and self._last_queued_sentence != text
+            if has_newer_pending:
+                return
+
             # sd.play() with a generous blocksize prevents underruns without
             # opening a new exclusive OutputStream (which conflicts with pygame
             # on macOS/AUHAL, causing error -50).
             self._set_piper_status("Piper TTS: speaking")
             sd.play(audio_data, samplerate=sample_rate, blocksize=4096)
             sd.wait()
+            self._last_spoken_sentence = text
         except Exception as error:
             self._set_piper_status(f"Piper TTS failed: {error}")
         finally:
@@ -1269,21 +1285,59 @@ class SanaVerkkoKontrolleri:
                 except Exception:
                     pass
 
-    def _speak_sentence_with_piper_async(self, sentence):
-        text = str(sentence).strip()
-        if text == "" or text == self._last_spoken_sentence:
-            return
-        self._last_spoken_sentence = text
-
+    def _ensure_piper_worker(self):
         if self._piper_speak_thread is not None and self._piper_speak_thread.is_alive():
             return
 
+        self._piper_worker_stop = False
         self._piper_speak_thread = threading.Thread(
-            target=self._speak_sentence_with_piper,
-            args=(text,),
+            target=self._piper_queue_worker,
             daemon=True,
         )
         self._piper_speak_thread.start()
+
+    def _piper_queue_worker(self):
+        while True:
+            self._piper_queue_event.wait()
+
+            while True:
+                sentence = None
+                should_stop = False
+                with self._piper_queue_lock:
+                    if self._piper_sentence_queue:
+                        sentence = self._piper_sentence_queue.popleft()
+                    else:
+                        should_stop = self._piper_worker_stop
+                        self._piper_queue_event.clear()
+
+                if sentence is None:
+                    if should_stop:
+                        return
+                    break
+
+                if not self.running or self.closed:
+                    continue
+
+                self._speak_sentence_with_piper(sentence)
+
+    def _speak_sentence_with_piper_async(self, sentence):
+        text = str(sentence).strip()
+        if text == "":
+            return
+        if not bool(self.params.get("piper_tts_on", False)):
+            return
+
+        with self._piper_queue_lock:
+            if text == self._last_spoken_sentence or text == self._last_queued_sentence:
+                return
+            # Keep only the latest finalized sentence so speech stays aligned
+            # with the sentence shown in the network view and output file.
+            self._piper_sentence_queue.clear()
+            self._piper_sentence_queue.append(text)
+            self._last_queued_sentence = text
+
+        self._ensure_piper_worker()
+        self._piper_queue_event.set()
 
     def OnImportMode(self, event):
         if self._suppress_param_events:
@@ -1486,6 +1540,15 @@ class SanaVerkkoKontrolleri:
         if self.timer is not None:
             self.timer.Stop()
             self.timer = None
+        if sd is not None:
+            try:
+                sd.stop()
+            except Exception:
+                pass
+        self._piper_worker_stop = True
+        self._piper_queue_event.set()
+        if self._piper_speak_thread is not None and self._piper_speak_thread.is_alive():
+            self._piper_speak_thread.join(timeout=0.25)
         try:
             if self._piper_audio_channel is not None and self._piper_audio_channel.get_busy():
                 self._piper_audio_channel.stop()
