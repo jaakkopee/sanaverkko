@@ -34,6 +34,15 @@ _rhythm_modulation = {
     "divisive_signature": (4, 4),
     "divisive_weight": 0.0,
 }
+_compressor_config = {
+    "enabled": False,
+    "threshold_db": -18.0,
+    "ratio": 3.0,
+    "makeup_db": 6.0,
+    "attack_ms": 8.0,
+    "release_ms": 140.0,
+}
+_compressor_gain_prev = 1.0
 _state_lock = threading.Lock()
 _crossfade_seconds = 0.03
 _callback_status_count = 0
@@ -110,6 +119,35 @@ def set_rhythm_modulators(config):
             "additive_weight": additive_weight,
             "divisive_signature": (num, den),
             "divisive_weight": divisive_weight,
+        }
+
+
+def set_compressor(config):
+    global _compressor_config
+
+    if config is None:
+        return
+
+    enabled = bool(config.get("enabled", _compressor_config.get("enabled", False)))
+    threshold_db = float(config.get("threshold_db", _compressor_config.get("threshold_db", -18.0)))
+    threshold_db = min(0.0, max(-48.0, threshold_db))
+    ratio = float(config.get("ratio", _compressor_config.get("ratio", 3.0)))
+    ratio = min(20.0, max(1.0, ratio))
+    makeup_db = float(config.get("makeup_db", _compressor_config.get("makeup_db", 6.0)))
+    makeup_db = min(24.0, max(0.0, makeup_db))
+    attack_ms = float(config.get("attack_ms", _compressor_config.get("attack_ms", 8.0)))
+    attack_ms = min(200.0, max(0.2, attack_ms))
+    release_ms = float(config.get("release_ms", _compressor_config.get("release_ms", 140.0)))
+    release_ms = min(1500.0, max(5.0, release_ms))
+
+    with _state_lock:
+        _compressor_config = {
+            "enabled": enabled,
+            "threshold_db": threshold_db,
+            "ratio": ratio,
+            "makeup_db": makeup_db,
+            "attack_ms": attack_ms,
+            "release_ms": release_ms,
         }
 
 
@@ -194,6 +232,49 @@ def _rhythm_modulation_gain(frame_start, frames, previous_gain=1.0):
     smoothing_samples = max(1.0, 0.0035 * float(_sample_rate))
     smoothed, last_gain = _smooth_envelope(raw, previous_gain, smoothing_samples)
     return smoothed, last_gain
+
+
+def _compress_chunk(samples):
+    global _compressor_gain_prev
+
+    if samples.size == 0:
+        return samples
+
+    cfg = dict(_compressor_config)
+    if not bool(cfg.get("enabled", False)):
+        _compressor_gain_prev = 1.0
+        return samples
+
+    threshold_db = float(cfg.get("threshold_db", -18.0))
+    ratio = max(1.0, float(cfg.get("ratio", 3.0)))
+    makeup_db = float(cfg.get("makeup_db", 6.0))
+    attack_ms = max(0.2, float(cfg.get("attack_ms", 8.0)))
+    release_ms = max(5.0, float(cfg.get("release_ms", 140.0)))
+
+    makeup_gain = float(10.0 ** (makeup_db / 20.0))
+    attack_coeff = math.exp(-1.0 / (0.001 * attack_ms * float(_sample_rate)))
+    release_coeff = math.exp(-1.0 / (0.001 * release_ms * float(_sample_rate)))
+
+    out = np.array(samples, dtype=np.float32, copy=True)
+    gain = float(_compressor_gain_prev)
+    slope = 1.0 - (1.0 / ratio)
+
+    for idx in range(out.size):
+        amp = abs(float(out[idx]))
+        level_db = 20.0 * math.log10(max(1e-8, amp))
+        over_db = max(0.0, level_db - threshold_db)
+        reduction_db = slope * over_db
+        target_gain = makeup_gain * (10.0 ** (-reduction_db / 20.0))
+
+        if target_gain < gain:
+            coeff = attack_coeff
+        else:
+            coeff = release_coeff
+        gain = coeff * gain + (1.0 - coeff) * target_gain
+        out[idx] = float(out[idx]) * gain
+
+    _compressor_gain_prev = float(gain)
+    return out
 
 
 def _ensure_stream():
@@ -287,6 +368,7 @@ def _audio_callback(outdata, frames, timing_info, status):
         rhythm_gain, _rhythm_gain_prev = _rhythm_modulation_gain(_rhythm_sample_cursor, frames, _rhythm_gain_prev)
         _rhythm_sample_cursor += int(frames)
         chunk = np.clip(chunk * rhythm_gain, -1.0, 1.0)
+        chunk = np.clip(_compress_chunk(chunk), -1.0, 1.0)
 
         if _overlay_is_playing and _overlay_samples.size > 0:
             overlay_chunk = np.zeros(frames, dtype=np.float32)
@@ -421,6 +503,7 @@ def play(loop=True):
 
 def stop():
     global _is_playing, _playback_position, _pending_samples, _rhythm_sample_cursor, _rhythm_gain_prev
+    global _compressor_gain_prev
 
     with _state_lock:
         _is_playing = False
@@ -428,6 +511,7 @@ def stop():
         _pending_samples = None
         _rhythm_sample_cursor = 0
         _rhythm_gain_prev = 1.0
+        _compressor_gain_prev = 1.0
 
 
 def stop_overlay():

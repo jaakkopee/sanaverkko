@@ -273,6 +273,7 @@ class SanaVerkkoKontrolleri:
         self.params["word_change_threshold"] = 0.777
         self.params["zoom"]=0.1
         self.params["process_interval"] = 0.08
+        self.params["process_interval_from_rhythm_bpm"] = False
         self.params["logic_iteration_limit"] = 48
         self.params["selection_exploration"] = 0.18
         self.params["selection_top_k"] = 4
@@ -313,6 +314,10 @@ class SanaVerkkoKontrolleri:
         self.params["piper_model_path"] = os.environ.get("PIPER_MODEL", "")
         self.params["piper_volume"] = 0.5
         self.params["synth_volume"] = 1.0
+        self.params["compressor_enabled"] = False
+        self.params["compressor_threshold_db"] = -18.0
+        self.params["compressor_ratio"] = 3.0
+        self.params["compressor_makeup_db"] = 6.0
         self.params["fullscreen"] = False
         self.params["adsr_attack"] = 0.01
         self.params["adsr_decay"] = 0.04
@@ -459,6 +464,9 @@ class SanaVerkkoKontrolleri:
         self.process_interval_label = wx.StaticText(panel, -1, "Process interval (s)")
         self.process_interval_ctrl = wx.TextCtrl(panel, -1, str(self.params["process_interval"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.process_interval_ctrl, self.OnProcessInterval)
+        self.process_interval_bpm_sync_checkbox = wx.CheckBox(panel, -1, "Sync to rhythm BPM")
+        self.process_interval_bpm_sync_checkbox.SetValue(bool(self.params.get("process_interval_from_rhythm_bpm", False)))
+        self.process_interval_bpm_sync_checkbox.Bind(wx.EVT_CHECKBOX, self.OnProcessIntervalBPMMode)
 
         self.melody_from_own_time_checkbox = wx.CheckBox(panel, -1, "From melody")
         self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
@@ -527,6 +535,25 @@ class SanaVerkkoKontrolleri:
         _sv_init = int(self.params.get("synth_volume", 1.0) * 100)
         self.synth_volume_slider = wx.Slider(panel, -1, _sv_init, 0, 100, style=wx.SL_HORIZONTAL)
         self.synth_volume_slider.Bind(wx.EVT_SLIDER, self.OnSynthVolume)
+
+        self.compressor_enabled_checkbox = wx.CheckBox(panel, -1, "Enable synth compressor")
+        self.compressor_enabled_checkbox.SetValue(bool(self.params.get("compressor_enabled", False)))
+        self.compressor_enabled_checkbox.Bind(wx.EVT_CHECKBOX, self.OnCompressorEnabled)
+        _ct_init = int(round(float(self.params.get("compressor_threshold_db", -18.0))))
+        _ct_init = min(0, max(-48, _ct_init))
+        self.compressor_threshold_label = wx.StaticText(panel, -1, "Compressor threshold: -18 dB")
+        self.compressor_threshold_slider = wx.Slider(panel, -1, _ct_init, -48, 0, style=wx.SL_HORIZONTAL)
+        self.compressor_threshold_slider.Bind(wx.EVT_SLIDER, self.OnCompressorThreshold)
+        _cr_init = int(round(float(self.params.get("compressor_ratio", 3.0)) * 10.0))
+        _cr_init = min(120, max(10, _cr_init))
+        self.compressor_ratio_label = wx.StaticText(panel, -1, "Compressor ratio: 3.0:1")
+        self.compressor_ratio_slider = wx.Slider(panel, -1, _cr_init, 10, 120, style=wx.SL_HORIZONTAL)
+        self.compressor_ratio_slider.Bind(wx.EVT_SLIDER, self.OnCompressorRatio)
+        _cm_init = int(round(float(self.params.get("compressor_makeup_db", 6.0))))
+        _cm_init = min(24, max(0, _cm_init))
+        self.compressor_makeup_label = wx.StaticText(panel, -1, "Compressor makeup gain: +6 dB")
+        self.compressor_makeup_slider = wx.Slider(panel, -1, _cm_init, 0, 24, style=wx.SL_HORIZONTAL)
+        self.compressor_makeup_slider.Bind(wx.EVT_SLIDER, self.OnCompressorMakeup)
 
         _pv_pct = int(self.params.get("piper_volume", 0.5) * 100)
         self.piper_volume_label = wx.StaticText(panel, -1, f"Piper volume: {_pv_pct}%")
@@ -703,6 +730,7 @@ class SanaVerkkoKontrolleri:
         _pi_row = wx.BoxSizer(wx.HORIZONTAL)
         _pi_row.Add(self.process_interval_ctrl, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 8)
         _pi_row.Add(self.melody_from_own_time_checkbox, 0, wx.ALIGN_CENTER_VERTICAL)
+        _pi_row.Add(self.process_interval_bpm_sync_checkbox, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
         self.sizer.Add(_pi_row, 0, wx.ALL, 5)
         self.sizer.Add(self.fullscreen_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.logic_worker_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
@@ -740,6 +768,13 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.piper_tts_status_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.synth_volume_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.synth_volume_slider, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.compressor_enabled_checkbox, 0, wx.ALL, 5)
+        self.sizer.Add(self.compressor_threshold_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.compressor_threshold_slider, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.compressor_ratio_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.compressor_ratio_slider, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.compressor_makeup_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.compressor_makeup_slider, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.piper_volume_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.piper_volume_slider, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.frequency_mapping_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -839,7 +874,11 @@ class SanaVerkkoKontrolleri:
         self._updatePOSBackendStatusLabel(check_nltk=False)
         self._updateLTMStatusLabel()
         self._update_additive_pattern_status_label()
+        self._sync_process_interval_from_bpm(force=True)
+        self._update_process_interval_mode_ui()
         self._apply_rhythm_modulation_state()
+        self._update_compressor_labels()
+        self._apply_compressor_state()
 
     def setupOutputWindow(self):
         self.output_frame = wx.Frame(None, -1, "SanaVerkko Output", size=(760, 420))
@@ -1275,6 +1314,9 @@ class SanaVerkkoKontrolleri:
             self.makeWordCircle(self.words)
 
     def OnProcessInterval(self, event):
+        if bool(self.params.get("process_interval_from_rhythm_bpm", False)):
+            self._sync_process_interval_from_bpm(force=True)
+            return
         value = self._commit_float_param(self.process_interval_ctrl, "process_interval", minimum=0.01)
         if value is None:
             return
@@ -1283,6 +1325,38 @@ class SanaVerkkoKontrolleri:
             sanasyna.set_transition_crossfade(transition_crossfade)
         except Exception:
             pass
+
+    def _process_interval_from_bpm(self, bpm):
+        safe_bpm = min(300.0, max(20.0, float(bpm)))
+        # Use a 1/32-note step so logic cadence tracks musical tempo tightly.
+        return min(0.5, max(0.01, (60.0 / safe_bpm) / 8.0))
+
+    def _sync_process_interval_from_bpm(self, force=False):
+        if not force and not bool(self.params.get("process_interval_from_rhythm_bpm", False)):
+            return
+        bpm = float(self.params.get("rhythm_mod_bpm", 108.0))
+        interval = self._process_interval_from_bpm(bpm)
+        self.params["process_interval"] = interval
+        if hasattr(self, "process_interval_ctrl") and self.process_interval_ctrl is not None:
+            self._setCtrlValueSilently(self.process_interval_ctrl, interval)
+        try:
+            transition_crossfade = min(0.08, max(0.01, float(interval) * 0.45))
+            sanasyna.set_transition_crossfade(transition_crossfade)
+        except Exception:
+            pass
+
+    def _update_process_interval_mode_ui(self):
+        is_synced = bool(self.params.get("process_interval_from_rhythm_bpm", False))
+        if hasattr(self, "process_interval_ctrl") and self.process_interval_ctrl is not None:
+            self.process_interval_ctrl.Enable(not is_synced)
+
+    def OnProcessIntervalBPMMode(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["process_interval_from_rhythm_bpm"] = bool(self.process_interval_bpm_sync_checkbox.GetValue())
+        self._update_process_interval_mode_ui()
+        if self.params["process_interval_from_rhythm_bpm"]:
+            self._sync_process_interval_from_bpm(force=True)
 
     def OnMelodyFromOwnTime(self, event):
         enabled = self.melody_from_own_time_checkbox.GetValue()
@@ -1345,6 +1419,52 @@ class SanaVerkkoKontrolleri:
         val = int(self.synth_volume_slider.GetValue())
         self.params["synth_volume"] = val / 100.0
         self.synth_volume_label.SetLabel(f"Synth volume: {val}%")
+
+    def _update_compressor_labels(self):
+        threshold = int(round(float(self.params.get("compressor_threshold_db", -18.0))))
+        ratio = float(self.params.get("compressor_ratio", 3.0))
+        makeup = int(round(float(self.params.get("compressor_makeup_db", 6.0))))
+        self.compressor_threshold_label.SetLabel(f"Compressor threshold: {threshold} dB")
+        self.compressor_ratio_label.SetLabel(f"Compressor ratio: {ratio:.1f}:1")
+        self.compressor_makeup_label.SetLabel(f"Compressor makeup gain: +{makeup} dB")
+
+    def _apply_compressor_state(self):
+        payload = {
+            "enabled": bool(self.params.get("compressor_enabled", False)),
+            "threshold_db": float(self.params.get("compressor_threshold_db", -18.0)),
+            "ratio": float(self.params.get("compressor_ratio", 3.0)),
+            "makeup_db": float(self.params.get("compressor_makeup_db", 6.0)),
+            "attack_ms": 8.0,
+            "release_ms": 140.0,
+        }
+        try:
+            sanasyna.set_compressor(payload)
+        except Exception:
+            pass
+
+    def OnCompressorEnabled(self, event):
+        if self._suppress_param_events:
+            return
+        self.params["compressor_enabled"] = bool(self.compressor_enabled_checkbox.GetValue())
+        self._apply_compressor_state()
+
+    def OnCompressorThreshold(self, event):
+        val = int(self.compressor_threshold_slider.GetValue())
+        self.params["compressor_threshold_db"] = float(val)
+        self._update_compressor_labels()
+        self._apply_compressor_state()
+
+    def OnCompressorRatio(self, event):
+        val = int(self.compressor_ratio_slider.GetValue())
+        self.params["compressor_ratio"] = float(val) / 10.0
+        self._update_compressor_labels()
+        self._apply_compressor_state()
+
+    def OnCompressorMakeup(self, event):
+        val = int(self.compressor_makeup_slider.GetValue())
+        self.params["compressor_makeup_db"] = float(val)
+        self._update_compressor_labels()
+        self._apply_compressor_state()
 
     def OnPiperVolume(self, event):
         val = int(self.piper_volume_slider.GetValue())
@@ -1627,6 +1747,7 @@ class SanaVerkkoKontrolleri:
 
     def OnRhythmModBPM(self, event):
         self._commit_float_param(self.rhythm_mod_bpm_ctrl, "rhythm_mod_bpm", minimum=20.0, maximum=300.0)
+        self._sync_process_interval_from_bpm()
         self._apply_rhythm_modulation_state()
 
     def OnAdditiveRhythmWeight(self, event):
@@ -2025,6 +2146,7 @@ class SanaVerkkoKontrolleri:
         except Exception:
             pass
         self._apply_rhythm_modulation_state()
+        self._apply_compressor_state()
 
     def _frequency_mapping_modes(self):
         return [
@@ -3354,10 +3476,15 @@ class SanaVerkkoKontrolleri:
         self.params["use_phoneme_rhyme"] = bool(self.params.get("use_phoneme_rhyme", True))
         self.params["strict_counterpoint"] = bool(self.params.get("strict_counterpoint", False))
         self.params["piper_tts_on"] = bool(self.params.get("piper_tts_on", False))
+        self.params["process_interval_from_rhythm_bpm"] = bool(self.params.get("process_interval_from_rhythm_bpm", False))
+        self.params["compressor_enabled"] = bool(self.params.get("compressor_enabled", False))
         self.params["ltm_weight"] = min(1.0, max(0.0, float(self.params.get("ltm_weight", 0.35))))
         self.params["rhyme_weight"] = min(1.0, max(0.0, float(self.params.get("rhyme_weight", 0.28))))
         self.params["rhyme_min_similarity"] = min(1.0, max(0.0, float(self.params.get("rhyme_min_similarity", 0.34))))
         self.params["piper_model_path"] = str(self.params.get("piper_model_path", "")).strip()
+        self.params["compressor_threshold_db"] = min(0.0, max(-48.0, float(self.params.get("compressor_threshold_db", -18.0))))
+        self.params["compressor_ratio"] = min(12.0, max(1.0, float(self.params.get("compressor_ratio", 3.0))))
+        self.params["compressor_makeup_db"] = min(24.0, max(0.0, float(self.params.get("compressor_makeup_db", 6.0))))
 
         self.params["learning_rate"] = float(self.params.get("learning_rate", 0.1))
         self.params["error"] = float(self.params.get("error", 0))
@@ -3416,6 +3543,8 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_rotation"] = max(0, min(31, int(float(self.params.get("rhythm_rotation", 0)))))
         self.params["rhythm_radicality"] = min(1.0, max(0.0, float(self.params.get("rhythm_radicality", 0.5))))
         self.params["rhythm_mod_bpm"] = min(300.0, max(20.0, float(self.params.get("rhythm_mod_bpm", 108.0))))
+        if self.params["process_interval_from_rhythm_bpm"]:
+            self.params["process_interval"] = self._process_interval_from_bpm(self.params["rhythm_mod_bpm"])
         additive_blocks = self.params.get("additive_rhythm_blocks", [])
         normalized_blocks = []
         if isinstance(additive_blocks, (list, tuple)):
@@ -3462,7 +3591,9 @@ class SanaVerkkoKontrolleri:
             self.use_phoneme_rhyme_checkbox.SetValue(self.params["use_phoneme_rhyme"])
             self.strict_counterpoint_checkbox.SetValue(self.params["strict_counterpoint"])
             self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
+            self.process_interval_bpm_sync_checkbox.SetValue(bool(self.params.get("process_interval_from_rhythm_bpm", False)))
             self.piper_tts_checkbox.SetValue(self.params.get("piper_tts_on", False))
+            self.compressor_enabled_checkbox.SetValue(bool(self.params.get("compressor_enabled", False)))
             self.fullscreen_checkbox.SetValue(bool(self.params.get("fullscreen", False)))
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
@@ -3481,10 +3612,15 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.word_change_threshold_ctrl, self.params["word_change_threshold"])
             self._setCtrlValueSilently(self.zoom_ctrl, self.params["zoom"])
             self._setCtrlValueSilently(self.process_interval_ctrl, self.params["process_interval"])
+            self._update_process_interval_mode_ui()
             self._setCtrlValueSilently(self.selection_exploration_ctrl, self.params["selection_exploration"])
             self._setCtrlValueSilently(self.selection_top_k_ctrl, self.params["selection_top_k"])
             self._setCtrlValueSilently(self.jump_probability_ctrl, self.params["jump_probability"])
             self._setCtrlValueSilently(self.jump_radius_ctrl, self.params["jump_radius"])
+            self.compressor_threshold_slider.SetValue(int(round(self.params.get("compressor_threshold_db", -18.0))))
+            self.compressor_ratio_slider.SetValue(int(round(float(self.params.get("compressor_ratio", 3.0)) * 10.0)))
+            self.compressor_makeup_slider.SetValue(int(round(self.params.get("compressor_makeup_db", 6.0))))
+            self._update_compressor_labels()
 
             _wave_mode_to_label = {
                 "pure_sine": "Pure sine",
@@ -3535,6 +3671,7 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.adsr_release_ctrl, self.params["adsr_release"])
             self._update_additive_pattern_status_label()
             self._apply_rhythm_modulation_state()
+            self._apply_compressor_state()
             self._refresh_additive_editor_sequence()
         finally:
             self._suppress_param_events = False
