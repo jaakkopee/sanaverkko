@@ -22,6 +22,9 @@ _pending_samples = None
 _current_loop = True
 _playback_position = 0
 _is_playing = False
+_overlay_samples = np.zeros(0, dtype=np.float32)
+_overlay_position = 0
+_overlay_is_playing = False
 _state_lock = threading.Lock()
 _crossfade_seconds = 0.03
 _callback_status_count = 0
@@ -73,7 +76,8 @@ def _ensure_stream():
 
 
 def _audio_callback(outdata, frames, timing_info, status):
-    global _playback_position, _is_playing, _pending_samples, _current_samples, _callback_status_count
+    global _playback_position, _is_playing, _pending_samples, _current_samples
+    global _overlay_position, _overlay_is_playing, _overlay_samples, _callback_status_count
 
     _ = timing_info
     if status:
@@ -82,58 +86,71 @@ def _audio_callback(outdata, frames, timing_info, status):
             print(f"sanasyna callback status: {status}")
 
     with _state_lock:
-        if not _is_playing or _current_samples.size == 0:
-            outdata.fill(0)
-            return
+        chunk = np.zeros(frames, dtype=np.float32)
 
-        samples = _current_samples
-        sample_count = samples.size
-        if sample_count == 0:
-            outdata.fill(0)
-            _is_playing = False
-            return
+        if _is_playing and _current_samples.size > 0:
+            samples = _current_samples
+            sample_count = samples.size
 
-        if _current_loop:
-            indices = (np.arange(frames) + _playback_position) % sample_count
-            chunk = samples[indices]
-            _playback_position = (_playback_position + frames) % sample_count
-        else:
-            end_position = _playback_position + frames
-            if end_position <= sample_count:
-                chunk = samples[_playback_position:end_position]
-                _playback_position = end_position
-                if _playback_position >= sample_count:
-                    _is_playing = False
-            else:
-                chunk = np.zeros(frames, dtype=np.float32)
-                remaining = max(0, sample_count - _playback_position)
-                if remaining > 0:
-                    chunk[:remaining] = samples[_playback_position:sample_count]
-                _playback_position = sample_count
+            if sample_count == 0:
                 _is_playing = False
-
-        if _pending_samples is not None and _pending_samples.size > 0:
-            next_samples = _pending_samples
-            _pending_samples = None
-
-            crossfade_samples = max(16, int(_crossfade_seconds * float(_sample_rate)))
-            crossfade_samples = min(crossfade_samples, frames, chunk.size, next_samples.size)
-
-            if crossfade_samples > 0:
-                fade_out = np.linspace(1.0, 0.0, crossfade_samples, endpoint=False, dtype=np.float32)
-                fade_in = np.linspace(0.0, 1.0, crossfade_samples, endpoint=False, dtype=np.float32)
-                mixed_chunk = np.array(chunk, copy=True)
-                mixed_chunk[:crossfade_samples] = (
-                    chunk[:crossfade_samples] * fade_out
-                    + next_samples[:crossfade_samples] * fade_in
-                )
-                chunk = mixed_chunk
-                _current_samples = next_samples
-                _playback_position = crossfade_samples % next_samples.size
+            elif _current_loop:
+                indices = (np.arange(frames) + _playback_position) % sample_count
+                chunk = samples[indices]
+                _playback_position = (_playback_position + frames) % sample_count
             else:
-                _current_samples = next_samples
-                _playback_position = 0
-            _is_playing = True
+                end_position = _playback_position + frames
+                if end_position <= sample_count:
+                    chunk = samples[_playback_position:end_position]
+                    _playback_position = end_position
+                    if _playback_position >= sample_count:
+                        _is_playing = False
+                else:
+                    remaining = max(0, sample_count - _playback_position)
+                    if remaining > 0:
+                        chunk[:remaining] = samples[_playback_position:sample_count]
+                    _playback_position = sample_count
+                    _is_playing = False
+
+            if _pending_samples is not None and _pending_samples.size > 0:
+                next_samples = _pending_samples
+                _pending_samples = None
+
+                crossfade_samples = max(16, int(_crossfade_seconds * float(_sample_rate)))
+                crossfade_samples = min(crossfade_samples, frames, chunk.size, next_samples.size)
+
+                if crossfade_samples > 0:
+                    fade_out = np.linspace(1.0, 0.0, crossfade_samples, endpoint=False, dtype=np.float32)
+                    fade_in = np.linspace(0.0, 1.0, crossfade_samples, endpoint=False, dtype=np.float32)
+                    mixed_chunk = np.array(chunk, copy=True)
+                    mixed_chunk[:crossfade_samples] = (
+                        chunk[:crossfade_samples] * fade_out
+                        + next_samples[:crossfade_samples] * fade_in
+                    )
+                    chunk = mixed_chunk
+                    _current_samples = next_samples
+                    _playback_position = crossfade_samples % next_samples.size
+                else:
+                    _current_samples = next_samples
+                    _playback_position = 0
+                _is_playing = True
+
+        if _overlay_is_playing and _overlay_samples.size > 0:
+            overlay_chunk = np.zeros(frames, dtype=np.float32)
+            overlay_count = _overlay_samples.size
+            overlay_end = _overlay_position + frames
+            if overlay_end <= overlay_count:
+                overlay_chunk = _overlay_samples[_overlay_position:overlay_end]
+                _overlay_position = overlay_end
+                if _overlay_position >= overlay_count:
+                    _overlay_is_playing = False
+            else:
+                remaining = max(0, overlay_count - _overlay_position)
+                if remaining > 0:
+                    overlay_chunk[:remaining] = _overlay_samples[_overlay_position:overlay_count]
+                _overlay_position = overlay_count
+                _overlay_is_playing = False
+            chunk = np.clip(chunk + overlay_chunk, -1.0, 1.0)
 
     outdata[:, 0] = chunk
 
@@ -258,10 +275,106 @@ def stop():
         _pending_samples = None
 
 
+def stop_overlay():
+    global _overlay_is_playing, _overlay_position
+
+    with _state_lock:
+        _overlay_is_playing = False
+        _overlay_position = 0
+
+
+def _set_overlay_sound(samples):
+    global _overlay_samples, _overlay_position, _overlay_is_playing
+
+    if not _ensure_audio():
+        return
+
+    prepared = np.clip(np.array(samples, dtype=np.float32, copy=True), -1.0, 1.0)
+    with _state_lock:
+        _overlay_samples = prepared
+        _overlay_position = 0
+        _overlay_is_playing = prepared.size > 0
+
+
+def _resample_samples(samples, source_rate, target_rate):
+    if source_rate == target_rate:
+        return np.array(samples, dtype=np.float32, copy=True)
+
+    source = np.array(samples, dtype=np.float32, copy=False).reshape(-1)
+    if source.size <= 1:
+        return np.array(source, dtype=np.float32, copy=True)
+
+    ratio = float(target_rate) / float(source_rate)
+    target_length = max(1, int(round(source.size * ratio)))
+    source_positions = np.linspace(0.0, float(source.size - 1), num=source.size, dtype=np.float32)
+    target_positions = np.linspace(0.0, float(source.size - 1), num=target_length, dtype=np.float32)
+    return np.interp(target_positions, source_positions, source).astype(np.float32)
+
+
+def play_samples(samples, sample_rate=None, loop=False, wait=False):
+    global _current_loop, _playback_position, _is_playing
+
+    if sample_rate is None:
+        sample_rate = _sample_rate
+
+    if not _ensure_audio():
+        return False
+
+    prepared = np.array(samples, dtype=np.float32, copy=False)
+    if prepared.ndim > 1:
+        prepared = np.mean(prepared, axis=1)
+    prepared = _resample_samples(prepared, int(sample_rate), int(_sample_rate))
+    prepared = np.clip(prepared, -1.0, 1.0)
+
+    _set_current_sound(prepared)
+
+    with _state_lock:
+        if _current_samples.size == 0:
+            return False
+        _current_loop = bool(loop)
+        _playback_position = 0
+        _is_playing = True
+
+    if wait:
+        while True:
+            with _state_lock:
+                still_playing = bool(_is_playing)
+            if not still_playing:
+                break
+            threading.Event().wait(0.01)
+
+    return True
+
+
+def play_overlay_samples(samples, sample_rate=None, wait=False):
+    if sample_rate is None:
+        sample_rate = _sample_rate
+
+    if not _ensure_audio():
+        return False
+
+    prepared = np.array(samples, dtype=np.float32, copy=False)
+    if prepared.ndim > 1:
+        prepared = np.mean(prepared, axis=1)
+    prepared = _resample_samples(prepared, int(sample_rate), int(_sample_rate))
+    _set_overlay_sound(prepared)
+
+    if wait:
+        while True:
+            with _state_lock:
+                still_playing = bool(_overlay_is_playing)
+            if not still_playing:
+                break
+            threading.Event().wait(0.01)
+
+    return True
+
+
 def close():
     global _stream, _stream_rate
 
     stop()
+    stop_overlay()
     if _stream is not None:
         _stream.stop()
         _stream.close()

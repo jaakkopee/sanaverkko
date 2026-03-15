@@ -1239,11 +1239,6 @@ class SanaVerkkoKontrolleri:
                 self._set_piper_status(f"Piper TTS error: {stderr_text}")
                 return
 
-            # Play WAV via sounddevice (pygame.mixer not available in this build)
-            if sd is None:
-                self._set_piper_status("Piper TTS failed: sounddevice not available")
-                return
-
             with wave.open(tmp_wav, "rb") as wav_file:
                 channels = wav_file.getnchannels()
                 sample_width = wav_file.getsampwidth()
@@ -1269,12 +1264,10 @@ class SanaVerkkoKontrolleri:
             if has_newer_pending:
                 return
 
-            # sd.play() with a generous blocksize prevents underruns without
-            # opening a new exclusive OutputStream (which conflicts with pygame
-            # on macOS/AUHAL, causing error -50).
             self._set_piper_status("Piper TTS: speaking")
-            sd.play(audio_data, samplerate=sample_rate, blocksize=4096)
-            sd.wait()
+            if not sanasyna.play_overlay_samples(audio_data, sample_rate=sample_rate, wait=True):
+                self._set_piper_status("Piper TTS failed: shared audio backend unavailable")
+                return
             self._last_spoken_sentence = text
         except Exception as error:
             self._set_piper_status(f"Piper TTS failed: {error}")
@@ -1540,15 +1533,10 @@ class SanaVerkkoKontrolleri:
         if self.timer is not None:
             self.timer.Stop()
             self.timer = None
-        if sd is not None:
-            try:
-                sd.stop()
-            except Exception:
-                pass
         self._piper_worker_stop = True
+        with self._piper_queue_lock:
+            self._piper_sentence_queue.clear()
         self._piper_queue_event.set()
-        if self._piper_speak_thread is not None and self._piper_speak_thread.is_alive():
-            self._piper_speak_thread.join(timeout=0.25)
         try:
             if self._piper_audio_channel is not None and self._piper_audio_channel.get_busy():
                 self._piper_audio_channel.stop()
