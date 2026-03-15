@@ -73,7 +73,7 @@ def set_rhythm_modulators(config):
         return
 
     bpm = float(config.get("bpm", _rhythm_modulation.get("bpm", 108.0)))
-    bpm = min(300.0, max(20.0, bpm))
+    bpm = min(300.0, max(0.01, bpm))
 
     additive_blocks = config.get("additive_blocks", _rhythm_modulation.get("additive_blocks", []))
     normalized_blocks = []
@@ -181,7 +181,7 @@ def _rhythm_modulation_gain(frame_start, frames, previous_gain=1.0):
         smoothed, last_gain = _smooth_envelope(neutral, previous_gain, max(1.0, 0.004 * _sample_rate))
         return smoothed, last_gain
 
-    bpm = max(20.0, min(300.0, float(cfg.get("bpm", 108.0))))
+    bpm = max(0.01, min(300.0, float(cfg.get("bpm", 108.0))))
     sample_idx = frame_start + np.arange(frames, dtype=np.float64)
     gain = np.ones(frames, dtype=np.float32)
 

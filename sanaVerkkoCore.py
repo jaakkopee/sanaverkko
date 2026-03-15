@@ -272,7 +272,7 @@ class SanaVerkkoKontrolleri:
         self.params["sigmoid_scale"] = 2
         self.params["word_change_threshold"] = 0.777
         self.params["zoom"]=0.1
-        self.params["process_interval"] = 0.08
+        self.params["process_interval"] = 0.1
         self.params["process_interval_from_rhythm_bpm"] = False
         self.params["logic_iteration_limit"] = 48
         self.params["selection_exploration"] = 0.18
@@ -467,6 +467,7 @@ class SanaVerkkoKontrolleri:
         self.process_interval_bpm_sync_checkbox = wx.CheckBox(panel, -1, "Sync to rhythm BPM")
         self.process_interval_bpm_sync_checkbox.SetValue(bool(self.params.get("process_interval_from_rhythm_bpm", False)))
         self.process_interval_bpm_sync_checkbox.Bind(wx.EVT_CHECKBOX, self.OnProcessIntervalBPMMode)
+        self.process_interval_value_label = wx.StaticText(panel, -1, "Current interval: 0.100 s (manual)")
 
         self.melody_from_own_time_checkbox = wx.CheckBox(panel, -1, "From melody")
         self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
@@ -731,6 +732,7 @@ class SanaVerkkoKontrolleri:
         _pi_row.Add(self.process_interval_ctrl, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 8)
         _pi_row.Add(self.melody_from_own_time_checkbox, 0, wx.ALIGN_CENTER_VERTICAL)
         _pi_row.Add(self.process_interval_bpm_sync_checkbox, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+        _pi_row.Add(self.process_interval_value_label, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
         self.sizer.Add(_pi_row, 0, wx.ALL, 5)
         self.sizer.Add(self.fullscreen_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.logic_worker_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
@@ -1317,9 +1319,10 @@ class SanaVerkkoKontrolleri:
         if bool(self.params.get("process_interval_from_rhythm_bpm", False)):
             self._sync_process_interval_from_bpm(force=True)
             return
-        value = self._commit_float_param(self.process_interval_ctrl, "process_interval", minimum=0.01)
+        value = self._commit_float_param(self.process_interval_ctrl, "process_interval", minimum=0.1, maximum=8.0)
         if value is None:
             return
+        self._update_process_interval_display_label()
         try:
             transition_crossfade = min(0.08, max(0.01, float(self.params["process_interval"]) * 0.45))
             sanasyna.set_transition_crossfade(transition_crossfade)
@@ -1327,9 +1330,19 @@ class SanaVerkkoKontrolleri:
             pass
 
     def _process_interval_from_bpm(self, bpm):
-        safe_bpm = min(300.0, max(20.0, float(bpm)))
-        # Use a 1/32-note step so logic cadence tracks musical tempo tightly.
-        return min(0.5, max(0.01, (60.0 / safe_bpm) / 8.0))
+        safe_bpm = min(300.0, max(0.01, float(bpm)))
+        # Map rhythm BPM to a musically broad process interval range:
+        # 0.01 BPM -> 8.0 s, 300 BPM -> 0.1 s.
+        t = (safe_bpm - 0.01) / (300.0 - 0.01)
+        t = min(1.0, max(0.0, t))
+        return 8.0 * ((0.1 / 8.0) ** t)
+
+    def _update_process_interval_display_label(self):
+        if not hasattr(self, "process_interval_value_label") or self.process_interval_value_label is None:
+            return
+        interval = float(self.params.get("process_interval", 0.1))
+        mode = "sync" if bool(self.params.get("process_interval_from_rhythm_bpm", False)) else "manual"
+        self.process_interval_value_label.SetLabel(f"Current interval: {interval:.3f} s ({mode})")
 
     def _sync_process_interval_from_bpm(self, force=False):
         if not force and not bool(self.params.get("process_interval_from_rhythm_bpm", False)):
@@ -1339,6 +1352,7 @@ class SanaVerkkoKontrolleri:
         self.params["process_interval"] = interval
         if hasattr(self, "process_interval_ctrl") and self.process_interval_ctrl is not None:
             self._setCtrlValueSilently(self.process_interval_ctrl, interval)
+        self._update_process_interval_display_label()
         try:
             transition_crossfade = min(0.08, max(0.01, float(interval) * 0.45))
             sanasyna.set_transition_crossfade(transition_crossfade)
@@ -1349,6 +1363,7 @@ class SanaVerkkoKontrolleri:
         is_synced = bool(self.params.get("process_interval_from_rhythm_bpm", False))
         if hasattr(self, "process_interval_ctrl") and self.process_interval_ctrl is not None:
             self.process_interval_ctrl.Enable(not is_synced)
+        self._update_process_interval_display_label()
 
     def OnProcessIntervalBPMMode(self, event):
         if self._suppress_param_events:
@@ -1746,7 +1761,7 @@ class SanaVerkkoKontrolleri:
         self.last_audio_sentence_signature = None
 
     def OnRhythmModBPM(self, event):
-        self._commit_float_param(self.rhythm_mod_bpm_ctrl, "rhythm_mod_bpm", minimum=20.0, maximum=300.0)
+        self._commit_float_param(self.rhythm_mod_bpm_ctrl, "rhythm_mod_bpm", minimum=0.01, maximum=300.0)
         self._sync_process_interval_from_bpm()
         self._apply_rhythm_modulation_state()
 
@@ -3494,7 +3509,7 @@ class SanaVerkkoKontrolleri:
         self.params["sigmoid_scale"] = float(self.params.get("sigmoid_scale", 2))
         self.params["word_change_threshold"] = float(self.params.get("word_change_threshold", 0.777))
         self.params["zoom"] = max(0.001, float(self.params.get("zoom", 0.1)))
-        self.params["process_interval"] = max(0.01, float(self.params.get("process_interval", 0.08)))
+        self.params["process_interval"] = min(8.0, max(0.1, float(self.params.get("process_interval", 0.1))))
         self.params["melody_from_own_time"] = bool(self.params.get("melody_from_own_time", True))
         self.params["logic_iteration_limit"] = max(1, int(float(self.params.get("logic_iteration_limit", 48))))
         self.params["selection_exploration"] = min(1.0, max(0.0, float(self.params.get("selection_exploration", 0.18))))
@@ -3542,7 +3557,7 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_stretch_strength"] = min(1.0, max(0.0, float(self.params.get("rhythm_stretch_strength", 1.0))))
         self.params["rhythm_rotation"] = max(0, min(31, int(float(self.params.get("rhythm_rotation", 0)))))
         self.params["rhythm_radicality"] = min(1.0, max(0.0, float(self.params.get("rhythm_radicality", 0.5))))
-        self.params["rhythm_mod_bpm"] = min(300.0, max(20.0, float(self.params.get("rhythm_mod_bpm", 108.0))))
+        self.params["rhythm_mod_bpm"] = min(300.0, max(0.01, float(self.params.get("rhythm_mod_bpm", 108.0))))
         if self.params["process_interval_from_rhythm_bpm"]:
             self.params["process_interval"] = self._process_interval_from_bpm(self.params["rhythm_mod_bpm"])
         additive_blocks = self.params.get("additive_rhythm_blocks", [])
