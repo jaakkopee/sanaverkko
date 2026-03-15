@@ -16,15 +16,20 @@ _audio_available = sd is not None
 _stream = None
 _stream_rate = None
 _stream_blocksize = 2048
+_stream_blocksize_active = None
 _stream_latency = "high"
 _current_samples = np.zeros(1, dtype=np.float32)
 _pending_samples = None
+_pending_delay_samples = 0
 _current_loop = True
 _playback_position = 0
 _is_playing = False
 _overlay_samples = np.zeros(0, dtype=np.float32)
 _overlay_position = 0
 _overlay_is_playing = False
+_overlay_pending_samples = np.zeros(0, dtype=np.float32)
+_overlay_pending_delay_samples = 0
+_overlay_lookahead_seconds = 0.012
 _rhythm_sample_cursor = 0
 _rhythm_gain_prev = 1.0
 _rhythm_modulation = {
@@ -45,6 +50,7 @@ _compressor_config = {
 _compressor_gain_prev = 1.0
 _state_lock = threading.Lock()
 _crossfade_seconds = 0.03
+_output_lookahead_seconds = 0.01
 _callback_status_count = 0
 _adsr_attack = 0.01
 _adsr_decay = 0.04
@@ -152,6 +158,41 @@ def set_compressor(config):
         }
 
 
+def set_output_profile(config):
+    global _stream_blocksize
+
+    if config is None:
+        return
+
+    voice_count = max(1, int(config.get("voice_count", 1)))
+    additive_weight = min(1.0, max(0.0, float(config.get("additive_weight", 0.0))))
+    divisive_weight = min(1.0, max(0.0, float(config.get("divisive_weight", 0.0))))
+    piper_tts_on = bool(config.get("piper_tts_on", False))
+    compressor_enabled = bool(config.get("compressor_enabled", False))
+    wave_mode = str(config.get("audio_wave_mode", "")).lower()
+
+    stress = 0.0
+    stress += 0.75 * float(max(0, voice_count - 1))
+    stress += 1.15 * (additive_weight + divisive_weight)
+    stress += 0.65 if piper_tts_on else 0.0
+    stress += 0.15 if compressor_enabled else 0.0
+    if wave_mode in {"noise_heavy", "neuro_formant", "neuro_ring", "neuro_fold", "neuro_fm"}:
+        stress += 0.45
+
+    if stress >= 2.4:
+        target_blocksize = 4096
+    elif stress >= 1.2:
+        target_blocksize = 3072
+    else:
+        target_blocksize = 2048
+
+    if target_blocksize == int(_stream_blocksize):
+        return
+
+    _stream_blocksize = int(target_blocksize)
+    _ensure_stream()
+
+
 def _smooth_envelope(envelope, previous_gain, smoothing_samples):
     if envelope.size == 0:
         return envelope, previous_gain
@@ -170,11 +211,10 @@ def _smooth_envelope(envelope, previous_gain, smoothing_samples):
     return smoothed.astype(np.float32), float(smoothed[-1])
 
 
-def _rhythm_modulation_gain(frame_start, frames, previous_gain=1.0):
+def _rhythm_modulation_gain_with_cfg(frame_start, frames, cfg, previous_gain=1.0):
     if frames <= 0:
         return np.ones(1, dtype=np.float32), previous_gain
 
-    cfg = dict(_rhythm_modulation)
     additive_weight = float(cfg.get("additive_weight", 0.0))
     divisive_weight = float(cfg.get("divisive_weight", 0.0))
     if additive_weight <= 0.0 and divisive_weight <= 0.0:
@@ -235,6 +275,11 @@ def _rhythm_modulation_gain(frame_start, frames, previous_gain=1.0):
     return smoothed, last_gain
 
 
+def _rhythm_modulation_gain(frame_start, frames, previous_gain=1.0):
+    cfg = dict(_rhythm_modulation)
+    return _rhythm_modulation_gain_with_cfg(frame_start, frames, cfg, previous_gain)
+
+
 def _compress_chunk(samples):
     global _compressor_gain_prev
 
@@ -246,45 +291,63 @@ def _compress_chunk(samples):
         _compressor_gain_prev = 1.0
         return samples
 
+    out, gain = _compress_chunk_with_state(samples, cfg, _compressor_gain_prev)
+    _compressor_gain_prev = float(gain)
+    return out
+
+
+def _compress_chunk_with_state(samples, cfg, previous_gain):
+    if samples.size == 0:
+        return samples, previous_gain
+
+    if not bool(cfg.get("enabled", False)):
+        return samples, 1.0
+
     threshold_db = float(cfg.get("threshold_db", -18.0))
     ratio = max(1.0, float(cfg.get("ratio", 3.0)))
     makeup_db = float(cfg.get("makeup_db", 6.0))
     attack_ms = max(0.2, float(cfg.get("attack_ms", 8.0)))
     release_ms = max(5.0, float(cfg.get("release_ms", 140.0)))
 
+    out = np.array(samples, dtype=np.float32, copy=True)
     makeup_gain = float(10.0 ** (makeup_db / 20.0))
     attack_coeff = math.exp(-1.0 / (0.001 * attack_ms * float(_sample_rate)))
     release_coeff = math.exp(-1.0 / (0.001 * release_ms * float(_sample_rate)))
-
-    out = np.array(samples, dtype=np.float32, copy=True)
-    gain = float(_compressor_gain_prev)
     slope = 1.0 - (1.0 / ratio)
 
-    for idx in range(out.size):
-        amp = abs(float(out[idx]))
-        level_db = 20.0 * math.log10(max(1e-8, amp))
-        over_db = max(0.0, level_db - threshold_db)
-        reduction_db = slope * over_db
-        target_gain = makeup_gain * (10.0 ** (-reduction_db / 20.0))
+    # Block-based compressor path: expensive level/reduction math is vectorized,
+    # and only the attack/release state smoothing remains sequential.
+    amp = np.maximum(1e-8, np.abs(out).astype(np.float64))
+    level_db = 20.0 * np.log10(amp)
+    over_db = np.maximum(0.0, level_db - threshold_db)
+    reduction_db = slope * over_db
+    target_gain = makeup_gain * np.power(10.0, -reduction_db / 20.0)
 
-        if target_gain < gain:
+    gain_env = np.empty(out.size, dtype=np.float32)
+    gain = float(previous_gain)
+    for idx, target in enumerate(target_gain):
+        if target < gain:
             coeff = attack_coeff
         else:
             coeff = release_coeff
-        gain = coeff * gain + (1.0 - coeff) * target_gain
-        out[idx] = float(out[idx]) * gain
+        gain = coeff * gain + (1.0 - coeff) * float(target)
+        gain_env[idx] = gain
 
-    _compressor_gain_prev = float(gain)
-    return out
+    out *= gain_env
+    return out, float(gain)
 
 
 def _ensure_stream():
-    global _stream, _stream_rate
+    global _stream, _stream_rate, _stream_blocksize_active
 
     if not _audio_available:
         return False
 
-    if _stream is not None and _stream_rate == _sample_rate:
+    if (
+        _stream is not None
+        and _stream_rate == _sample_rate
+        and _stream_blocksize_active == int(_stream_blocksize)
+    ):
         return True
 
     if _stream is not None:
@@ -302,6 +365,7 @@ def _ensure_stream():
     )
     _stream.start()
     _stream_rate = _sample_rate
+    _stream_blocksize_active = int(_stream_blocksize)
     return True
 
 
@@ -332,10 +396,36 @@ def _prepare_playback_buffer(samples):
     return _soft_limit(arr, ceiling=_output_ceiling, drive=1.5)
 
 
+def _prepare_overlay_buffer(samples):
+    arr = np.array(samples, dtype=np.float32, copy=True).reshape(-1)
+    if arr.size == 0:
+        return np.zeros(1, dtype=np.float32)
+
+    # Speech sounds cleaner with conservative peak normalization and edge ramps
+    # than with aggressive limiting.
+    peak_target = min(0.9, float(_output_ceiling) * 0.92)
+    peak = float(np.max(np.abs(arr)))
+    if peak > peak_target and peak > 1e-6:
+        arr *= float(peak_target / peak)
+
+    edge_samples = max(8, int(0.008 * float(_sample_rate)))
+    edge_samples = min(edge_samples, arr.size // 2)
+    if edge_samples > 0:
+        fade_in = np.linspace(0.0, 1.0, edge_samples, endpoint=False, dtype=np.float32)
+        fade_out = np.linspace(1.0, 0.0, edge_samples, endpoint=True, dtype=np.float32)
+        arr[:edge_samples] *= fade_in
+        arr[-edge_samples:] *= fade_out
+
+    return np.clip(arr, -peak_target, peak_target).astype(np.float32)
+
+
 def _audio_callback(outdata, frames, timing_info, status):
     global _playback_position, _is_playing, _pending_samples, _current_samples
+    global _pending_delay_samples
     global _overlay_position, _overlay_is_playing, _overlay_samples, _callback_status_count
+    global _overlay_pending_samples, _overlay_pending_delay_samples
     global _rhythm_sample_cursor, _rhythm_gain_prev
+    global _compressor_gain_prev
 
     _ = timing_info
     if status:
@@ -343,8 +433,11 @@ def _audio_callback(outdata, frames, timing_info, status):
         if _callback_status_count <= 8 or (_callback_status_count % 25 == 0):
             print(f"sanasyna callback status: {status}")
 
+    overlay_active = False
+
     with _state_lock:
         chunk = np.zeros(frames, dtype=np.float32)
+        overlay_chunk = np.zeros(frames, dtype=np.float32)
 
         if _is_playing and _current_samples.size > 0:
             samples = _current_samples
@@ -371,6 +464,10 @@ def _audio_callback(outdata, frames, timing_info, status):
                     _is_playing = False
 
             if _pending_samples is not None and _pending_samples.size > 0:
+                if _pending_delay_samples > 0:
+                    _pending_delay_samples = max(0, _pending_delay_samples - int(frames))
+
+            if _pending_samples is not None and _pending_samples.size > 0 and _pending_delay_samples == 0:
                 next_samples = _pending_samples
                 _pending_samples = None
 
@@ -393,13 +490,17 @@ def _audio_callback(outdata, frames, timing_info, status):
                     _playback_position = 0
                 _is_playing = True
 
-        rhythm_gain, _rhythm_gain_prev = _rhythm_modulation_gain(_rhythm_sample_cursor, frames, _rhythm_gain_prev)
-        _rhythm_sample_cursor += int(frames)
-        chunk = chunk * rhythm_gain
-        chunk = _compress_chunk(chunk)
+        if (not _overlay_is_playing) and _overlay_pending_samples.size > 0:
+            if _overlay_pending_delay_samples > 0:
+                _overlay_pending_delay_samples = max(0, _overlay_pending_delay_samples - int(frames))
+            if _overlay_pending_delay_samples == 0:
+                _overlay_samples = _overlay_pending_samples
+                _overlay_pending_samples = np.zeros(0, dtype=np.float32)
+                _overlay_position = 0
+                _overlay_is_playing = _overlay_samples.size > 0
 
         if _overlay_is_playing and _overlay_samples.size > 0:
-            overlay_chunk = np.zeros(frames, dtype=np.float32)
+            overlay_active = True
             overlay_count = _overlay_samples.size
             overlay_end = _overlay_position + frames
             if overlay_end <= overlay_count:
@@ -413,14 +514,36 @@ def _audio_callback(outdata, frames, timing_info, status):
                     overlay_chunk[:remaining] = _overlay_samples[_overlay_position:overlay_count]
                 _overlay_position = overlay_count
                 _overlay_is_playing = False
-            chunk = chunk + overlay_chunk
 
+        rhythm_cfg = dict(_rhythm_modulation)
+        rhythm_start = int(_rhythm_sample_cursor)
+        rhythm_prev = float(_rhythm_gain_prev)
+        _rhythm_sample_cursor += int(frames)
+
+        compressor_cfg = dict(_compressor_config)
+        compressor_prev = float(_compressor_gain_prev)
+
+    rhythm_gain, rhythm_last_gain = _rhythm_modulation_gain_with_cfg(rhythm_start, frames, rhythm_cfg, rhythm_prev)
+    chunk = chunk * rhythm_gain
+    chunk, compressor_last_gain = _compress_chunk_with_state(chunk, compressor_cfg, compressor_prev)
+
+    # Speech overlay is sensitive to nonlinear mix distortion; slightly duck
+    # synth and use a gentler limiter profile while overlay is active.
+    if overlay_active:
+        chunk = (0.80 * chunk) + overlay_chunk
+        chunk = _soft_limit(chunk, ceiling=_output_ceiling, drive=1.25)
+    else:
+        chunk = chunk + overlay_chunk
         chunk = _soft_limit(chunk, ceiling=_output_ceiling, drive=1.7)
+
+    with _state_lock:
+        _rhythm_gain_prev = float(rhythm_last_gain)
+        _compressor_gain_prev = float(compressor_last_gain)
 
     outdata[:, 0] = chunk
 
 
-def _ensure_audio(sample_rate=None, buffer_size=1024):
+def _ensure_audio(sample_rate=None, buffer_size=None):
     global _sample_rate, _audio_available, _stream_blocksize
 
     if sample_rate is not None:
@@ -479,7 +602,7 @@ def _apply_adsr(samples):
 
 
 def _set_current_sound(samples):
-    global _current_samples, _playback_position, _pending_samples
+    global _current_samples, _playback_position, _pending_samples, _pending_delay_samples
 
     if not _ensure_audio():
         return
@@ -490,10 +613,12 @@ def _set_current_sound(samples):
     with _state_lock:
         if _is_playing and _current_samples.size > 0:
             _pending_samples = prepared_samples
+            _pending_delay_samples = int(max(0.0, _output_lookahead_seconds) * float(_sample_rate))
         else:
             _current_samples = prepared_samples
             _playback_position = 0
             _pending_samples = None
+            _pending_delay_samples = 0
 
 
 def set_transition_crossfade(seconds=0.03):
@@ -532,13 +657,15 @@ def play(loop=True):
 
 
 def stop():
-    global _is_playing, _playback_position, _pending_samples, _rhythm_sample_cursor, _rhythm_gain_prev
+    global _is_playing, _playback_position, _pending_samples, _pending_delay_samples
+    global _rhythm_sample_cursor, _rhythm_gain_prev
     global _compressor_gain_prev
 
     with _state_lock:
         _is_playing = False
         _playback_position = 0
         _pending_samples = None
+        _pending_delay_samples = 0
         _rhythm_sample_cursor = 0
         _rhythm_gain_prev = 1.0
         _compressor_gain_prev = 1.0
@@ -546,23 +673,25 @@ def stop():
 
 def stop_overlay():
     global _overlay_is_playing, _overlay_position
+    global _overlay_pending_samples, _overlay_pending_delay_samples
 
     with _state_lock:
         _overlay_is_playing = False
         _overlay_position = 0
+        _overlay_pending_samples = np.zeros(0, dtype=np.float32)
+        _overlay_pending_delay_samples = 0
 
 
 def _set_overlay_sound(samples):
-    global _overlay_samples, _overlay_position, _overlay_is_playing
+    global _overlay_pending_samples, _overlay_pending_delay_samples
 
     if not _ensure_audio():
         return
 
-    prepared = _prepare_playback_buffer(samples)
+    prepared = _prepare_overlay_buffer(samples)
     with _state_lock:
-        _overlay_samples = prepared
-        _overlay_position = 0
-        _overlay_is_playing = prepared.size > 0
+        _overlay_pending_samples = prepared
+        _overlay_pending_delay_samples = int(max(0.0, _overlay_lookahead_seconds) * float(_sample_rate))
 
 
 def _resample_samples(samples, source_rate, target_rate):

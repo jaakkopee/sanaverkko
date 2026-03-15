@@ -1421,6 +1421,7 @@ class SanaVerkkoKontrolleri:
         if self._suppress_param_events:
             return
         self.params["piper_tts_on"] = bool(self.piper_tts_checkbox.GetValue())
+        self._apply_audio_performance_profile()
         self.last_audio_sentence_signature = None
 
     def OnPiperModelPath(self, event):
@@ -1452,6 +1453,21 @@ class SanaVerkkoKontrolleri:
         }
         try:
             sanasyna.set_compressor(payload)
+        except Exception:
+            pass
+        self._apply_audio_performance_profile()
+
+    def _apply_audio_performance_profile(self):
+        payload = {
+            "voice_count": int(self.params.get("voice_count", 1)),
+            "additive_weight": float(self.params.get("additive_rhythm_weight", 0.0)),
+            "divisive_weight": float(self.params.get("divisive_rhythm_weight", 0.0)),
+            "piper_tts_on": bool(self.params.get("piper_tts_on", False)),
+            "audio_wave_mode": str(self.params.get("audio_wave_mode", "pure_sine")),
+            "compressor_enabled": bool(self.params.get("compressor_enabled", False)),
+        }
+        try:
+            sanasyna.set_output_profile(payload)
         except Exception:
             pass
 
@@ -1661,6 +1677,7 @@ class SanaVerkkoKontrolleri:
             "Neuro FM": "neuro_fm",
         }
         self.params["audio_wave_mode"] = _wave_label_map.get(selected_mode, "dynamic")
+        self._apply_audio_performance_profile()
         self.last_audio_sentence_signature = None
 
     def OnFrequencyMappingMode(self, event):
@@ -1681,6 +1698,7 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
             self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self._apply_audio_performance_profile()
         self.last_audio_sentence_signature = None
 
     def OnRhythmStyle(self, event):
@@ -2158,6 +2176,7 @@ class SanaVerkkoKontrolleri:
             sanasyna.set_transition_crossfade(0.03)
         except Exception:
             pass
+        self._apply_audio_performance_profile()
         self._apply_rhythm_modulation_state()
         self._apply_compressor_state()
 
@@ -2279,6 +2298,7 @@ class SanaVerkkoKontrolleri:
             sanasyna.set_rhythm_modulators(payload)
         except Exception:
             pass
+        self._apply_audio_performance_profile()
         self._refresh_additive_timeline_preview()
 
     def _beat_library_label_from_key(self, style_key):
