@@ -25,6 +25,15 @@ _is_playing = False
 _overlay_samples = np.zeros(0, dtype=np.float32)
 _overlay_position = 0
 _overlay_is_playing = False
+_rhythm_sample_cursor = 0
+_rhythm_gain_prev = 1.0
+_rhythm_modulation = {
+    "bpm": 108.0,
+    "additive_blocks": [],
+    "additive_weight": 0.0,
+    "divisive_signature": (4, 4),
+    "divisive_weight": 0.0,
+}
 _state_lock = threading.Lock()
 _crossfade_seconds = 0.03
 _callback_status_count = 0
@@ -46,6 +55,145 @@ def set_neuro_params(d):
     global _neuro_params
     with _neuro_params_lock:
         _neuro_params = dict(d)
+
+
+def set_rhythm_modulators(config):
+    global _rhythm_modulation
+
+    if config is None:
+        return
+
+    bpm = float(config.get("bpm", _rhythm_modulation.get("bpm", 108.0)))
+    bpm = min(300.0, max(20.0, bpm))
+
+    additive_blocks = config.get("additive_blocks", _rhythm_modulation.get("additive_blocks", []))
+    normalized_blocks = []
+    if isinstance(additive_blocks, (list, tuple)):
+        for value in additive_blocks:
+            try:
+                block = int(float(value))
+            except Exception:
+                continue
+            if block > 0:
+                normalized_blocks.append(block)
+
+    additive_weight = float(config.get("additive_weight", _rhythm_modulation.get("additive_weight", 0.0)))
+    additive_weight = min(1.0, max(0.0, additive_weight))
+
+    divisive_signature = config.get("divisive_signature", _rhythm_modulation.get("divisive_signature", (4, 4)))
+    num = 4
+    den = 4
+    if isinstance(divisive_signature, str) and "/" in divisive_signature:
+        parts = divisive_signature.split("/", 1)
+        try:
+            num = int(parts[0])
+            den = int(parts[1])
+        except Exception:
+            num, den = 4, 4
+    elif isinstance(divisive_signature, (list, tuple)) and len(divisive_signature) >= 2:
+        try:
+            num = int(divisive_signature[0])
+            den = int(divisive_signature[1])
+        except Exception:
+            num, den = 4, 4
+    num = min(12, max(1, num))
+    if den not in {2, 4, 8, 16}:
+        den = 4
+
+    divisive_weight = float(config.get("divisive_weight", _rhythm_modulation.get("divisive_weight", 0.0)))
+    divisive_weight = min(1.0, max(0.0, divisive_weight))
+
+    with _state_lock:
+        _rhythm_modulation = {
+            "bpm": bpm,
+            "additive_blocks": normalized_blocks,
+            "additive_weight": additive_weight,
+            "divisive_signature": (num, den),
+            "divisive_weight": divisive_weight,
+        }
+
+
+def _smooth_envelope(envelope, previous_gain, smoothing_samples):
+    if envelope.size == 0:
+        return envelope, previous_gain
+
+    if smoothing_samples <= 1.0:
+        last = float(envelope[-1])
+        return envelope.astype(np.float32), last
+
+    alpha = 1.0 / float(smoothing_samples)
+    alpha = min(1.0, max(1e-4, alpha))
+    smoothed = np.array(envelope, dtype=np.float64, copy=True)
+    prev = float(previous_gain)
+    for idx in range(smoothed.size):
+        prev = prev + alpha * (float(smoothed[idx]) - prev)
+        smoothed[idx] = prev
+    return smoothed.astype(np.float32), float(smoothed[-1])
+
+
+def _rhythm_modulation_gain(frame_start, frames, previous_gain=1.0):
+    if frames <= 0:
+        return np.ones(1, dtype=np.float32), previous_gain
+
+    cfg = dict(_rhythm_modulation)
+    additive_weight = float(cfg.get("additive_weight", 0.0))
+    divisive_weight = float(cfg.get("divisive_weight", 0.0))
+    if additive_weight <= 0.0 and divisive_weight <= 0.0:
+        neutral = np.ones(frames, dtype=np.float32)
+        smoothed, last_gain = _smooth_envelope(neutral, previous_gain, max(1.0, 0.004 * _sample_rate))
+        return smoothed, last_gain
+
+    bpm = max(20.0, min(300.0, float(cfg.get("bpm", 108.0))))
+    sample_idx = frame_start + np.arange(frames, dtype=np.float64)
+    gain = np.ones(frames, dtype=np.float32)
+
+    if additive_weight > 0.0:
+        blocks = cfg.get("additive_blocks", [])
+        blocks = [int(v) for v in blocks if int(v) > 0]
+        if blocks:
+            base_ioi_samples = max(1.0, (60.0 / bpm) * float(_sample_rate) * 0.5)
+            block_durations = np.array(blocks, dtype=np.float64) * base_ioi_samples
+            cycle_samples = float(np.sum(block_durations))
+            cycle_pos = np.mod(sample_idx, cycle_samples)
+            onsets = np.cumsum(np.concatenate(([0.0], block_durations[:-1])))
+
+            distance = np.full(frames, np.inf, dtype=np.float64)
+            for onset in onsets:
+                local = np.mod(cycle_pos - onset + cycle_samples, cycle_samples)
+                distance = np.minimum(distance, local)
+
+            decay_samples = max(16.0, 0.18 * base_ioi_samples)
+            additive_bang = np.exp(-distance / decay_samples)
+            additive_env = (0.30 + 0.70 * additive_bang).astype(np.float32)
+            gain *= ((1.0 - additive_weight) + additive_weight * additive_env).astype(np.float32)
+
+    if divisive_weight > 0.0:
+        num, den = cfg.get("divisive_signature", (4, 4))
+        num = max(1, int(num))
+        den = int(den)
+        if den not in {2, 4, 8, 16}:
+            den = 4
+
+        beat_samples = max(1.0, (60.0 / bpm) * float(_sample_rate) * (4.0 / float(den)))
+        bar_samples = beat_samples * float(num)
+        bar_pos = np.mod(sample_idx, bar_samples)
+        beat_index = np.floor(bar_pos / beat_samples).astype(np.int32)
+        beat_distance = np.mod(bar_pos, beat_samples)
+        downbeat_decay = max(20.0, 0.16 * beat_samples)
+        beat_decay = max(20.0, 0.11 * beat_samples)
+        bang_downbeat = np.exp(-beat_distance / downbeat_decay)
+        bang_beat = np.exp(-beat_distance / beat_decay)
+        divisive_env = np.where(
+            beat_index == 0,
+            0.30 + 0.70 * bang_downbeat,
+            0.30 + 0.40 * bang_beat,
+        ).astype(np.float32)
+        gain *= ((1.0 - divisive_weight) + divisive_weight * divisive_env).astype(np.float32)
+
+    raw = np.clip(gain, 0.0, 1.0)
+    smoothing_samples = max(1.0, 0.0035 * float(_sample_rate))
+    smoothed, last_gain = _smooth_envelope(raw, previous_gain, smoothing_samples)
+    return smoothed, last_gain
 
 
 def _ensure_stream():
@@ -78,6 +226,7 @@ def _ensure_stream():
 def _audio_callback(outdata, frames, timing_info, status):
     global _playback_position, _is_playing, _pending_samples, _current_samples
     global _overlay_position, _overlay_is_playing, _overlay_samples, _callback_status_count
+    global _rhythm_sample_cursor, _rhythm_gain_prev
 
     _ = timing_info
     if status:
@@ -134,6 +283,10 @@ def _audio_callback(outdata, frames, timing_info, status):
                     _current_samples = next_samples
                     _playback_position = 0
                 _is_playing = True
+
+        rhythm_gain, _rhythm_gain_prev = _rhythm_modulation_gain(_rhythm_sample_cursor, frames, _rhythm_gain_prev)
+        _rhythm_sample_cursor += int(frames)
+        chunk = np.clip(chunk * rhythm_gain, -1.0, 1.0)
 
         if _overlay_is_playing and _overlay_samples.size > 0:
             overlay_chunk = np.zeros(frames, dtype=np.float32)
@@ -267,12 +420,14 @@ def play(loop=True):
 
 
 def stop():
-    global _is_playing, _playback_position, _pending_samples
+    global _is_playing, _playback_position, _pending_samples, _rhythm_sample_cursor, _rhythm_gain_prev
 
     with _state_lock:
         _is_playing = False
         _playback_position = 0
         _pending_samples = None
+        _rhythm_sample_cursor = 0
+        _rhythm_gain_prev = 1.0
 
 
 def stop_overlay():

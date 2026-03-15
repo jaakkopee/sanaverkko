@@ -126,6 +126,134 @@ class ADSRDisplayPanel(wx.Panel):
         dc.DrawLine(left, bottom, left + draw_width, bottom)
         dc.DrawLine(left, top, left, bottom)
 
+
+class RhythmTimelinePreviewPanel(wx.Panel):
+    def __init__(self, parent):
+        super().__init__(parent, size=(920, 120))
+        self.blocks = []
+        self.signature = "4/4"
+        self.additive_weight = 0.0
+        self.divisive_weight = 0.0
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def set_rhythm_state(self, blocks, signature, additive_weight, divisive_weight):
+        normalized = []
+        if isinstance(blocks, (list, tuple)):
+            for value in blocks:
+                try:
+                    pulse = int(float(value))
+                except Exception:
+                    continue
+                if pulse > 0:
+                    normalized.append(pulse)
+        self.blocks = normalized
+        self.signature = str(signature or "4/4")
+        self.additive_weight = min(1.0, max(0.0, float(additive_weight)))
+        self.divisive_weight = min(1.0, max(0.0, float(divisive_weight)))
+        self.Refresh()
+
+    def _signature_parts(self):
+        num = 4
+        den = 4
+        if "/" in self.signature:
+            parts = self.signature.split("/", 1)
+            try:
+                num = max(1, int(parts[0]))
+                den = int(parts[1])
+            except Exception:
+                num, den = 4, 4
+        if den not in {2, 4, 8, 16}:
+            den = 4
+        return num, den
+
+    def OnPaint(self, event):
+        _ = event
+        dc = wx.PaintDC(self)
+        width, height = self.GetClientSize()
+
+        dc.SetBrush(wx.Brush(wx.Colour(24, 24, 24)))
+        dc.SetPen(wx.Pen(wx.Colour(52, 52, 52), 1))
+        dc.DrawRectangle(0, 0, width, height)
+
+        left = 8
+        right = max(left + 10, width - 8)
+        top = 8
+        bottom = max(top + 20, height - 8)
+        usable_width = max(20, right - left)
+        usable_height = max(20, bottom - top)
+
+        blocks = list(self.blocks)
+        if not blocks:
+            dc.SetTextForeground(wx.Colour(210, 210, 210))
+            dc.DrawText("Timeline preview  Additive blocks: (empty chain)  Signature: " + self.signature, left + 4, top + 2)
+            dc.SetTextForeground(wx.Colour(180, 180, 180))
+            dc.DrawText("Append blocks from the palette to generate BPM-linked bangs.", left + 4, top + 22)
+            return
+        total_pulses = max(1, sum(blocks))
+        slots = max(96, min(512, total_pulses * 24))
+        slot_width = usable_width / float(slots)
+        pulse_positions = np.linspace(0.0, float(total_pulses), num=slots, endpoint=False, dtype=np.float64)
+
+        onset_positions = np.cumsum(np.array([0] + blocks[:-1], dtype=np.float64))
+        distance = np.full(slots, np.inf, dtype=np.float64)
+        for onset in onset_positions:
+            local = np.mod(pulse_positions - onset + float(total_pulses), float(total_pulses))
+            distance = np.minimum(distance, local)
+        mean_block = max(1.0, float(total_pulses) / float(len(blocks)))
+        additive_decay = max(0.12, 0.24 * mean_block)
+        additive_env = (0.30 + 0.70 * np.exp(-distance / additive_decay)).astype(np.float32)
+
+        num, den = self._signature_parts()
+        beat_pulses = max(0.5, 4.0 / float(den))
+        bar_pulses = beat_pulses * float(num)
+        bar_pos = np.mod(pulse_positions, bar_pulses)
+        beat_index = np.floor(bar_pos / beat_pulses)
+        beat_distance = np.mod(bar_pos, beat_pulses)
+        downbeat = np.exp(-beat_distance / max(0.08, 0.20 * beat_pulses))
+        beat = np.exp(-beat_distance / max(0.08, 0.14 * beat_pulses))
+        divisive_env = np.where(beat_index == 0.0, 0.30 + 0.70 * downbeat, 0.30 + 0.40 * beat).astype(np.float32)
+
+        combined = ((1.0 - self.additive_weight) + self.additive_weight * additive_env) * (
+            (1.0 - self.divisive_weight) + self.divisive_weight * divisive_env
+        )
+        combined = np.clip(combined, 0.0, 1.0)
+
+        dc.SetPen(wx.Pen(wx.Colour(70, 70, 70), 1))
+        dc.DrawLine(left, bottom - 1, right, bottom - 1)
+        dc.DrawLine(left, top, left, bottom)
+
+        for pulse_idx, gain in enumerate(combined):
+            x0 = int(left + pulse_idx * slot_width)
+            x1 = int(left + (pulse_idx + 1) * slot_width)
+            if x1 <= x0:
+                x1 = x0 + 1
+
+            height_ratio = max(0.05, gain)
+            bar_height = int(height_ratio * (usable_height - 18))
+            y0 = bottom - bar_height - 2
+
+            add_val = float(additive_env[pulse_idx])
+            div_val = float(divisive_env[pulse_idx])
+            red = int(70 + 120 * add_val)
+            green = int(70 + 120 * div_val)
+            blue = int(95 + 110 * float(gain))
+
+            dc.SetBrush(wx.Brush(wx.Colour(red, green, blue)))
+            dc.SetPen(wx.Pen(wx.Colour(25, 25, 25), 1))
+            dc.DrawRectangle(x0, y0, max(1, x1 - x0), bar_height)
+
+        # Draw block-start markers to emphasize additive IOIs
+        dc.SetPen(wx.Pen(wx.Colour(230, 210, 90), 1))
+        running = 0.0
+        for block in blocks:
+            x = int(left + (running / float(total_pulses)) * usable_width)
+            dc.DrawLine(x, top + 14, x, bottom - 2)
+            running += float(block)
+
+        dc.SetTextForeground(wx.Colour(210, 210, 210))
+        info = f"Timeline preview  Additive blocks: {'+'.join(str(b) for b in blocks)}  Signature: {num}/{den}"
+        dc.DrawText(info, left + 4, top + 2)
+
 class SanaVerkkoKontrolleri:
     
     def __init__(self):
@@ -171,6 +299,11 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_stretch_strength"] = 1.0
         self.params["rhythm_rotation"] = 0
         self.params["rhythm_radicality"] = 0.5
+        self.params["rhythm_mod_bpm"] = 108.0
+        self.params["additive_rhythm_blocks"] = []
+        self.params["additive_rhythm_weight"] = 0.0
+        self.params["divisive_rhythm_signature"] = "4/4"
+        self.params["divisive_rhythm_weight"] = 0.0
         self.params["strict_counterpoint"] = True
         self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
@@ -244,6 +377,10 @@ class SanaVerkkoKontrolleri:
         self._piper_worker_stop = False
         self._piper_audio_channel = None
         self._piper_audio_sound = None
+        self.additive_editor_frame = None
+        self.additive_sequence_scroll = None
+        self.additive_sequence_sizer = None
+        self.additive_timeline_preview = None
 
         self.initPygame()
         self.initAudio()
@@ -452,6 +589,29 @@ class SanaVerkkoKontrolleri:
         self.rhythm_radicality_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_radicality"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.rhythm_radicality_ctrl, self.OnRhythmRadicality)
 
+        self.rhythm_mod_bpm_label = wx.StaticText(panel, -1, "Rhythm modulation BPM")
+        self.rhythm_mod_bpm_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("rhythm_mod_bpm", 108.0)), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythm_mod_bpm_ctrl, self.OnRhythmModBPM)
+
+        self.additive_editor_button = wx.Button(panel, -1, "Edit additive rhythm blocks")
+        self.additive_editor_button.Bind(wx.EVT_BUTTON, self.OnOpenAdditiveRhythmEditor)
+        self.additive_pattern_status = wx.StaticText(panel, -1, "")
+
+        self.divisive_signature_label = wx.StaticText(panel, -1, "Divisive time signature")
+        self.divisive_signature_choice = wx.Choice(panel, -1, choices=[label for _, label in self._divisive_signature_modes()])
+        self.divisive_signature_choice.SetStringSelection(self._divisive_signature_label_from_key(self.params.get("divisive_rhythm_signature", "4/4")))
+        self.divisive_signature_choice.Bind(wx.EVT_CHOICE, self.OnDivisiveRhythmSignature)
+
+        _aw_pct = int(self.params.get("additive_rhythm_weight", 0.0) * 100)
+        self.additive_rhythm_weight_label = wx.StaticText(panel, -1, f"Additive rhythm weight: {_aw_pct}%")
+        self.additive_rhythm_weight_slider = wx.Slider(panel, -1, _aw_pct, 0, 100, style=wx.SL_HORIZONTAL)
+        self.additive_rhythm_weight_slider.Bind(wx.EVT_SLIDER, self.OnAdditiveRhythmWeight)
+
+        _dw_pct = int(self.params.get("divisive_rhythm_weight", 0.0) * 100)
+        self.divisive_rhythm_weight_label = wx.StaticText(panel, -1, f"Divisive rhythm weight: {_dw_pct}%")
+        self.divisive_rhythm_weight_slider = wx.Slider(panel, -1, _dw_pct, 0, 100, style=wx.SL_HORIZONTAL)
+        self.divisive_rhythm_weight_slider.Bind(wx.EVT_SLIDER, self.OnDivisiveRhythmWeight)
+
         self.melody_coherence_label = wx.StaticText(panel, -1, "Melody coherence (0-1)")
         self.melody_coherence_ctrl = wx.TextCtrl(panel, -1, str(self.params["melody_coherence"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.melody_coherence_ctrl, self.OnMelodyCoherence)
@@ -607,6 +767,16 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.rhythm_rotation_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.rhythm_radicality_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhythm_radicality_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythm_mod_bpm_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_mod_bpm_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.additive_editor_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.additive_pattern_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        self.sizer.Add(self.divisive_signature_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.divisive_signature_choice, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.additive_rhythm_weight_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.additive_rhythm_weight_slider, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.divisive_rhythm_weight_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.divisive_rhythm_weight_slider, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.melody_coherence_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.melody_coherence_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.melody_speed_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -668,6 +838,8 @@ class SanaVerkkoKontrolleri:
         self._applyADSRToAudio()
         self._updatePOSBackendStatusLabel(check_nltk=False)
         self._updateLTMStatusLabel()
+        self._update_additive_pattern_status_label()
+        self._apply_rhythm_modulation_state()
 
     def setupOutputWindow(self):
         self.output_frame = wx.Frame(None, -1, "SanaVerkko Output", size=(760, 420))
@@ -1453,6 +1625,151 @@ class SanaVerkkoKontrolleri:
             self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
         self.last_audio_sentence_signature = None
 
+    def OnRhythmModBPM(self, event):
+        self._commit_float_param(self.rhythm_mod_bpm_ctrl, "rhythm_mod_bpm", minimum=20.0, maximum=300.0)
+        self._apply_rhythm_modulation_state()
+
+    def OnAdditiveRhythmWeight(self, event):
+        val = int(self.additive_rhythm_weight_slider.GetValue())
+        self.params["additive_rhythm_weight"] = val / 100.0
+        self.additive_rhythm_weight_label.SetLabel(f"Additive rhythm weight: {val}%")
+        self._apply_rhythm_modulation_state()
+
+    def OnDivisiveRhythmWeight(self, event):
+        val = int(self.divisive_rhythm_weight_slider.GetValue())
+        self.params["divisive_rhythm_weight"] = val / 100.0
+        self.divisive_rhythm_weight_label.SetLabel(f"Divisive rhythm weight: {val}%")
+        self._apply_rhythm_modulation_state()
+
+    def OnDivisiveRhythmSignature(self, event):
+        if self._suppress_param_events:
+            return
+        selected_label = self.divisive_signature_choice.GetStringSelection()
+        self.params["divisive_rhythm_signature"] = self._divisive_signature_key_from_label(selected_label)
+        self._apply_rhythm_modulation_state()
+
+    def _update_additive_blocks(self, blocks):
+        cleaned = []
+        for value in blocks:
+            try:
+                block = int(float(value))
+            except Exception:
+                continue
+            if block > 0:
+                cleaned.append(block)
+        self.params["additive_rhythm_blocks"] = cleaned
+        self._update_additive_pattern_status_label()
+        self._apply_rhythm_modulation_state()
+        self._refresh_additive_editor_sequence()
+
+    def OnOpenAdditiveRhythmEditor(self, event):
+        if self.additive_editor_frame is not None and self.additive_editor_frame.IsShown():
+            self.additive_editor_frame.Raise()
+            return
+
+        frame = wx.Frame(self.frame, -1, "Additive Rhythm Editor", size=(960, 320))
+        frame.Bind(wx.EVT_CLOSE, self._on_additive_editor_close)
+
+        panel = wx.Panel(frame, -1)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        helper = wx.StaticText(panel, -1, "Append blocks from the palette, then move blocks left/right or delete them.")
+        sizer.Add(helper, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
+
+        palette_sizer = wx.WrapSizer(wx.HORIZONTAL)
+        for block in self._additive_block_library():
+            button = wx.Button(panel, -1, f"+ {block}")
+            button.Bind(wx.EVT_BUTTON, lambda evt, b=block: self._append_additive_block(b))
+            palette_sizer.Add(button, 0, wx.ALL, 3)
+        clear_button = wx.Button(panel, -1, "Clear all")
+        clear_button.Bind(wx.EVT_BUTTON, lambda evt: self._update_additive_blocks([]))
+        palette_sizer.Add(clear_button, 0, wx.ALL, 3)
+        sizer.Add(palette_sizer, 0, wx.LEFT | wx.RIGHT | wx.TOP, 6)
+
+        self.additive_sequence_scroll = wx.ScrolledWindow(panel, -1, style=wx.HSCROLL | wx.VSCROLL | wx.BORDER_SIMPLE)
+        self.additive_sequence_scroll.SetScrollRate(20, 20)
+        self.additive_sequence_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.additive_sequence_scroll.SetSizer(self.additive_sequence_sizer)
+        sizer.Add(self.additive_sequence_scroll, 1, wx.EXPAND | wx.ALL, 8)
+
+        self.additive_timeline_preview = RhythmTimelinePreviewPanel(panel)
+        sizer.Add(self.additive_timeline_preview, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+
+        panel.SetSizer(sizer)
+        self.additive_editor_frame = frame
+        self._refresh_additive_editor_sequence()
+        self._refresh_additive_timeline_preview()
+        frame.Show()
+
+    def _on_additive_editor_close(self, event):
+        self.additive_editor_frame = None
+        self.additive_sequence_scroll = None
+        self.additive_sequence_sizer = None
+        self.additive_timeline_preview = None
+        if event is not None:
+            event.Skip()
+
+    def _append_additive_block(self, block):
+        blocks = list(self._normalized_additive_blocks())
+        blocks.append(int(block))
+        self._update_additive_blocks(blocks)
+
+    def _move_additive_block(self, index, direction):
+        blocks = list(self._normalized_additive_blocks())
+        target = index + direction
+        if index < 0 or index >= len(blocks):
+            return
+        if target < 0 or target >= len(blocks):
+            return
+        blocks[index], blocks[target] = blocks[target], blocks[index]
+        self._update_additive_blocks(blocks)
+
+    def _delete_additive_block(self, index):
+        blocks = list(self._normalized_additive_blocks())
+        if index < 0 or index >= len(blocks):
+            return
+        del blocks[index]
+        self._update_additive_blocks(blocks)
+
+    def _refresh_additive_editor_sequence(self):
+        if self.additive_sequence_sizer is None or self.additive_sequence_scroll is None:
+            return
+
+        self.additive_sequence_sizer.Clear(True)
+        blocks = self._normalized_additive_blocks()
+
+        if not blocks:
+            empty_label = wx.StaticText(self.additive_sequence_scroll, -1, "Additive chain is empty. Use + buttons above to append blocks.")
+            self.additive_sequence_sizer.Add(empty_label, 0, wx.ALL, 8)
+            self.additive_sequence_scroll.Layout()
+            self.additive_sequence_scroll.FitInside()
+            return
+
+        for index, block in enumerate(blocks):
+            card = wx.Panel(self.additive_sequence_scroll, -1)
+            card_sizer = wx.BoxSizer(wx.VERTICAL)
+            card_label = wx.StaticText(card, -1, f"{index + 1}: {block}")
+            button_row = wx.BoxSizer(wx.HORIZONTAL)
+            left_btn = wx.Button(card, -1, "<-", size=(34, 26))
+            right_btn = wx.Button(card, -1, "->", size=(34, 26))
+            del_btn = wx.Button(card, -1, "x", size=(30, 26))
+
+            left_btn.Bind(wx.EVT_BUTTON, lambda evt, i=index: self._move_additive_block(i, -1))
+            right_btn.Bind(wx.EVT_BUTTON, lambda evt, i=index: self._move_additive_block(i, 1))
+            del_btn.Bind(wx.EVT_BUTTON, lambda evt, i=index: self._delete_additive_block(i))
+
+            button_row.Add(left_btn, 0, wx.RIGHT, 2)
+            button_row.Add(right_btn, 0, wx.RIGHT, 2)
+            button_row.Add(del_btn, 0)
+
+            card_sizer.Add(card_label, 0, wx.ALIGN_CENTER | wx.BOTTOM, 4)
+            card_sizer.Add(button_row, 0, wx.ALIGN_CENTER)
+            card.SetSizer(card_sizer)
+            self.additive_sequence_sizer.Add(card, 0, wx.ALL, 5)
+
+        self.additive_sequence_scroll.Layout()
+        self.additive_sequence_scroll.FitInside()
+
     def OnMelodyCoherence(self, event):
         self._commit_float_param(self.melody_coherence_ctrl, "melody_coherence", minimum=0.0, maximum=1.0)
         self.last_audio_sentence_signature = None
@@ -1550,6 +1867,12 @@ class SanaVerkkoKontrolleri:
         if self.output_frame is not None:
             self.output_frame.Destroy()
             self.output_frame = None
+        if self.additive_editor_frame is not None:
+            self.additive_editor_frame.Destroy()
+            self.additive_editor_frame = None
+            self.additive_sequence_scroll = None
+            self.additive_sequence_sizer = None
+            self.additive_timeline_preview = None
         if self.frame is not None:
             self.frame.Destroy()
         if self.app is not None and self.app.IsMainLoopRunning():
@@ -1701,6 +2024,7 @@ class SanaVerkkoKontrolleri:
             sanasyna.set_transition_crossfade(0.03)
         except Exception:
             pass
+        self._apply_rhythm_modulation_state()
 
     def _frequency_mapping_modes(self):
         return [
@@ -1743,6 +2067,84 @@ class SanaVerkkoKontrolleri:
             ("quartet_grid_fracture", "Quartet grid fracture"),
             ("quartet_hyperbanana", "Quartet hyperbanana"),
         ]
+
+    def _divisive_signature_modes(self):
+        return [
+            ("2/4", "2/4"),
+            ("3/4", "3/4"),
+            ("4/4", "4/4"),
+            ("5/4", "5/4"),
+            ("6/8", "6/8"),
+            ("7/8", "7/8"),
+            ("9/8", "9/8"),
+            ("12/8", "12/8"),
+        ]
+
+    def _divisive_signature_label_from_key(self, signature_key):
+        for key, label in self._divisive_signature_modes():
+            if key == signature_key:
+                return label
+        return "4/4"
+
+    def _divisive_signature_key_from_label(self, signature_label):
+        for key, label in self._divisive_signature_modes():
+            if label == signature_label:
+                return key
+        return "4/4"
+
+    def _additive_block_library(self):
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16]
+
+    def _normalized_additive_blocks(self):
+        raw_blocks = self.params.get("additive_rhythm_blocks", [])
+        normalized = []
+        if isinstance(raw_blocks, (list, tuple)):
+            for value in raw_blocks:
+                try:
+                    block = int(float(value))
+                except Exception:
+                    continue
+                if block > 0:
+                    normalized.append(block)
+        self.params["additive_rhythm_blocks"] = normalized
+        return normalized
+
+    def _update_additive_pattern_status_label(self):
+        blocks = self._normalized_additive_blocks()
+        pattern = " + ".join(str(block) for block in blocks) if blocks else "(empty chain)"
+        total_pulses = sum(blocks)
+        if hasattr(self, "additive_pattern_status") and self.additive_pattern_status is not None:
+            self.additive_pattern_status.SetLabel(f"Additive pattern: {pattern} (sum {total_pulses})")
+
+    def _refresh_additive_timeline_preview(self):
+        if self.additive_timeline_preview is None:
+            return
+        self.additive_timeline_preview.set_rhythm_state(
+            self._normalized_additive_blocks(),
+            self.params.get("divisive_rhythm_signature", "4/4"),
+            self.params.get("additive_rhythm_weight", 0.0),
+            self.params.get("divisive_rhythm_weight", 0.0),
+        )
+
+    def _apply_rhythm_modulation_state(self):
+        blocks = self._normalized_additive_blocks()
+        signature = str(self.params.get("divisive_rhythm_signature", "4/4"))
+        if signature not in {key for key, _ in self._divisive_signature_modes()}:
+            signature = "4/4"
+            self.params["divisive_rhythm_signature"] = signature
+
+        payload = {
+            "bpm": float(self.params.get("rhythm_mod_bpm", 108.0)),
+            "additive_blocks": blocks,
+            "additive_weight": float(self.params.get("additive_rhythm_weight", 0.0)),
+            "divisive_signature": signature,
+            "divisive_weight": float(self.params.get("divisive_rhythm_weight", 0.0)),
+        }
+        try:
+            sanasyna.set_rhythm_modulators(payload)
+        except Exception:
+            pass
+        self._refresh_additive_timeline_preview()
 
     def _beat_library_label_from_key(self, style_key):
         for key, label in self._beat_library_modes():
@@ -3013,6 +3415,25 @@ class SanaVerkkoKontrolleri:
         self.params["rhythm_stretch_strength"] = min(1.0, max(0.0, float(self.params.get("rhythm_stretch_strength", 1.0))))
         self.params["rhythm_rotation"] = max(0, min(31, int(float(self.params.get("rhythm_rotation", 0)))))
         self.params["rhythm_radicality"] = min(1.0, max(0.0, float(self.params.get("rhythm_radicality", 0.5))))
+        self.params["rhythm_mod_bpm"] = min(300.0, max(20.0, float(self.params.get("rhythm_mod_bpm", 108.0))))
+        additive_blocks = self.params.get("additive_rhythm_blocks", [])
+        normalized_blocks = []
+        if isinstance(additive_blocks, (list, tuple)):
+            for value in additive_blocks:
+                try:
+                    block = int(float(value))
+                except Exception:
+                    continue
+                if block > 0:
+                    normalized_blocks.append(block)
+        self.params["additive_rhythm_blocks"] = normalized_blocks
+        self.params["additive_rhythm_weight"] = min(1.0, max(0.0, float(self.params.get("additive_rhythm_weight", 0.0))))
+        divisive_signature = str(self.params.get("divisive_rhythm_signature", "4/4"))
+        valid_signatures = {key for key, _ in self._divisive_signature_modes()}
+        if divisive_signature not in valid_signatures:
+            divisive_signature = "4/4"
+        self.params["divisive_rhythm_signature"] = divisive_signature
+        self.params["divisive_rhythm_weight"] = min(1.0, max(0.0, float(self.params.get("divisive_rhythm_weight", 0.0))))
         self.params["melody_coherence"] = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
         self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
@@ -3091,6 +3512,14 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.rhythm_stretch_strength_ctrl, self.params["rhythm_stretch_strength"])
             self._setCtrlValueSilently(self.rhythm_rotation_ctrl, self.params["rhythm_rotation"])
             self._setCtrlValueSilently(self.rhythm_radicality_ctrl, self.params["rhythm_radicality"])
+            self._setCtrlValueSilently(self.rhythm_mod_bpm_ctrl, self.params.get("rhythm_mod_bpm", 108.0))
+            self.divisive_signature_choice.SetStringSelection(self._divisive_signature_label_from_key(self.params.get("divisive_rhythm_signature", "4/4")))
+            add_weight_pct = int(min(100, max(0, round(self.params.get("additive_rhythm_weight", 0.0) * 100))))
+            div_weight_pct = int(min(100, max(0, round(self.params.get("divisive_rhythm_weight", 0.0) * 100))))
+            self.additive_rhythm_weight_slider.SetValue(add_weight_pct)
+            self.divisive_rhythm_weight_slider.SetValue(div_weight_pct)
+            self.additive_rhythm_weight_label.SetLabel(f"Additive rhythm weight: {add_weight_pct}%")
+            self.divisive_rhythm_weight_label.SetLabel(f"Divisive rhythm weight: {div_weight_pct}%")
             self._setCtrlValueSilently(self.melody_coherence_ctrl, self.params["melody_coherence"])
             self._setCtrlValueSilently(self.melody_speed_ctrl, self.params["melody_speed"])
             self._setCtrlValueSilently(self.min_note_duration_ctrl, self.params["min_note_duration"])
@@ -3104,6 +3533,9 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.adsr_decay_ctrl, self.params["adsr_decay"])
             self._setCtrlValueSilently(self.adsr_sustain_ctrl, self.params["adsr_sustain"])
             self._setCtrlValueSilently(self.adsr_release_ctrl, self.params["adsr_release"])
+            self._update_additive_pattern_status_label()
+            self._apply_rhythm_modulation_state()
+            self._refresh_additive_editor_sequence()
         finally:
             self._suppress_param_events = False
 
