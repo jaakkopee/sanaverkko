@@ -50,6 +50,7 @@ _adsr_attack = 0.01
 _adsr_decay = 0.04
 _adsr_sustain = 0.85
 _adsr_release = 0.03
+_output_ceiling = 0.96
 
 # Neural activation parameters shared between the controller and synthesis thread
 _neuro_params = {
@@ -304,6 +305,33 @@ def _ensure_stream():
     return True
 
 
+def _soft_limit(samples, ceiling=None, drive=1.6):
+    if ceiling is None:
+        ceiling = _output_ceiling
+    arr = np.array(samples, dtype=np.float32, copy=False)
+    if arr.size == 0:
+        return arr
+    norm = math.tanh(float(drive))
+    if norm <= 1e-6:
+        return np.clip(arr, -float(ceiling), float(ceiling))
+    limited = np.tanh(arr * float(drive)) / norm
+    return (float(ceiling) * limited).astype(np.float32)
+
+
+def _prepare_playback_buffer(samples):
+    arr = np.array(samples, dtype=np.float32, copy=True).reshape(-1)
+    if arr.size == 0:
+        return np.zeros(1, dtype=np.float32)
+
+    peak = float(np.max(np.abs(arr)))
+    if peak > _output_ceiling and peak > 1e-6:
+        arr *= float(_output_ceiling / peak)
+
+    # Final soft limiting prevents harsh truncation when dense presets or
+    # compressor makeup push the buffer near full scale.
+    return _soft_limit(arr, ceiling=_output_ceiling, drive=1.5)
+
+
 def _audio_callback(outdata, frames, timing_info, status):
     global _playback_position, _is_playing, _pending_samples, _current_samples
     global _overlay_position, _overlay_is_playing, _overlay_samples, _callback_status_count
@@ -367,8 +395,8 @@ def _audio_callback(outdata, frames, timing_info, status):
 
         rhythm_gain, _rhythm_gain_prev = _rhythm_modulation_gain(_rhythm_sample_cursor, frames, _rhythm_gain_prev)
         _rhythm_sample_cursor += int(frames)
-        chunk = np.clip(chunk * rhythm_gain, -1.0, 1.0)
-        chunk = np.clip(_compress_chunk(chunk), -1.0, 1.0)
+        chunk = chunk * rhythm_gain
+        chunk = _compress_chunk(chunk)
 
         if _overlay_is_playing and _overlay_samples.size > 0:
             overlay_chunk = np.zeros(frames, dtype=np.float32)
@@ -385,7 +413,9 @@ def _audio_callback(outdata, frames, timing_info, status):
                     overlay_chunk[:remaining] = _overlay_samples[_overlay_position:overlay_count]
                 _overlay_position = overlay_count
                 _overlay_is_playing = False
-            chunk = np.clip(chunk + overlay_chunk, -1.0, 1.0)
+            chunk = chunk + overlay_chunk
+
+        chunk = _soft_limit(chunk, ceiling=_output_ceiling, drive=1.7)
 
     outdata[:, 0] = chunk
 
@@ -455,13 +485,13 @@ def _set_current_sound(samples):
         return
 
     shaped_samples = _apply_adsr(np.array(samples, dtype=np.float32))
+    prepared_samples = _prepare_playback_buffer(shaped_samples)
 
     with _state_lock:
-        clipped = np.clip(shaped_samples, -1.0, 1.0)
         if _is_playing and _current_samples.size > 0:
-            _pending_samples = clipped
+            _pending_samples = prepared_samples
         else:
-            _current_samples = clipped
+            _current_samples = prepared_samples
             _playback_position = 0
             _pending_samples = None
 
@@ -528,7 +558,7 @@ def _set_overlay_sound(samples):
     if not _ensure_audio():
         return
 
-    prepared = np.clip(np.array(samples, dtype=np.float32, copy=True), -1.0, 1.0)
+    prepared = _prepare_playback_buffer(samples)
     with _state_lock:
         _overlay_samples = prepared
         _overlay_position = 0
@@ -1767,7 +1797,7 @@ def generate_melody(
         local_length = render.shape[0]
         mixed[:local_length] += render
 
-    normalization = max(1.0, float(voice_count) * 0.9)
+    normalization = max(1.0, float(voice_count) * 1.15)
     mixed /= normalization
     _set_current_sound(mixed)
 

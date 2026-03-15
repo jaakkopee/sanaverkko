@@ -373,6 +373,7 @@ class SanaVerkkoKontrolleri:
         self._logic_state_lock = threading.Lock()
         self._logic_inflight = False
         self._logic_changed_ready = False
+        self._logic_last_error = ""
         self._piper_speak_thread = None
         self._last_spoken_sentence = ""
         self._last_queued_sentence = ""
@@ -386,6 +387,7 @@ class SanaVerkkoKontrolleri:
         self.additive_sequence_scroll = None
         self.additive_sequence_sizer = None
         self.additive_timeline_preview = None
+        self.fullscreen_checkbox = None
 
         self.initPygame()
         self.initAudio()
@@ -472,9 +474,6 @@ class SanaVerkkoKontrolleri:
         self.melody_from_own_time_checkbox = wx.CheckBox(panel, -1, "From melody")
         self.melody_from_own_time_checkbox.SetValue(self.params.get("melody_from_own_time", True))
         self.melody_from_own_time_checkbox.Bind(wx.EVT_CHECKBOX, self.OnMelodyFromOwnTime)
-        self.fullscreen_checkbox = wx.CheckBox(panel, -1, "Fullscreen network window (green/F11)")
-        self.fullscreen_checkbox.SetValue(bool(self.params.get("fullscreen", False)))
-        self.fullscreen_checkbox.Bind(wx.EVT_CHECKBOX, self.OnFullscreen)
         self.logic_worker_status_label = wx.StaticText(panel, -1, "Logic worker: idle")
 
         self.selection_exploration_label = wx.StaticText(panel, -1, "Selection exploration (0-1)")
@@ -734,7 +733,6 @@ class SanaVerkkoKontrolleri:
         _pi_row.Add(self.process_interval_bpm_sync_checkbox, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
         _pi_row.Add(self.process_interval_value_label, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
         self.sizer.Add(_pi_row, 0, wx.ALL, 5)
-        self.sizer.Add(self.fullscreen_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.logic_worker_status_label, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
         self.sizer.Add(self.selection_exploration_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -2936,7 +2934,9 @@ class SanaVerkkoKontrolleri:
 
         for word in self.words:
             self._assign_seed_pos(word)
-            self.referenceWords.append(word)
+            ref_copy = self._reference_word_copy(word)
+            if ref_copy is not None:
+                self.referenceWords.append(ref_copy)
 
         self.referenceWords = self._uniqueWordObjects(self.referenceWords)
         self._markReferenceIndexDirty()
@@ -2964,6 +2964,16 @@ class SanaVerkkoKontrolleri:
                     if all(char in valid_chars for char in word):
                         words.append(Word(word, 0, 0, (255, 255, 255), self))
         return words
+
+    def _reference_word_copy(self, source_word):
+        if source_word is None:
+            return None
+        ref_copy = Word(str(source_word.word), 0, 0, (255, 255, 255), self)
+        try:
+            self._assign_seed_pos(ref_copy)
+        except Exception:
+            pass
+        return ref_copy
 
     def _uniqueWordObjects(self, words):
         unique_words = []
@@ -2999,7 +3009,6 @@ class SanaVerkkoKontrolleri:
                 by_pos_gematria.setdefault((pos_value, gematria_value), []).append(ref_word)
                 by_pos_reduction.setdefault((pos_value, reduction_value), []).append(ref_word)
                 by_pos_root.setdefault((pos_value, root_value), []).append(ref_word)
-
         self.reference_index = {
             "gematria": by_gematria,
             "reduction": by_reduction,
@@ -3454,7 +3463,9 @@ class SanaVerkkoKontrolleri:
         else:
             self.referenceWords = self._uniqueWordObjects(self.referenceWords + imported_words)
 
-        self.referenceWords = self._uniqueWordObjects(self.referenceWords + self.words)
+        live_word_copies = [self._reference_word_copy(word) for word in self.words]
+        live_word_copies = [word for word in live_word_copies if word is not None]
+        self.referenceWords = self._uniqueWordObjects(self.referenceWords + live_word_copies)
         self._markReferenceIndexDirty()
         return len(imported_words), len(self.referenceWords)
 
@@ -3609,7 +3620,6 @@ class SanaVerkkoKontrolleri:
             self.process_interval_bpm_sync_checkbox.SetValue(bool(self.params.get("process_interval_from_rhythm_bpm", False)))
             self.piper_tts_checkbox.SetValue(self.params.get("piper_tts_on", False))
             self.compressor_enabled_checkbox.SetValue(bool(self.params.get("compressor_enabled", False)))
-            self.fullscreen_checkbox.SetValue(bool(self.params.get("fullscreen", False)))
             self._updatePOSBackendStatusLabel(check_nltk=False)
             self._updateLTMStatusLabel()
             self._setCtrlValueSilently(self.ltm_weight_ctrl, self.params["ltm_weight"])
@@ -3692,7 +3702,14 @@ class SanaVerkkoKontrolleri:
             self._suppress_param_events = False
 
     def _apply_loaded_preset(self):
+        current_fullscreen = bool(self.params.get("fullscreen", False))
+        if self.screen is not None:
+            try:
+                current_fullscreen = bool(self._is_effective_fullscreen())
+            except Exception:
+                current_fullscreen = bool(self.params.get("fullscreen", False))
         self._normalize_params()
+        self.params["fullscreen"] = current_fullscreen
         self._sync_controls_from_params()
         self._applyADSRToAudio()
         self.makeWordCircle(self.words)
@@ -3713,8 +3730,9 @@ class SanaVerkkoKontrolleri:
 
         try:
             self._normalize_params()
+            preset_data = {key: value for key, value in self.params.items() if key != "fullscreen"}
             with open(selected_path, "w", encoding="utf-8") as outfile:
-                json.dump(self.params, outfile, ensure_ascii=False, indent=2)
+                json.dump(preset_data, outfile, ensure_ascii=False, indent=2)
             self.preset_status.SetLabel(f"Preset saved: {os.path.basename(selected_path)}")
         except Exception as error:
             self.preset_status.SetLabel(f"Preset save failed: {error}")
@@ -3739,6 +3757,8 @@ class SanaVerkkoKontrolleri:
                 raise ValueError("Preset JSON must be an object")
 
             for key, value in loaded_data.items():
+                if key == "fullscreen":
+                    continue
                 if key in self.params:
                     self.params[key] = value
 
@@ -3758,7 +3778,9 @@ class SanaVerkkoKontrolleri:
             existing_word.connect(new_word, weight_to_new)
 
         self.words.append(new_word)
-        self.referenceWords.append(new_word)
+        ref_copy = self._reference_word_copy(new_word)
+        if ref_copy is not None:
+            self.referenceWords.append(ref_copy)
         self._markReferenceIndexDirty()
         self.makeWordCircle(self.words)
         return new_word
@@ -3879,6 +3901,19 @@ class SanaVerkkoKontrolleri:
             should_jump = False
             candidates = [candidate for candidate in candidates if candidate.gematria == source_gematria]
 
+        non_self_candidates = [candidate for candidate in candidates if candidate.word != word.word]
+        if not non_self_candidates:
+            fallback_candidates = [candidate for candidate in self.referenceWords if candidate.word != word.word]
+            if use_pos:
+                if self._is_fluid_pos_enabled():
+                    source_pos = self.getWordPOS(word.word, force=True)
+                else:
+                    source_pos = self._get_seed_pos(word)
+                pos_fallback = [candidate for candidate in fallback_candidates if self.getWordPOS(candidate.word, force=True) == source_pos]
+                if pos_fallback:
+                    fallback_candidates = pos_fallback
+            candidates = fallback_candidates
+
         if should_jump and not fluid_root_enabled:
             has_same_root_alternative = any(
                 candidate.word != word.word and digital_root(candidate.gematria) == source_root
@@ -3943,14 +3978,17 @@ class SanaVerkkoKontrolleri:
 
     def _run_logic_iteration_task(self, max_iterations):
         changed_any = False
+        logic_error = ""
         try:
             if self.running and not self.closed:
                 changed_any = self.iterateSentenceToLogic(max_iterations)
-        except Exception:
+        except Exception as error:
             changed_any = False
+            logic_error = str(error)
         finally:
             with self._logic_state_lock:
                 self._logic_inflight = False
+                self._logic_last_error = logic_error
                 if changed_any:
                     self._logic_changed_ready = True
 
@@ -3958,8 +3996,11 @@ class SanaVerkkoKontrolleri:
         with self._logic_state_lock:
             busy = bool(self._logic_inflight)
             changed_pending = bool(self._logic_changed_ready)
+            last_error = str(self._logic_last_error).strip()
         if busy:
             status = "Logic worker: busy"
+        elif last_error != "":
+            status = f"Logic worker error: {last_error}"
         elif changed_pending:
             status = "Logic worker: changed ready"
         else:
@@ -4028,6 +4069,7 @@ class SanaVerkkoKontrolleri:
             with self._logic_state_lock:
                 if not self._logic_inflight:
                     self._logic_inflight = True
+                    self._logic_last_error = ""
                     start_logic_worker = True
             if start_logic_worker:
                 max_iterations = self.params.get("logic_iteration_limit", 48)
