@@ -1,0 +1,520 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{margin=2.3cm}
+
+\title{SanaVerkkoParams2: Current Parameter Reference}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Purpose}
+This document describes the current runtime parameter set used by SanaVerkko, including:
+\begin{itemize}
+  \item each parameter's range and normalization,
+  \item where the parameter participates in the processing chain,
+  \item how it influences textual mutation and/or sound output,
+  \item a practical recipe for a peaceful ambient soundscape.
+\end{itemize}
+
+\section{Processing Chain}
+SanaVerkko runs as a coupled text-audio system:
+\begin{enumerate}
+  \item \textbf{Input and normalization}: UI, preset, and runtime updates are stored in \texttt{self.params} and normalized in \texttt{\_normalize\_params()}.
+  \item \textbf{Lexical scoring}: candidate words are ranked using gematria distance, POS compatibility, rhyme score, optional long-term memory score, and exploration/jump controls.
+  \item \textbf{Sentence mutation}: replacement decisions are triggered by activation dynamics and threshold controls.
+  \item \textbf{Melodic extraction}: the current sentence state is converted to pitches and durations using mapping mode, speed/coherence, and voice controls.
+  \item \textbf{Rhythm modulation}: additive/divisive modulators shape gain and temporal pulse profile.
+  \item \textbf{Synthesis and output safety}: waveform generation, ADSR, compressor, soft limiter, crossfades, and lookahead buffers produce final audio.
+  \item \textbf{Optional TTS overlay}: Piper speech is synthesized and mixed as a guarded overlay path.
+\end{enumerate}
+
+\section{Complete Parameter Catalog}
+All parameters listed below are in the active runtime set initialized in \texttt{sanaVerkkoCore.py}.
+
+\subsection*{A. Text Mutation Core}
+\begin{itemize}
+  \item \texttt{set\_weight\_by\_gematria} (bool, default \texttt{false}, range: \texttt{true/false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: lexical scoring.
+    \item \textbf{Influence}: increases dependency of candidate ranking on gematria relationships, making substitution flow more numerically structured.
+  \end{itemize}
+
+  \item \texttt{use\_pos\_matching} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: lexical filtering before final ranking.
+    \item \textbf{Influence}: restricts replacements to POS-compatible words; increases grammatical stability, reduces mutation freedom.
+  \end{itemize}
+
+  \item \texttt{fluid\_pos} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: POS filtering/ranking blend.
+    \item \textbf{Influence}: softens strict POS constraints; text remains partly grammatical but less rigid and more exploratory.
+  \end{itemize}
+
+  \item \texttt{common\_word\_penalty} (bool, default \texttt{true})
+  \begin{itemize}
+    \item \textbf{Chain stage}: lexical ranking.
+    \item \textbf{Influence}: discourages overused words, improving lexical novelty and reducing repetitive loops.
+  \end{itemize}
+
+  \item \texttt{learning\_rate} (float, default \texttt{0.1}, range: unbounded in normalization)
+  \begin{itemize}
+    \item \textbf{Chain stage}: weight/activation update logic.
+    \item \textbf{Influence}: larger values accelerate adaptation; too high can destabilize replacement dynamics.
+  \end{itemize}
+
+  \item \texttt{error} (float, default \texttt{0.0}, range: unbounded)
+  \begin{itemize}
+    \item \textbf{Chain stage}: update signal.
+    \item \textbf{Influence}: biases update direction; mainly useful for experimental steering.
+  \end{itemize}
+
+  \item \texttt{target} (float, default \texttt{0.0}, range: unbounded)
+  \begin{itemize}
+    \item \textbf{Chain stage}: update signal.
+    \item \textbf{Influence}: reference level for adaptation terms; shifts the operating point of the mutation system.
+  \end{itemize}
+
+  \item \texttt{activation\_increase} (float, default \texttt{0.0001}, range: unbounded)
+  \begin{itemize}
+    \item \textbf{Chain stage}: activation drift.
+    \item \textbf{Influence}: higher values increase mutation pressure over time.
+  \end{itemize}
+
+  \item \texttt{activation\_limit} (float, default \texttt{2.0}, range: unbounded)
+  \begin{itemize}
+    \item \textbf{Chain stage}: activation clamp and derived audio dynamics.
+    \item \textbf{Influence}: limits activation magnitude; also affects normalization used by melody mapping internals.
+  \end{itemize}
+
+  \item \texttt{sigmoid\_scale} (float, default \texttt{2.0}, range: unbounded)
+  \begin{itemize}
+    \item \textbf{Chain stage}: activation transfer shaping.
+    \item \textbf{Influence}: controls steepness/sensitivity of activation-to-decision behavior.
+  \end{itemize}
+
+  \item \texttt{word\_change\_threshold} (float, default \texttt{0.777}, range: unbounded)
+  \begin{itemize}
+    \item \textbf{Chain stage}: mutation gate.
+    \item \textbf{Influence}: lower values produce frequent substitutions; higher values keep sentences more stable.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{B. Runtime and Iteration Control}
+\begin{itemize}
+  \item \texttt{zoom} (float, default \texttt{0.1}, normalized: $\ge 0.001$)
+  \begin{itemize}
+    \item \textbf{Chain stage}: visualization only.
+    \item \textbf{Influence}: no direct effect on text/audio synthesis.
+  \end{itemize}
+
+  \item \texttt{process\_interval} (float seconds, default \texttt{0.1}, normalized: \texttt{0.1..8.0})
+  \begin{itemize}
+    \item \textbf{Chain stage}: global iteration scheduler.
+    \item \textbf{Influence}: larger interval slows text/audio updates and usually improves realtime safety; smaller interval increases responsiveness but raises glitch risk.
+  \end{itemize}
+
+  \item \texttt{process\_interval\_from\_rhythm\_bpm} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: scheduler derivation.
+    \item \textbf{Influence}: when enabled, \texttt{process\_interval} is auto-derived from rhythm BPM mapping.
+  \end{itemize}
+
+  \item \texttt{logic\_iteration\_limit} (int, default \texttt{48}, normalized: $\ge 1$)
+  \begin{itemize}
+    \item \textbf{Chain stage}: per-cycle logic work budget.
+    \item \textbf{Influence}: higher values allow deeper candidate search but increase CPU load.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{C. Exploration and Jump Controls}
+\begin{itemize}
+  \item \texttt{selection\_exploration} (float, default \texttt{0.18}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: candidate chooser.
+    \item \textbf{Influence}: increases non-greedy candidate picks; higher values improve novelty but reduce local coherence.
+  \end{itemize}
+
+  \item \texttt{selection\_top\_k} (int, default \texttt{4}, normalized: $\ge 1$)
+  \begin{itemize}
+    \item \textbf{Chain stage}: candidate pool definition.
+    \item \textbf{Influence}: larger pools give exploration/jump logic more variety.
+  \end{itemize}
+
+  \item \texttt{jump\_probability} (float, default \texttt{0.08}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: branch chooser.
+    \item \textbf{Influence}: chance of using jump search instead of local best candidate.
+  \end{itemize}
+
+  \item \texttt{jump\_radius} (int, default \texttt{120}, normalized: $\ge 0$)
+  \begin{itemize}
+    \item \textbf{Chain stage}: jump candidate radius.
+    \item \textbf{Influence}: wider radius allows larger semantic/gematria leaps.
+  \end{itemize}
+
+  \item \texttt{fluid\_root} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: lexical compatibility.
+    \item \textbf{Influence}: relaxes root-level continuity, allowing bolder substitutions.
+  \end{itemize}
+
+  \item \texttt{fluid\_gematria} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: gematria comparison tolerance.
+    \item \textbf{Influence}: allows near-field gematria drift instead of strict proximity.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{D. Rhyme and Long-Term Memory}
+\begin{itemize}
+  \item \texttt{use\_long\_term\_memory} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: blended lexical score.
+    \item \textbf{Influence}: injects LTM model guidance into candidate ranking.
+  \end{itemize}
+
+  \item \texttt{ltm\_weight} (float, default \texttt{0.35}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: score blending coefficient.
+    \item \textbf{Influence}: larger values bias replacements toward LTM predictions.
+  \end{itemize}
+
+  \item \texttt{use\_phoneme\_rhyme} (bool, default \texttt{true})
+  \begin{itemize}
+    \item \textbf{Chain stage}: rhyme score component.
+    \item \textbf{Influence}: enables phonetic rhyme scoring in candidate ranking.
+  \end{itemize}
+
+  \item \texttt{rhyme\_weight} (float, default \texttt{0.28}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: score blending coefficient.
+    \item \textbf{Influence}: stronger rhyme attraction as value increases.
+  \end{itemize}
+
+  \item \texttt{rhyme\_min\_similarity} (float, default \texttt{0.34}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: rhyme gate.
+    \item \textbf{Influence}: minimum similarity needed for rhyme bonus.
+  \end{itemize}
+
+  \item \texttt{rhyme\_strategy} (enum, default \texttt{hybrid}, valid: \texttt{suffix|whole\_word|hybrid})
+  \begin{itemize}
+    \item \textbf{Chain stage}: rhyme comparator.
+    \item \textbf{Influence}: chooses whether rhyme is evaluated by tail, whole word, or blend.
+  \end{itemize}
+
+  \item \texttt{rhyme\_tail\_bias} (float, default \texttt{0.60}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: hybrid rhyme blend.
+    \item \textbf{Influence}: in hybrid mode, biases weighting toward suffix similarity as value approaches 1.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{E. Import and Mapping Modes}
+\begin{itemize}
+  \item \texttt{import\_mode} (enum, default \texttt{append}, valid: \texttt{append|replace})
+  \begin{itemize}
+    \item \textbf{Chain stage}: corpus/reference setup.
+    \item \textbf{Influence}: controls whether imported word data extends or replaces current database.
+  \end{itemize}
+
+  \item \texttt{audio\_wave\_mode} (enum, default \texttt{dynamic}, valid: \texttt{dynamic|pure\_sine|noise\_heavy|classic\_analog|neuro\_formant|neuro\_pulse|neuro\_ring|neuro\_fold|neuro\_fm})
+  \begin{itemize}
+    \item \textbf{Chain stage}: waveform synthesis.
+    \item \textbf{Influence}: defines oscillator family and harmonic complexity; affects timbre and CPU load.
+  \end{itemize}
+
+  \item \texttt{frequency\_mapping\_mode} (enum, default \texttt{original\_notes}, many valid mappings)
+  \begin{itemize}
+    \item \textbf{Chain stage}: text-to-pitch mapping.
+    \item \textbf{Influence}: quantizes raw pitch selection into selected tuning/scale system.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{F. Voice and Counterpoint Controls}
+\begin{itemize}
+  \item \texttt{voice\_count} (int, default \texttt{1}, normalized: \texttt{1..4})
+  \begin{itemize}
+    \item \textbf{Chain stage}: polyphonic rendering.
+    \item \textbf{Influence}: number of simultaneous voices; larger values create denser texture and heavier load.
+  \end{itemize}
+
+  \item \texttt{voice\_spread} (float, default \texttt{1.0}, normalized: \texttt{0.3..5.0})
+  \begin{itemize}
+    \item \textbf{Chain stage}: interval spacing between voices.
+    \item \textbf{Influence}: larger spread increases vertical register width.
+  \end{itemize}
+
+  \item \texttt{voice\_distance} (float, default \texttt{0.65}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: voice-leading balance.
+    \item \textbf{Influence}: blends target-following and continuity-following behavior.
+  \end{itemize}
+
+  \item \texttt{voice\_distance\_context} (int, default \texttt{4}, normalized: \texttt{1..32})
+  \begin{itemize}
+    \item \textbf{Chain stage}: history window for voice-leading and rhythm behavior.
+    \item \textbf{Influence}: larger values increase memory depth and smoothing.
+  \end{itemize}
+
+  \item \texttt{strict\_counterpoint} (bool, default \texttt{false} after normalization fallback)
+  \begin{itemize}
+    \item \textbf{Chain stage}: interval legality checks.
+    \item \textbf{Influence}: limits parallel-perfect style motion, often producing cleaner polyphony.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{G. Rhythm Engine}
+\begin{itemize}
+  \item \texttt{rhythm\_style} (enum, default \texttt{manual}, valid style keys)
+  \begin{itemize}
+    \item \textbf{Chain stage}: macro-configuration of rhythmic behavior.
+    \item \textbf{Influence}: presets grouped rhythm characteristics.
+  \end{itemize}
+
+  \item \texttt{beat\_library\_style} (enum, default \texttt{auto}, valid style keys)
+  \begin{itemize}
+    \item \textbf{Chain stage}: pattern selection source.
+    \item \textbf{Influence}: chooses fixed pattern family or auto-selection.
+  \end{itemize}
+
+  \item \texttt{rhythmic\_divergence} (float, default \texttt{0.35}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: per-voice timing deviation.
+    \item \textbf{Influence}: higher values separate voices rhythmically.
+  \end{itemize}
+
+  \item \texttt{rhythm\_gate\_strength} (float, default \texttt{0.85}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: rhythmic envelope shaping.
+    \item \textbf{Influence}: stronger gating creates more pronounced pulse/rest articulation.
+  \end{itemize}
+
+  \item \texttt{rhythm\_stretch\_strength} (float, default \texttt{1.0}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: duration warping.
+    \item \textbf{Influence}: increases temporal contrast between notes/voices.
+  \end{itemize}
+
+  \item \texttt{rhythm\_rotation} (int, default \texttt{0}, normalized: \texttt{0..31})
+  \begin{itemize}
+    \item \textbf{Chain stage}: pattern phase offset.
+    \item \textbf{Influence}: shifts accent placement without changing pattern content.
+  \end{itemize}
+
+  \item \texttt{rhythm\_radicality} (float, default \texttt{0.5}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: rhythm-contrast intensity.
+    \item \textbf{Influence}: controls extremeness of rhythmic differences.
+  \end{itemize}
+
+  \item \texttt{rhythm\_mod\_bpm} (float, default \texttt{108.0}, normalized: \texttt{0.01..300})
+  \begin{itemize}
+    \item \textbf{Chain stage}: additive/divisive modulation rate.
+    \item \textbf{Influence}: sets temporal pulse density of rhythm modulators.
+  \end{itemize}
+
+  \item \texttt{additive\_rhythm\_blocks} (list of positive ints, default \texttt{[]})
+  \begin{itemize}
+    \item \textbf{Chain stage}: additive rhythm topology.
+    \item \textbf{Influence}: defines block-cycle structure (e.g., 3+2+3).
+  \end{itemize}
+
+  \item \texttt{additive\_rhythm\_weight} (float, default \texttt{0.0}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: modulation blend.
+    \item \textbf{Influence}: scales contribution of additive rhythm envelope to final synth gain.
+  \end{itemize}
+
+  \item \texttt{divisive\_rhythm\_signature} (enum-like string, default \texttt{4/4}, valid: \texttt{2/4,3/4,4/4,5/4,6/8,7/8,9/8,12/8})
+  \begin{itemize}
+    \item \textbf{Chain stage}: divisive rhythm definition.
+    \item \textbf{Influence}: changes beat grid and bar accent pattern used in modulation.
+  \end{itemize}
+
+  \item \texttt{divisive\_rhythm\_weight} (float, default \texttt{0.0}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: modulation blend.
+    \item \textbf{Influence}: scales divisive envelope contribution to synth gain.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{H. Melody Timing and Envelope}
+\begin{itemize}
+  \item \texttt{melody\_coherence} (float, default \texttt{0.65}, normalized: \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: melodic contour shaping.
+    \item \textbf{Influence}: higher values emphasize smooth, coherent movement.
+  \end{itemize}
+
+  \item \texttt{melody\_speed} (float, default \texttt{1.0}, normalized: \texttt{0.2..6.0})
+  \begin{itemize}
+    \item \textbf{Chain stage}: duration scaling.
+    \item \textbf{Influence}: speeds up or slows note progression globally.
+  \end{itemize}
+
+  \item \texttt{min\_note\_duration} (float sec, default \texttt{0.03}, normalized: \texttt{0.01..1.0})
+  \begin{itemize}
+    \item \textbf{Chain stage}: duration floor clamp.
+    \item \textbf{Influence}: prevents overly short, click-prone notes.
+  \end{itemize}
+
+  \item \texttt{melody\_from\_own\_time} (bool, default \texttt{true})
+  \begin{itemize}
+    \item \textbf{Chain stage}: timing source selection.
+    \item \textbf{Influence}: when enabled, melody timing follows internal timing semantics rather than only external loop cadence.
+  \end{itemize}
+
+  \item \texttt{adsr\_attack} (float sec, default \texttt{0.01}, normalized: $\ge 0$)
+  \item \texttt{adsr\_decay} (float sec, default \texttt{0.04}, normalized: $\ge 0$)
+  \item \texttt{adsr\_sustain} (float level, default \texttt{0.85}, normalized: \texttt{0..1})
+  \item \texttt{adsr\_release} (float sec, default \texttt{0.03}, normalized: $\ge 0$)
+  \begin{itemize}
+    \item \textbf{Chain stage}: final amplitude envelope in synthesis backend.
+    \item \textbf{Influence}: attack/release strongly affect click behavior and smoothness; sustain controls steady-state level.
+  \end{itemize}
+\end{itemize}
+
+\subsection*{I. Output, TTS, and Dynamics}
+\begin{itemize}
+  \item \texttt{synth\_volume} (float, default \texttt{1.0}, runtime-clamped to \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: melody amplitude scaling before output backend.
+    \item \textbf{Influence}: direct synth loudness control.
+  \end{itemize}
+
+  \item \texttt{piper\_tts\_on} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: optional overlay branch.
+    \item \textbf{Influence}: enables speech synthesis and guarded overlay mixing path.
+  \end{itemize}
+
+  \item \texttt{piper\_model\_path} (string path)
+  \begin{itemize}
+    \item \textbf{Chain stage}: TTS model loading.
+    \item \textbf{Influence}: selects the ONNX voice model used by Piper.
+  \end{itemize}
+
+  \item \texttt{piper\_volume} (float, default \texttt{0.5}, runtime-clamped to \texttt{0..1})
+  \begin{itemize}
+    \item \textbf{Chain stage}: speech overlay amplitude.
+    \item \textbf{Influence}: controls TTS loudness before overlay safeguards.
+  \end{itemize}
+
+  \item \texttt{compressor\_enabled} (bool, default \texttt{false})
+  \item \texttt{compressor\_threshold\_db} (float dB, default \texttt{-18}, normalized: \texttt{-48..0})
+  \item \texttt{compressor\_ratio} (float, default \texttt{3.0}, normalized: \texttt{1..12} in controller, backend supports up to 20)
+  \item \texttt{compressor\_makeup\_db} (float dB, default \texttt{6}, normalized: \texttt{0..24})
+  \begin{itemize}
+    \item \textbf{Chain stage}: output dynamics stage after rhythm modulation.
+    \item \textbf{Influence}: reduces peaks and raises average level; aggressive settings can reduce transient openness.
+  \end{itemize}
+
+  \item \texttt{fullscreen} (bool, default \texttt{false})
+  \begin{itemize}
+    \item \textbf{Chain stage}: display subsystem only.
+    \item \textbf{Influence}: no direct effect on synthesis or lexical mutation.
+  \end{itemize}
+\end{itemize}
+
+\section{Parameter Interactions That Matter Most}
+\begin{itemize}
+  \item \textbf{Novelty triad}: \texttt{selection\_exploration}, \texttt{jump\_probability}, \texttt{jump\_radius} jointly control how quickly language leaves local neighborhoods.
+  \item \textbf{Grammar-vs-fluidity}: \texttt{use\_pos\_matching} and \texttt{fluid\_pos} define this balance.
+  \item \textbf{Musical smoothness}: \texttt{melody\_coherence}, \texttt{min\_note\_duration}, ADSR attack/release, and rhythm weights dominate perceived smoothness.
+  \item \textbf{Realtime stability}: \texttt{process\_interval}, \texttt{voice\_count}, rhythm weights, and TTS enable state dominate CPU pressure and glitch risk.
+\end{itemize}
+
+\section{Recipe: Peaceful Ambient Soundscape}
+Target profile requested: moderate rhyming, fluid gematria, POS analysis, fluid POS, and LTM enabled.
+
+\subsection*{Recommended Settings}
+\begin{itemize}
+  \item \textbf{Language dynamics}
+  \begin{itemize}
+    \item \texttt{use\_pos\_matching = true}
+    \item \texttt{fluid\_pos = true}
+    \item \texttt{fluid\_gematria = true}
+    \item \texttt{use\_long\_term\_memory = true}
+    \item \texttt{ltm\_weight = 0.45}
+    \item \texttt{use\_phoneme\_rhyme = true}
+    \item \texttt{rhyme\_strategy = hybrid}
+    \item \texttt{rhyme\_weight = 0.32} (moderate)
+    \item \texttt{rhyme\_min\_similarity = 0.36}
+    \item \texttt{rhyme\_tail\_bias = 0.60}
+  \end{itemize}
+
+  \item \textbf{Mutation pacing}
+  \begin{itemize}
+    \item \texttt{word\_change\_threshold = 0.42}
+    \item \texttt{selection\_exploration = 0.28}
+    \item \texttt{selection\_top\_k = 5}
+    \item \texttt{jump\_probability = 0.12}
+    \item \texttt{jump\_radius = 150}
+    \item \texttt{process\_interval = 0.35} to \texttt{0.60}
+  \end{itemize}
+
+  \item \textbf{Timbre and harmony}
+  \begin{itemize}
+    \item \texttt{audio\_wave\_mode = pure\_sine} (or \texttt{classic\_analog} for slightly richer texture)
+    \item \texttt{frequency\_mapping\_mode = pythagorean\_8\_note}
+    \item \texttt{voice\_count = 2}
+    \item \texttt{voice\_spread = 1.3}
+    \item \texttt{voice\_distance = 0.72}
+    \item \texttt{voice\_distance\_context = 6}
+    \item \texttt{strict\_counterpoint = true}
+  \end{itemize}
+
+  \item \textbf{Rhythm softness}
+  \begin{itemize}
+    \item \texttt{rhythmic\_divergence = 0.25}
+    \item \texttt{rhythm\_gate\_strength = 0.45}
+    \item \texttt{rhythm\_stretch\_strength = 0.65}
+    \item \texttt{rhythm\_radicality = 0.20}
+    \item \texttt{additive\_rhythm\_weight = 0.10}
+    \item \texttt{divisive\_rhythm\_weight = 0.10}
+    \item \texttt{divisive\_rhythm\_signature = 4/4}
+    \item \texttt{rhythm\_mod\_bpm = 72}
+  \end{itemize}
+
+  \item \textbf{Envelope and dynamics}
+  \begin{itemize}
+    \item \texttt{melody\_coherence = 0.80}
+    \item \texttt{melody\_speed = 0.85}
+    \item \texttt{min\_note\_duration = 0.06}
+    \item \texttt{adsr\_attack = 0.015}
+    \item \texttt{adsr\_decay = 0.06}
+    \item \texttt{adsr\_sustain = 0.78}
+    \item \texttt{adsr\_release = 0.08}
+    \item \texttt{synth\_volume = 0.60}
+    \item \texttt{compressor\_enabled = true}
+    \item \texttt{compressor\_threshold\_db = -22}
+    \item \texttt{compressor\_ratio = 2.5}
+    \item \texttt{compressor\_makeup\_db = 2}
+  \end{itemize}
+\end{itemize}
+
+\subsection*{Why These Settings Work}
+\begin{itemize}
+  \item POS matching + fluid POS maintains intelligibility while avoiding rigid grammar lock.
+  \item Fluid gematria and moderate exploration allow slow semantic drift without chaotic jumps.
+  \item Moderate rhyme values keep gentle poetic recurrence rather than rhyme saturation.
+  \item Low rhythm weights and longer ADSR release reduce clicks and perceived harsh transients.
+  \item Conservative compressor settings stabilize level without pumping.
+\end{itemize}
+
+\section{Practical Notes}
+\begin{itemize}
+  \item If glitches appear, first increase \texttt{process\_interval} and/or reduce \texttt{voice\_count}.
+  \item If output becomes too static, raise \texttt{selection\_exploration} in small steps (\texttt{+0.03}).
+  \item If language feels too random, lower \texttt{jump\_probability} and raise \texttt{rhyme\_min\_similarity}.
+\end{itemize}
+
+\end{document}
