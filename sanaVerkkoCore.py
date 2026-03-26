@@ -4,6 +4,7 @@ import random
 import time
 import math
 import bisect
+import colorsys
 import wx
 import threading
 import sys
@@ -55,6 +56,76 @@ MONOSPACE_FONT_CANDIDATES = [
 
 _pygame_mono_font_cache = {}
 
+
+# ---------------------------------------------------------------------------
+# Audience Potentiometer parameter table
+# Each entry: (param_key, low_val, high_val, label)
+# The pot value 0..127 maps linearly:  normal  → low_val at 0, high_val at 127
+#                                       inverted → high_val at 0, low_val at 127
+# Indices 0-127 (128 pots total).  Entries beyond the unique params repeat
+# sensible choices so all 128 knobs always do something.
+# ---------------------------------------------------------------------------
+def _make_audience_params():
+    base = [
+        # idx 0-7: Word-network dynamics
+        ("activation_increase",   0.0001, 0.05,   "Activation speed"),
+        ("activation_limit",      0.5,    4.0,    "Activation limit"),
+        ("word_change_threshold", 0.1,    1.5,    "Word change threshold"),
+        ("learning_rate",         0.001,  0.5,    "Learning rate"),
+        ("error",                 0.0,    1.0,    "Backprop error"),
+        ("target",                -1.0,   1.0,    "Backprop target"),
+        ("sigmoid_scale",         0.5,    8.0,    "Sigmoid scale"),
+        ("selection_exploration", 0.0,    1.0,    "Selection exploration"),
+        # idx 8-15: Word selection
+        ("selection_top_k",       1,      20,     "Top-k candidates"),
+        ("jump_probability",      0.0,    0.5,    "Jump probability"),
+        ("jump_radius",           20,     400,    "Jump radius"),
+        ("rhyme_weight",          0.0,    1.0,    "Rhyme weight"),
+        ("rhyme_min_similarity",  0.0,    1.0,    "Rhyme min similarity"),
+        ("rhyme_tail_bias",       0.0,    1.0,    "Rhyme tail bias"),
+        ("ltm_weight",            0.0,    1.0,    "LTM weight"),
+        ("process_interval",      0.03,   2.0,    "Process interval"),
+        # idx 16-23: Audio / synthesis
+        ("synth_volume",          0.0,    2.0,    "Synth volume"),
+        ("piper_volume",          0.0,    1.0,    "TTS volume"),
+        ("melody_coherence",      0.0,    1.0,    "Melody coherence"),
+        ("melody_speed",          0.1,    4.0,    "Melody speed"),
+        ("min_note_duration",     0.01,   0.5,    "Min note duration"),
+        ("voice_spread",          0.0,    2.0,    "Voice spread"),
+        ("voice_distance",        0.0,    1.0,    "Voice distance"),
+        ("rhythmic_divergence",   0.0,    1.0,    "Rhythmic divergence"),
+        # idx 24-31: Rhythm modulation
+        ("rhythm_gate_strength",  0.0,    1.0,    "Rhythm gate strength"),
+        ("rhythm_stretch_strength",0.0,   2.0,    "Rhythm stretch"),
+        ("rhythm_rotation",       0,      31,     "Rhythm rotation"),
+        ("rhythm_radicality",     0.0,    1.0,    "Rhythm radicality"),
+        ("rhythm_gain",           0.0,    4.0,    "Rhythm gain"),
+        ("rhythm_onset_snap",     0.0,    1.0,    "Onset snap"),
+        ("rhythm_mod_bpm",        30.0,   300.0,  "Rhythm BPM"),
+        ("additive_rhythm_weight",0.0,    1.0,    "Additive rhythm weight"),
+        # idx 32-39: Compressor / ADSR
+        ("divisive_rhythm_weight",0.0,    1.0,    "Divisive rhythm weight"),
+        ("compressor_threshold_db",-60.0, 0.0,   "Compressor threshold"),
+        ("compressor_ratio",      1.0,    20.0,   "Compressor ratio"),
+        ("compressor_makeup_db",  0.0,    24.0,   "Compressor makeup"),
+        ("adsr_attack",           0.001,  2.0,    "ADSR attack"),
+        ("adsr_decay",            0.001,  2.0,    "ADSR decay"),
+        ("adsr_sustain",          0.0,    1.0,    "ADSR sustain"),
+        ("adsr_release",          0.001,  2.0,    "ADSR release"),
+        # idx 40-47: Visual / display
+        ("zoom",                  0.01,   1.0,    "Zoom"),
+        ("voice_count",           1,      4,      "Voice count"),
+        ("voice_distance_context",1,      16,     "Voice distance context"),
+        ("logic_iteration_limit", 4,      128,    "Logic iteration limit"),
+        # Fill remaining pots 44-127 by cycling through the base list
+    ]
+    # Pad to 128 by repeating the cycle
+    result = list(base)
+    while len(result) < 128:
+        result.append(base[len(result) % len(base)])
+    return result[:128]
+
+AUDIENCE_PARAMS = _make_audience_params()
 
 
 gematria_table = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10, "k": 20, "l": 30, "m": 40, "n": 50, "o": 60, "p": 70, "q": 80, "r": 90, "s": 100, "t": 200, "u": 300, "v": 400, "w": 500, "x": 600, "y": 700, "z": 800, "å": 900, "ä": 1000, "ö": 1100}
@@ -391,6 +462,52 @@ class SanaVerkkoKontrolleri:
         self.additive_timeline_preview = None
         self.fullscreen_checkbox = None
 
+        # Audience potentiometers (128 knobs)
+        # pot_values[i] = int 0..127
+        self.pot_values = [64] * 128
+        # exposed[i] = True means this pot is shown in pygame window and affects params
+        self.pot_exposed = [False] * 128
+        # inverted[i] = True means 0→high, 127→low
+        self.pot_inverted = [False] * 128
+        # Interaction state
+        self._pot_dragging = None        # index being dragged
+        self._pot_drag_start_y = 0
+        self._pot_drag_start_val = 0
+        self._pot_scroll_offset = 0      # horizontal scroll (in pot units)
+        self._pot_scroll_drag = False
+        self._pot_scroll_drag_start_x = 0
+        self._pot_scroll_drag_offset = 0
+        # Pot strip render cache
+        self._pot_bg_surface = None          # pre-rendered solid background
+        self._pot_bg_size = (0, 0)           # (sw, sh) when bg was built
+        self._pot_label_surfs = {}           # idx → pygame.Surface for static label
+        self._pot_val_surfs = {}             # idx → (value, pygame.Surface)
+        self._pot_font_small = None          # cached font
+        self._pot_hover_idx = None           # pot index currently under mouse (for tooltip)
+        self._pot_tooltip_surf = None        # cached tooltip surface
+        self._pot_tooltip_idx = None         # which pot the tooltip was rendered for
+        # Audience parameters wx frame
+        self.audience_frame = None
+
+        # ── Pygame seed sentence editor ────────────────────────────────────────
+        # List of word strings currently being edited (the "draft")
+        self._seed_draft = []          # list of str, words in order
+        self._seed_cursor = 0          # index of currently selected word (0 = before first)
+        self._seed_active = False      # True when the wx overlay is visible
+        self._seed_typing = ""         # not used for input; kept for draw compat
+        self._seed_font_cache = {}     # size -> pygame.Font
+        # Rendered sentence shown to audience (set on Enter, never cleared)
+        self._seed_display_sentence = ""
+        # Gematria max for colour scaling (recomputed when draft changes)
+        self._seed_gem_max = 1
+        self._seed_word_rects = []     # [(word_idx, pygame.Rect), ...] updated each draw
+        # Draw caches
+        self._seed_bg_surface = None   # pre-allocated background surface
+        self._seed_bg_size = (0, 0)    # invalidate when window resizes
+        self._seed_chip_surfs = {}     # (word_str, is_selected) -> (main_surf, gem_surf)
+        # wx overlay for seed text input (created lazily)
+        self._seed_overlay = None      # wx.Frame overlay
+
         self.initPygame()
         self.initAudio()
         self.initWords()
@@ -701,6 +818,9 @@ class SanaVerkkoKontrolleri:
         self.preset_load_button.Bind(wx.EVT_BUTTON, self.OnLoadPreset)
         self.preset_status = wx.StaticText(panel, -1, "")
 
+        self.audience_params_button = wx.Button(panel, -1, "Audience Parameters...")
+        self.audience_params_button.Bind(wx.EVT_BUTTON, self.OnOpenAudienceParams)
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
@@ -867,6 +987,7 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.preset_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(preset_row, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.preset_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        self.sizer.Add(self.audience_params_button, 0, wx.ALL, 5)
 
         self._applyMonospaceToWindow(panel)
         panel.SetSizer(self.sizer)
@@ -2075,6 +2196,15 @@ class SanaVerkkoKontrolleri:
             self.additive_sequence_scroll = None
             self.additive_sequence_sizer = None
             self.additive_timeline_preview = None
+        if self.audience_frame is not None:
+            try:
+                if hasattr(self, "_aud_refresh_timer") and self._aud_refresh_timer is not None:
+                    self._aud_refresh_timer.Stop()
+                    self._aud_refresh_timer = None
+                self.audience_frame.Destroy()
+            except Exception:
+                pass
+            self.audience_frame = None
         if self.frame is not None:
             self.frame.Destroy()
         if self.app is not None and self.app.IsMainLoopRunning():
@@ -2094,6 +2224,34 @@ class SanaVerkkoKontrolleri:
         except Exception:
             self._pygame_window = None
         return self._pygame_window
+
+    def _focus_pygame_window(self):
+        """Raise and focus the pygame window so macOS routes keypresses to it."""
+        try:
+            win = self._get_display_window()
+            if win is not None:
+                try:
+                    win.focus()
+                except Exception:
+                    pass
+                try:
+                    # Raise window to front (SDL2 >= 2.0.5)
+                    win.flash(pygame._sdl2.video.FLASH_BRIEFLY)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        # macOS: activate the process so the SDL window receives keystrokes
+        try:
+            import subprocess
+            subprocess.run(
+                ["osascript", "-e",
+                 'tell application "System Events" to set frontmost of '
+                 'first process whose unix id is ' + str(__import__("os").getpid()) + ' to true'],
+                capture_output=True, timeout=1
+            )
+        except Exception:
+            pass
 
     def _is_effective_fullscreen(self):
         if bool(self.params.get("fullscreen", False)):
@@ -2993,9 +3151,13 @@ class SanaVerkkoKontrolleri:
 
     def makeWordCircle(self, words):
         zoom = self.params["zoom"]
+        # Shift the centre upward so neurons don't hide behind the seed/pot bars.
+        pot_h = self._POT_H if self._pot_exposed_indices() else 0
+        reserved = pot_h + self._SEED_H
+        centre_y = (self.size[1] - reserved) / 2
         for i, word in enumerate(words):
             word.x = self.size[0]/2 + 6*zoom * math.cos(2 * math.pi * i / len(words))
-            word.y = self.size[1]/2 + 6*zoom * math.sin(2 * math.pi * i / len(words))
+            word.y = centre_y + 6*zoom * math.sin(2 * math.pi * i / len(words))
             word.neuron.x = word.x
             word.neuron.y = word.y
 
@@ -3810,11 +3972,127 @@ class SanaVerkkoKontrolleri:
         try:
             self._normalize_params()
             preset_data = {key: value for key, value in self.params.items() if key != "fullscreen"}
+            preset_data["audience_values"]   = list(self.pot_values)
+            preset_data["audience_exposed"]  = list(self.pot_exposed)
+            preset_data["audience_inverted"] = list(self.pot_inverted)
             with open(selected_path, "w", encoding="utf-8") as outfile:
                 json.dump(preset_data, outfile, ensure_ascii=False, indent=2)
             self.preset_status.SetLabel(f"Preset saved: {os.path.basename(selected_path)}")
         except Exception as error:
             self.preset_status.SetLabel(f"Preset save failed: {error}")
+
+    def OnOpenAudienceParams(self, event):
+        """Open (or raise) the Audience Parameters configuration window."""
+        if self.audience_frame is not None:
+            try:
+                self.audience_frame.Raise()
+                return
+            except Exception:
+                self.audience_frame = None
+
+        frm = wx.Frame(self.frame, title="Audience Parameters", size=(680, 780))
+        frm.Bind(wx.EVT_CLOSE, lambda e: self._on_audience_frame_close(e))
+        self.audience_frame = frm
+
+        panel = wx.ScrolledWindow(frm, style=wx.VSCROLL)
+        panel.SetScrollRate(0, 12)
+
+        outer_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        header_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+
+        # Column headers
+        hdr = wx.BoxSizer(wx.HORIZONTAL)
+        for txt, w in [("Exp", 40), ("Pot #", 44), ("Parameter", 220), ("Range", 100), ("Direction", 130), ("Value", 60)]:
+            lbl = wx.StaticText(panel, -1, txt, size=(w, -1))
+            lbl.SetFont(header_font)
+            hdr.Add(lbl, 0, wx.LEFT, 3)
+        outer_sizer.Add(hdr, 0, wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT, 6)
+        outer_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 6)
+
+        self._aud_rows = []  # list of (exposed_cb, dir_radio_norm, dir_radio_inv, val_label) per pot
+
+        for idx in range(128):
+            param_key, lo, hi, label = AUDIENCE_PARAMS[idx]
+            row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+            # Exposed checkbox
+            exp_cb = wx.CheckBox(panel, -1, "", size=(40, -1))
+            exp_cb.SetValue(self.pot_exposed[idx])
+            def _on_exp(e, i=idx, cb=exp_cb):
+                self.pot_exposed[i] = cb.GetValue()
+            exp_cb.Bind(wx.EVT_CHECKBOX, _on_exp)
+            row_sizer.Add(exp_cb, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 3)
+
+            # Pot number
+            num_lbl = wx.StaticText(panel, -1, f"{idx:3d}", size=(44, -1))
+            row_sizer.Add(num_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 2)
+
+            # Parameter label
+            param_lbl = wx.StaticText(panel, -1, label, size=(220, -1))
+            row_sizer.Add(param_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 2)
+
+            # Range
+            if isinstance(lo, int) and isinstance(hi, int):
+                range_str = f"{lo}–{hi}"
+            else:
+                range_str = f"{lo:.3g}–{hi:.3g}"
+            range_lbl = wx.StaticText(panel, -1, range_str, size=(100, -1))
+            row_sizer.Add(range_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 2)
+
+            # Direction radio: Normal (0→lo, 127→hi) vs Inverted (0→hi, 127→lo)
+            dir_panel = wx.Panel(panel, -1)
+            dir_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            rb_norm = wx.RadioButton(dir_panel, -1, "Normal", style=wx.RB_GROUP)
+            rb_inv  = wx.RadioButton(dir_panel, -1, "Inverted")
+            rb_norm.SetValue(not self.pot_inverted[idx])
+            rb_inv.SetValue(self.pot_inverted[idx])
+            def _on_norm(e, i=idx, rb=rb_norm):
+                if rb.GetValue():
+                    self.pot_inverted[i] = False
+            def _on_inv(e, i=idx, rb=rb_inv):
+                if rb.GetValue():
+                    self.pot_inverted[i] = True
+            rb_norm.Bind(wx.EVT_RADIOBUTTON, _on_norm)
+            rb_inv.Bind(wx.EVT_RADIOBUTTON, _on_inv)
+            dir_sizer.Add(rb_norm, 0, wx.RIGHT, 4)
+            dir_sizer.Add(rb_inv, 0)
+            dir_panel.SetSizer(dir_sizer)
+            row_sizer.Add(dir_panel, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 4)
+
+            # Current value readout
+            val_lbl = wx.StaticText(panel, -1, str(self.pot_values[idx]), size=(60, -1))
+            row_sizer.Add(val_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 6)
+
+            outer_sizer.Add(row_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 2)
+            self._aud_rows.append((exp_cb, rb_norm, rb_inv, val_lbl))
+
+        panel.SetSizer(outer_sizer)
+        panel.FitInside()
+
+        # Refresh value labels periodically
+        self._aud_refresh_timer = wx.Timer(frm)
+        frm.Bind(wx.EVT_TIMER, self._on_aud_refresh_timer, self._aud_refresh_timer)
+        self._aud_refresh_timer.Start(200)
+
+        frm.Show()
+
+    def _on_audience_frame_close(self, event):
+        if hasattr(self, "_aud_refresh_timer") and self._aud_refresh_timer is not None:
+            self._aud_refresh_timer.Stop()
+            self._aud_refresh_timer = None
+        self.audience_frame = None
+        event.Skip()
+
+    def _on_aud_refresh_timer(self, event):
+        """Update value readout labels in the audience params window."""
+        if not hasattr(self, "_aud_rows"):
+            return
+        for idx, (exp_cb, rb_norm, rb_inv, val_lbl) in enumerate(self._aud_rows):
+            try:
+                val_lbl.SetLabel(str(self.pot_values[idx]))
+            except Exception:
+                pass
 
     def OnLoadPreset(self, event):
         with wx.FileDialog(
@@ -3840,6 +4118,27 @@ class SanaVerkkoKontrolleri:
                     continue
                 if key in self.params:
                     self.params[key] = value
+
+            # Restore audience potentiometer state
+            for list_key, target, coerce in (
+                ("audience_values",   self.pot_values,   lambda v: max(0, min(127, int(v)))),
+                ("audience_exposed",  self.pot_exposed,  bool),
+                ("audience_inverted", self.pot_inverted, bool),
+            ):
+                if isinstance(loaded_data.get(list_key), list):
+                    for i, v in enumerate(loaded_data[list_key][:128]):
+                        target[i] = coerce(v)
+
+            # Refresh the Audience Parameters window if it is open
+            if self.audience_frame is not None and hasattr(self, "_aud_rows"):
+                for idx, (exp_cb, rb_norm, rb_inv, val_lbl) in enumerate(self._aud_rows):
+                    try:
+                        exp_cb.SetValue(self.pot_exposed[idx])
+                        rb_norm.SetValue(not self.pot_inverted[idx])
+                        rb_inv.SetValue(self.pot_inverted[idx])
+                        val_lbl.SetLabel(str(self.pot_values[idx]))
+                    except Exception:
+                        pass
 
             self._apply_loaded_preset()
             self.preset_status.SetLabel(f"Preset loaded: {os.path.basename(selected_path)}")
@@ -4038,6 +4337,9 @@ class SanaVerkkoKontrolleri:
         seen_states = set()
 
         for _ in range(max_iterations):
+            # Exit early if the audience is editing the seed sentence.
+            if self._seed_active:
+                break
             sentence_state = tuple(word.word for word in self.words)
             if sentence_state in seen_states:
                 break
@@ -4045,6 +4347,9 @@ class SanaVerkkoKontrolleri:
 
             changed_this_round = False
             for word in self.words:
+                # Yield the GIL between every word-change so the main thread
+                # can process seed-editor keystrokes without long waits.
+                time.sleep(0)
                 if word.neuron.activation < -threshold or word.neuron.activation > threshold:
                     if self.changeWord(word, self.referenceWords):
                         changed_this_round = True
@@ -4090,13 +4395,691 @@ class SanaVerkkoKontrolleri:
     def writeToFile(self, word):
         self.outfile.write(word + " ")
 
+    # ------------------------------------------------------------------
+    # Audience potentiometer helpers
+    # ------------------------------------------------------------------
+
+    def _pot_exposed_indices(self):
+        """Return list of pot indices that are currently exposed."""
+        return [i for i in range(128) if self.pot_exposed[i]]
+
+    def _pot_value_to_param(self, idx, raw_val):
+        """Convert pot raw value 0-127 to the mapped parameter value."""
+        param_key, lo, hi, _label = AUDIENCE_PARAMS[idx]
+        t = raw_val / 127.0
+        if self.pot_inverted[idx]:
+            t = 1.0 - t
+        val = lo + t * (hi - lo)
+        # Keep integer params as int
+        if isinstance(lo, int) and isinstance(hi, int):
+            val = int(round(val))
+        return param_key, val
+
+    def _apply_pot_values_to_params(self):
+        """Write exposed pot values into self.params each frame."""
+        for idx in self._pot_exposed_indices():
+            param_key, val = self._pot_value_to_param(idx, self.pot_values[idx])
+            if param_key in self.params:
+                self.params[param_key] = val
+
+    # Potentiometer strip geometry constants
+    _POT_H = 80          # height of the pot strip
+    _POT_W = 44          # width per pot slot
+    _POT_R = 14          # knob circle radius
+    _POT_TOP_PAD = 6     # pad above arc area
+
+    def _pot_strip_rect(self):
+        """Return (x, y, w, h) of the pot strip at bottom of screen."""
+        sw, sh = self.size
+        h = self._POT_H
+        return (0, sh - h, sw, h)
+
+    def _visible_pot_range(self):
+        """Return (first_exposed_idx_in_list, count_visible, slot_width, strip_x)."""
+        exposed = self._pot_exposed_indices()
+        if not exposed:
+            return exposed, 0, self._POT_W, 0
+        sw = self.size[0]
+        slot_w = max(20, min(self._POT_W, sw // max(1, len(exposed))))
+        return exposed, slot_w
+
+    def _pot_ensure_font(self):
+        if self._pot_font_small is not None:
+            return self._pot_font_small
+        if pygame_font is not None:
+            try:
+                f = _pygame_mono_font_cache.get(("pot", 9))
+                if f is None:
+                    f = pygame_font.Font(None, 13)
+                    _pygame_mono_font_cache[("pot", 9)] = f
+                self._pot_font_small = f
+            except Exception:
+                pass
+        return self._pot_font_small
+
+    def _pot_label_surf(self, pot_idx):
+        """Return (cached) surface for the static label of pot_idx."""
+        if pot_idx in self._pot_label_surfs:
+            return self._pot_label_surfs[pot_idx]
+        font = self._pot_ensure_font()
+        _, _lo, _hi, label = AUDIENCE_PARAMS[pot_idx]
+        short = label[:7] if len(label) > 7 else label
+        surf = None
+        if font:
+            try:
+                surf = font.render(short, True, (190, 190, 210))
+            except Exception:
+                pass
+        self._pot_label_surfs[pot_idx] = surf
+        return surf
+
+    def _pot_val_surf(self, pot_idx, raw):
+        """Return (cached) surface for the current value of pot_idx."""
+        cached = self._pot_val_surfs.get(pot_idx)
+        if cached is not None and cached[0] == raw:
+            return cached[1]
+        font = self._pot_ensure_font()
+        surf = None
+        if font:
+            try:
+                surf = font.render(str(raw), True, (220, 220, 160))
+            except Exception:
+                pass
+        self._pot_val_surfs[pot_idx] = (raw, surf)
+        return surf
+
+    def _draw_pot_strip(self, screen):
+        """Draw the potentiometer strip onto the pygame screen."""
+        exposed = self._pot_exposed_indices()
+        if not exposed:
+            return
+
+        sx, sy, sw, sh = self._pot_strip_rect()
+        slot_w = self._POT_W
+
+        # Count how many fit
+        n_visible = max(1, sw // slot_w)
+        offset = max(0, min(self._pot_scroll_offset, max(0, len(exposed) - n_visible)))
+        self._pot_scroll_offset = offset
+        visible = exposed[offset:offset + n_visible]
+
+        # Cached solid background (invalidate when window size changes)
+        if self._pot_bg_surface is None or self._pot_bg_size != (sw, sh):
+            self._pot_bg_surface = pygame.Surface((sw, sh))
+            self._pot_bg_surface.fill((20, 20, 30))
+            self._pot_bg_size = (sw, sh)
+        screen.blit(self._pot_bg_surface, (sx, sy))
+
+        r = self._POT_R
+        for slot_i, pot_idx in enumerate(visible):
+            cx = sx + slot_i * slot_w + slot_w // 2
+            cy = sy + self._POT_TOP_PAD + r + 4
+
+            raw = self.pot_values[pot_idx]
+            val_frac = raw / 127.0
+            if self.pot_inverted[pot_idx]:
+                val_frac = 1.0 - val_frac
+            angle_deg = 225 - val_frac * 270
+            angle_rad = math.radians(angle_deg)
+            lx = cx + int((r - 3) * math.cos(angle_rad))
+            ly = cy - int((r - 3) * math.sin(angle_rad))
+
+            knob_color = (80, 160, 255) if not self.pot_inverted[pot_idx] else (255, 160, 60)
+            line_color = (220, 240, 255) if not self.pot_inverted[pot_idx] else (255, 220, 120)
+
+            pygame.draw.circle(screen, (45, 45, 60), (cx, cy), r)
+            pygame.draw.circle(screen, knob_color, (cx, cy), r, 2)
+            pygame.draw.line(screen, line_color, (cx, cy), (lx, ly), 2)
+
+            bx0 = cx - r + 2
+            bx1 = cx + r - 2
+            by = cy + r + 4
+            pygame.draw.line(screen, (50, 50, 70), (bx0, by), (bx1, by), 3)
+            bar_len = int((bx1 - bx0) * raw / 127.0)
+            if bar_len > 0:
+                pygame.draw.line(screen, knob_color, (bx0, by), (bx0 + bar_len, by), 3)
+
+            lbl_surf = self._pot_label_surf(pot_idx)
+            if lbl_surf:
+                screen.blit(lbl_surf, (cx - lbl_surf.get_width() // 2, by + 5))
+            val_surf = self._pot_val_surf(pot_idx, raw)
+            if val_surf:
+                screen.blit(val_surf, (cx - val_surf.get_width() // 2, sy + sh - 13))
+
+        # Scroll hint arrows
+        if len(exposed) > n_visible:
+            arrow_col = (160, 160, 200)
+            if offset > 0:
+                pygame.draw.polygon(screen, arrow_col, [(sx + 5, sy + sh // 2), (sx + 14, sy + sh // 2 - 7), (sx + 14, sy + sh // 2 + 7)])
+            if offset + n_visible < len(exposed):
+                pygame.draw.polygon(screen, arrow_col, [(sx + sw - 5, sy + sh // 2), (sx + sw - 14, sy + sh // 2 - 7), (sx + sw - 14, sy + sh // 2 + 7)])
+
+        # Tooltip for hovered pot
+        hover = self._pot_hover_idx
+        if hover is not None and hover in visible:
+            slot_i = visible.index(hover)
+            _, _lo, _hi, full_label = AUDIENCE_PARAMS[hover]
+            # Rebuild tooltip surface when hovered pot changes
+            if self._pot_tooltip_idx != hover:
+                self._pot_tooltip_idx = hover
+                self._pot_tooltip_surf = None
+                tip_font = self._pot_ensure_font()
+                if tip_font:
+                    try:
+                        self._pot_tooltip_surf = tip_font.render(full_label, True, (240, 240, 255))
+                    except Exception:
+                        pass
+            if self._pot_tooltip_surf:
+                ts = self._pot_tooltip_surf
+                pad = 4
+                tw, th = ts.get_width() + pad * 2, ts.get_height() + pad * 2
+                cx = sx + slot_i * slot_w + slot_w // 2
+                # Position tooltip above the knob, clamped to screen
+                tx = max(0, min(cx - tw // 2, sx + sw - tw))
+                ty = max(0, sy - th - 2)
+                bg = pygame.Surface((tw, th), pygame.SRCALPHA)
+                bg.fill((30, 30, 50, 220))
+                screen.blit(bg, (tx, ty))
+                screen.blit(ts, (tx + pad, ty + pad))
+
+    def _pot_hit_test(self, mx, my):
+        """Return pot index in exposed list (local) if (mx,my) is over a knob, else None."""
+        exposed = self._pot_exposed_indices()
+        if not exposed:
+            return None
+        sx, sy, sw, sh = self._pot_strip_rect()
+        if not (sx <= mx < sx + sw and sy <= my < sy + sh):
+            return None
+        slot_w = self._POT_W
+        n_visible = max(1, sw // slot_w)
+        offset = self._pot_scroll_offset
+        visible = exposed[offset:offset + n_visible]
+        slot_i = (mx - sx) // slot_w
+        if 0 <= slot_i < len(visible):
+            return visible[slot_i]
+        return None
+
+    def _handle_pot_events(self, events):
+        """Process pygame events for pot interaction. Removes consumed events."""
+        remaining = []
+        for event in events:
+            consumed = False
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+                hit = self._pot_hit_test(mx, my)
+                if hit is not None:
+                    self._pot_dragging = hit
+                    self._pot_drag_start_y = my
+                    self._pot_drag_start_val = self.pot_values[hit]
+                    consumed = True
+                else:
+                    # Scroll bar drag (click on strip but not on a knob).
+                    # Only consume if pots are actually visible; otherwise the
+                    # seed bar overlaps the pot strip rect and grabs the click.
+                    exposed = self._pot_exposed_indices()
+                    sx, sy, sw, sh = self._pot_strip_rect()
+                    if exposed and sx <= mx < sx + sw and sy <= my < sy + sh:
+                        self._pot_scroll_drag = True
+                        self._pot_scroll_drag_start_x = mx
+                        self._pot_scroll_drag_offset = self._pot_scroll_offset
+                        consumed = True
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if self._pot_dragging is not None:
+                    self._pot_dragging = None
+                    consumed = True
+                if self._pot_scroll_drag:
+                    self._pot_scroll_drag = False
+                    consumed = True
+            elif event.type == pygame.MOUSEMOTION:
+                if self._pot_dragging is not None:
+                    dy = self._pot_drag_start_y - event.pos[1]
+                    new_val = self._pot_drag_start_val + int(dy * 0.8)
+                    self.pot_values[self._pot_dragging] = max(0, min(127, new_val))
+                    consumed = True
+                elif self._pot_scroll_drag:
+                    dx = event.pos[0] - self._pot_scroll_drag_start_x
+                    exposed = self._pot_exposed_indices()
+                    sw = self.size[0]
+                    slot_w = self._POT_W
+                    n_visible = max(1, sw // slot_w)
+                    delta = -dx // max(1, slot_w)
+                    self._pot_scroll_offset = max(0, min(self._pot_scroll_drag_offset + delta, max(0, len(exposed) - n_visible)))
+                    consumed = True
+                # Update hover index for tooltip (always, even during drag)
+                mx, my = event.pos
+                hit = self._pot_hit_test(mx, my)
+                if hit != self._pot_hover_idx:
+                    self._pot_hover_idx = hit
+            elif event.type == pygame.MOUSEWHEEL:
+                sx, sy, sw, sh = self._pot_strip_rect()
+                mx, my = pygame.mouse.get_pos()
+                if sx <= mx < sx + sw and sy <= my < sy + sh:
+                    exposed = self._pot_exposed_indices()
+                    n_visible = max(1, sw // self._POT_W)
+                    self._pot_scroll_offset = max(0, min(self._pot_scroll_offset - event.y, max(0, len(exposed) - n_visible)))
+                    consumed = True
+            if not consumed:
+                remaining.append(event)
+        return remaining
+
+    # ------------------------------------------------------------------
+    # Pygame seed sentence editor
+    # ------------------------------------------------------------------
+
+    _SEED_H = 72          # pixel height of the seed editor bar
+    _SEED_FONT_SIZE = 19
+
+    def _seed_font(self, size=None):
+        size = size or self._SEED_FONT_SIZE
+        if size in self._seed_font_cache:
+            return self._seed_font_cache[size]
+        font = None
+        if pygame_font is not None:
+            try:
+                for name in MONOSPACE_FONT_CANDIDATES:
+                    path = pygame_font.match_font(name)
+                    if path:
+                        font = pygame_font.Font(path, size)
+                        break
+                if font is None:
+                    font = pygame_font.Font(None, size)
+            except Exception:
+                pass
+        self._seed_font_cache[size] = font
+        return font
+
+    def _seed_gem_color(self, word_str):
+        """Return an RGB colour scaled by the word's gematria, hue cycling."""
+        g = sum(gematria_table.get(c, 0) for c in word_str.lower())
+        if self._seed_gem_max <= 0:
+            t = 0.0
+        else:
+            t = min(1.0, g / self._seed_gem_max)
+        # Hue: low gematria = blue-green, high = red-orange
+        h = (1.0 - t) * 0.55   # 0.55 = cyan, 0 = red
+        r, g_c, b = colorsys.hsv_to_rgb(h, 0.85, 0.95)
+        return (int(r * 255), int(g_c * 255), int(b * 255))
+
+    def _seed_bar_rect(self):
+        """Return (x, y, w, h) for the seed editor bar, above the pot strip."""
+        sw, sh = self.size
+        pot_h = self._POT_H if self._pot_exposed_indices() else 0
+        h = self._SEED_H
+        return (0, sh - pot_h - h, sw, h)
+
+    def _seed_recompute_gem_max(self):
+        if not self._seed_draft:
+            self._seed_gem_max = 1
+            self._seed_chip_surfs.clear()
+            return
+        gems = [sum(gematria_table.get(c, 0) for c in w.lower()) for w in self._seed_draft]
+        new_max = max(1, max(gems))
+        if new_max != self._seed_gem_max:
+            self._seed_gem_max = new_max
+            self._seed_chip_surfs.clear()  # colours changed
+
+    def _draw_seed_editor(self, screen):
+        sx, sy, sw, sh = self._seed_bar_rect()
+
+        # Background — re-allocate only when size changes
+        if self._seed_bg_surface is None or self._seed_bg_size != (sw, sh):
+            self._seed_bg_surface = pygame.Surface((sw, sh))
+            self._seed_bg_surface.fill((12, 12, 22))
+            self._seed_bg_size = (sw, sh)
+            self._seed_chip_surfs.clear()
+        screen.blit(self._seed_bg_surface, (sx, sy))
+
+        font = self._seed_font()
+        font_sm = self._seed_font(12)
+
+        if font_sm:
+            hint = "SEED  [click to enter words]"
+            hint_surf = font_sm.render(hint, True, (100, 120, 160))
+            screen.blit(hint_surf, (sx + 6, sy + 3))
+
+        # Layout words as coloured "chips" left to right
+        x = sx + 6
+        y_word = sy + 20
+        chip_h = sh - 26
+        pad = 6
+
+        for idx, word_str in enumerate(self._seed_draft):
+            col = self._seed_gem_color(word_str)
+            g_val = sum(gematria_table.get(c, 0) for c in word_str.lower())
+            frac = min(1.0, g_val / self._seed_gem_max) if self._seed_gem_max > 0 else 0.5
+            chip_w = max(40, int(30 + frac * 90))
+            bg_col = tuple(max(0, c - 120) for c in col)
+
+            pygame.draw.rect(screen, bg_col, (x, y_word, chip_w, chip_h), border_radius=4)
+            pygame.draw.rect(screen, col, (x, y_word, chip_w, chip_h), 1, border_radius=4)
+
+            cache_key = (word_str, False)
+            if cache_key not in self._seed_chip_surfs and font:
+                try:
+                    ws = font.render(word_str[:8], True, col)
+                    gs = font_sm.render(str(g_val), True, (180, 180, 200)) if font_sm else None
+                    self._seed_chip_surfs[cache_key] = (ws, gs)
+                except Exception:
+                    self._seed_chip_surfs[cache_key] = (None, None)
+
+            ws, gs = self._seed_chip_surfs.get(cache_key, (None, None))
+            if ws:
+                screen.blit(ws, (x + pad, y_word + (chip_h - ws.get_height()) // 2))
+            if gs:
+                screen.blit(gs, (x + pad, y_word + chip_h - gs.get_height() - 1))
+
+            x += chip_w + 4
+            if x > sx + sw - 60:
+                break
+
+        # When the wx overlay is active, dim the bar slightly so the overlay stands out
+        if self._seed_active:
+            dim = pygame.Surface((sw, sh), pygame.SRCALPHA)
+            dim.fill((0, 0, 0, 80))
+            screen.blit(dim, (sx, sy))
+
+        # Separator line at top of bar
+        pygame.draw.line(screen, (40, 40, 70), (sx, sy), (sx + sw, sy), 1)
+
+    def _handle_seed_events(self, events):
+        """Consume seed-editor events; return remaining.
+
+        Keyboard input is handled by a borderless wx overlay panel positioned
+        exactly over the pygame seed bar.  This avoids all macOS keyboard-focus
+        issues entirely — wx always wins the focus race, so we lean into it.
+        """
+        remaining = []
+
+        for event in events:
+            consumed = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                sx, sy, sw, sh = self._seed_bar_rect()
+                mx, my = event.pos
+                if sx <= mx < sx + sw and sy <= my < sy + sh:
+                    if not self._seed_active:
+                        wx.CallAfter(self._show_seed_overlay)
+                    consumed = True
+                elif self._seed_active:
+                    wx.CallAfter(self._hide_seed_overlay, cancel=True)
+
+            if not consumed:
+                remaining.append(event)
+
+        return remaining
+
+    def _seed_overlay_screen_rect(self):
+        """Return the screen-space (x, y, w, h) of the pygame seed bar."""
+        sx, sy, sw, sh = self._seed_bar_rect()
+        # Get pygame window position on screen
+        win_x, win_y = 0, 0
+        try:
+            win = self._get_display_window()
+            if win is not None:
+                pos = win.position
+                win_x, win_y = int(pos[0]), int(pos[1])
+        except Exception:
+            pass
+        return win_x + sx, win_y + sy, sw, sh
+
+    def _show_seed_overlay(self):
+        """Create (or reuse) the wx seed-input overlay and show it."""
+        if self._seed_active:
+            return
+        self._seed_active = True
+
+        screen_x, screen_y, sw, sh = self._seed_overlay_screen_rect()
+        current_text = " ".join(self._seed_draft)
+
+        # Always build a fresh frame — destroyed on close so Cocoa
+        # removes it from the responder chain immediately.
+        overlay = wx.Frame(
+            None,
+            style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER | wx.STAY_ON_TOP,
+        )
+        overlay.SetBackgroundColour(wx.Colour(12, 12, 22))
+        overlay.SetSize(sw, sh)
+        overlay.SetPosition((screen_x, screen_y))
+
+        # Instruction label
+        lbl = wx.StaticText(overlay, label="SEED  (Space=word · Enter=commit · Esc=cancel)")
+        lbl.SetForegroundColour(wx.Colour(100, 120, 160))
+        lbl.SetBackgroundColour(wx.Colour(12, 12, 22))
+        font_sm = lbl.GetFont()
+        font_sm.SetPointSize(9)
+        lbl.SetFont(font_sm)
+
+        # Text input
+        tc = wx.TextCtrl(
+            overlay, value=current_text,
+            style=wx.TE_PROCESS_ENTER | wx.BORDER_NONE,
+        )
+        tc.SetBackgroundColour(wx.Colour(20, 20, 36))
+        tc.SetForegroundColour(wx.Colour(255, 255, 120))
+        font_tc = tc.GetFont()
+        font_tc.SetPointSize(14)
+        tc.SetFont(font_tc)
+        tc.SetInsertionPointEnd()
+        tc.SelectAll()
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(lbl, 0, wx.LEFT | wx.TOP, 4)
+        sizer.Add(tc, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 4)
+        overlay.SetSizer(sizer)
+
+        def on_commit(evt):
+            wx.CallAfter(self._hide_seed_overlay, cancel=False, text=tc.GetValue())
+
+        def on_key(evt):
+            if evt.GetKeyCode() == wx.WXK_ESCAPE:
+                wx.CallAfter(self._hide_seed_overlay, cancel=True)
+            else:
+                evt.Skip()
+
+        tc.Bind(wx.EVT_TEXT_ENTER, on_commit)
+        tc.Bind(wx.EVT_KEY_DOWN, on_key)
+        overlay.Bind(wx.EVT_CLOSE, lambda e: self._hide_seed_overlay(cancel=True))
+
+        self._seed_overlay = overlay
+        overlay.Show()
+        tc.SetFocus()
+
+    def _hide_seed_overlay(self, cancel=False, text=None):
+        """Hide the overlay and optionally commit the typed sentence."""
+        overlay = self._seed_overlay
+        self._seed_overlay = None
+        if overlay is not None:
+            try:
+                # Destroy (not just Hide) so the STAY_ON_TOP Cocoa window is
+                # fully removed from the macOS responder chain.  A merely
+                # hidden frame keeps intercepting keystrokes and causes
+                # double-character input in other text fields.
+                overlay.Destroy()
+            except Exception:
+                pass
+
+        if not cancel and text is not None:
+            valid_chars = set(gematria_table.keys())
+            raw = text.strip().lower()
+            words = [
+                w for w in raw.split()
+                if w and all(c in valid_chars for c in w)
+            ]
+            if words:
+                self._seed_draft = words
+                self._seed_recompute_gem_max()
+                self._seed_chip_surfs.clear()
+                try:
+                    self._commit_seed_sentence()
+                except Exception as _e:
+                    print(f"Seed commit error: {_e}")
+
+        self._seed_active = False
+
+    def _open_seed_dialog(self):
+        """Alias kept for compatibility."""
+        self._show_seed_overlay()
+
+    def _commit_seed_sentence(self):
+        """Apply the current seed draft to the algorithm (replace live words)."""
+        if not self._seed_draft:
+            return
+
+        self._seed_display_sentence = " ".join(self._seed_draft)
+
+        # Clear existing network and rebuild from draft
+        self.words = []
+        for word_str in self._seed_draft:
+            new_word = Word(word_str, 0, 0, (255, 255, 255), self)
+            self._assign_seed_pos(new_word)
+            self.words.append(new_word)
+
+        # Reconnect all words
+        for word in self.words:
+            for word2 in self.words:
+                if word is not word2:
+                    weight = self.getGematriaDistance(word.gematria, word2.gematria)
+                    word.connect(word2, weight)
+
+        self.makeWordCircle(self.words)
+
+        # Update reference word list to include draft words
+        existing_ref_texts = {w.word for w in self.referenceWords}
+        for word_str in self._seed_draft:
+            if word_str not in existing_ref_texts:
+                ref = self._reference_word_copy(Word(word_str, 0, 0, (255, 255, 255), self))
+                if ref is not None:
+                    self.referenceWords.append(ref)
+        self._markReferenceIndexDirty()
+
+        # Mark audio signature stale so updateAudio() re-synthesises on the next
+        # rate-limited tick.  Do NOT call sanasyna.stop() here: stopping hard
+        # creates an audible gap while the synthesis thread computes the new
+        # melody.  The old audio keeps playing (or fades out naturally in
+        # play-once mode) until the crossfade mechanism swaps in the new buffer.
+        self.last_audio_sentence_signature = None
+
+        # Delay the next logic tick by a full process_interval so the algorithm
+        # doesn't immediately burst-compute right after commit (which would
+        # stall the event loop and make re-activation feel dead).
+        self.last_process_time = time.time()
+
+        # Reset draft so the bar is empty for the next editing session.
+        # (The committed sentence remains visible via _seed_display_sentence.)
+        self._seed_draft = []
+        self._seed_cursor = 0
+        self._seed_gem_max = 1
+        self._seed_chip_surfs.clear()
+        self._seed_word_rects = []
+
     def simulationStep(self):
         now = time.time()
+
+        # Guard against the wx timer firing after pygame has already shut down.
+        if not pygame.get_init() or not pygame.display.get_init():
+            return
+
+        # ── Events and rendering run EVERY call (target 60 fps) ──────────────
+        try:
+            raw_events = pygame.event.get()
+        except pygame.error:
+            return  # event system shut down between the guard check and here
+
+        # Handle system-level shortcuts first so they are never consumed by
+        # subsystems (pot handler, seed editor).
+        subsystem_events = []
+        for event in raw_events:
+            if event.type == pygame.QUIT:
+                self.running = False
+                self.OnClose(None)
+                return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    self._apply_fullscreen_mode(not self._is_effective_fullscreen())
+                    continue  # do not pass to subsystems
+                if event.key == pygame.K_ESCAPE and self._is_effective_fullscreen():
+                    self._apply_fullscreen_mode(False)
+                    continue  # do not pass to subsystems
+            subsystem_events.append(event)
+
+        remaining_events = self._handle_pot_events(subsystem_events)
+        remaining_events = self._handle_seed_events(remaining_events)
+
+        self._sync_display_window_state()
+        self.screen.fill((0, 0, 0))
+
+        # draw connections
+        for word in self.words:
+            for connection in word.neuron.connections:
+                self.conn_color_r = int(255 * abs(connection[1]))
+                self.conn_color_g = connection[0].activation * 255
+                self.conn_color_b = -connection[0].activation * 255
+
+                if self.conn_color_r < 0:
+                    self.conn_color_r = 0
+                if self.conn_color_g < 0:
+                    self.conn_color_g = 0
+                if self.conn_color_b < 0:
+                    self.conn_color_b = 0
+                if self.conn_color_r > 255:
+                    self.conn_color_r = 255
+                if self.conn_color_g > 255:
+                    self.conn_color_g = 255
+                if self.conn_color_b > 255:
+                    self.conn_color_b = 255
+
+                pygame.draw.line(self.screen, (self.conn_color_r, self.conn_color_g, self.conn_color_b), (word.x, word.y), (connection[0].x, connection[0].y), 5)
+
+        for word in self.words:
+            word.draw(self.screen)
+
+        if self.last_result_sentence != "":
+            draw_text_centered(self.screen, self.last_result_sentence, 18, (0, 255, 127), self.size[0]/2, 20)
+        if self.last_result_gematria_line != "":
+            draw_text_centered(self.screen, self.last_result_gematria_line, 14, (180, 230, 255), self.size[0]/2, 40)
+        if self.last_result_reduction_line != "":
+            draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
+
+        self._draw_seed_editor(self.screen)
+
+        # Committed seed sentence drawn left-aligned just above the seed editor bar
+        if self._seed_display_sentence:
+            sx, sy, sw, sh = self._seed_bar_rect()
+            if pygame_font is not None:
+                try:
+                    font_size = 15
+                    disp_font = _pygame_mono_font_cache.get(font_size)
+                    if disp_font is None:
+                        for fn in MONOSPACE_FONT_CANDIDATES:
+                            fp = pygame_font.match_font(fn)
+                            if fp:
+                                disp_font = pygame_font.Font(fp, font_size)
+                                break
+                        if disp_font is None:
+                            disp_font = pygame_font.Font(None, font_size)
+                        _pygame_mono_font_cache[font_size] = disp_font
+                    surf = disp_font.render(self._seed_display_sentence, True, (220, 200, 100))
+                    self.screen.blit(surf, (sx + 6, sy - surf.get_height() - 3))
+                except Exception:
+                    pass
+        self._draw_pot_strip(self.screen)
+        pygame.display.flip()
+
+        # ── Simulation logic (rate-limited by process_interval) ───────────────
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
         if now - self.last_process_time < self.params["process_interval"]:
             return
+        # While the seed editor is active, keep resetting last_process_time so
+        # logic doesn't burst the moment the user closes the editor (which would
+        # hold the GIL and make the second seed entry appear dead).
+        if self._seed_active:
+            self.last_process_time = now
+            return
         self.last_process_time = now
         self._update_logic_worker_status_label()
+
+        # Apply audience potentiometers to params before simulation
+        self._apply_pot_values_to_params()
 
         if not melody_from_own_time:
             # Tight timed-mode behavior: end the current loop exactly at period boundary
@@ -4105,20 +5088,6 @@ class SanaVerkkoKontrolleri:
             self.audio_playing = False
             self.last_audio_sentence_signature = None
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-                self.OnClose(None)
-                return
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_F11:
-                    self._apply_fullscreen_mode(not self._is_effective_fullscreen())
-                elif event.key == pygame.K_ESCAPE and self._is_effective_fullscreen():
-                    self._apply_fullscreen_mode(False)
-
-        self._sync_display_window_state()
-
-        self.screen.fill((0, 0, 0))
         logic_triggered = False
 
         for word in self.words:
@@ -4163,32 +5132,7 @@ class SanaVerkkoKontrolleri:
 
         self.updateAudio()
 
-        #draw connections
-        for word in self.words:
-            for connection in word.neuron.connections:
-                self.conn_color_r = int(255 * abs(connection[1]))
-                self.conn_color_g = connection[0].activation * 255
-                self.conn_color_b = -connection[0].activation * 255
-
-                if self.conn_color_r < 0:
-                    self.conn_color_r = 0
-                if self.conn_color_g < 0:
-                    self.conn_color_g = 0
-                if self.conn_color_b < 0:
-                    self.conn_color_b = 0
-                if self.conn_color_r > 255:
-                    self.conn_color_r = 255
-                if self.conn_color_g > 255:
-                    self.conn_color_g = 255
-                if self.conn_color_b > 255:
-                    self.conn_color_b = 255
-
-                pygame.draw.line(self.screen, (self.conn_color_r, self.conn_color_g, self.conn_color_b), (word.x, word.y), (connection[0].x, connection[0].y), 5)
-
-        for word in self.words:
-            word.draw(self.screen)
-
-        if (sentChanged):
+        if sentChanged:
             self.writeToFile(sentence+"\n")
             sentence_gematria = 0
             word_gematria = 0
@@ -4211,7 +5155,7 @@ class SanaVerkkoKontrolleri:
                 if i < len(nr_reduction_array) - 1:
                     self.writeToFile(" -> ")
             self.writeToFile("\n")
-            self.outfile.flush()      
+            self.outfile.flush()
 
             self.last_result_sentence = sentence.strip()
             self.last_result_gematria_line = " + ".join(gematria_terms) + f" = {starting_gematria}"
@@ -4223,15 +5167,6 @@ class SanaVerkkoKontrolleri:
 
             if bool(self.params.get("piper_tts_on", False)):
                 self._speak_sentence_with_piper_async(self.last_result_sentence)
-
-        if self.last_result_sentence != "":
-            draw_text_centered(self.screen, self.last_result_sentence, 18, (0, 255, 127), self.size[0]/2, 20)
-        if self.last_result_gematria_line != "":
-            draw_text_centered(self.screen, self.last_result_gematria_line, 14, (180, 230, 255), self.size[0]/2, 40)
-        if self.last_result_reduction_line != "":
-            draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
-
-        pygame.display.flip()
 
     def testNeurons(self):
         while self.running:
