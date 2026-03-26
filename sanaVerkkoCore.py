@@ -4764,6 +4764,7 @@ class SanaVerkkoKontrolleri:
                 if ch and ch in valid_chars:
                     self._seed_active = True
                     self._seed_typing = ch
+                    self._seed_chip_surfs.clear()
                     consumed = True
 
             elif event.type == pygame.KEYDOWN and self._seed_active:
@@ -4795,6 +4796,7 @@ class SanaVerkkoKontrolleri:
                         self._seed_cursor = min(len(self._seed_draft), self._seed_cursor + 1)
                         self._seed_recompute_gem_max()
                     self._seed_typing = ""
+                    self._seed_chip_surfs.clear()
 
                 elif event.key == pygame.K_BACKSPACE:
                     if self._seed_typing:
@@ -4803,14 +4805,17 @@ class SanaVerkkoKontrolleri:
                         self._seed_draft.pop(self._seed_cursor)
                         self._seed_cursor = max(0, min(self._seed_cursor, len(self._seed_draft) - 1))
                         self._seed_recompute_gem_max()
+                    self._seed_chip_surfs.clear()
 
                 elif event.key == pygame.K_LEFT:
                     self._seed_typing = ""
                     self._seed_cursor = max(0, self._seed_cursor - 1)
+                    self._seed_chip_surfs.clear()
 
                 elif event.key == pygame.K_RIGHT:
                     self._seed_typing = ""
                     self._seed_cursor = min(max(0, len(self._seed_draft) - 1), self._seed_cursor + 1)
+                    self._seed_chip_surfs.clear()
 
                 else:
                     # Accumulate typed character
