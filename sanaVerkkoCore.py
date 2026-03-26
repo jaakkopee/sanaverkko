@@ -1717,7 +1717,11 @@ class SanaVerkkoKontrolleri:
         selected_label = self.beat_library_style_choice.GetStringSelection()
         self.params["beat_library_style"] = self._beat_library_key_from_label(selected_label)
         self.params["rhythm_style"] = "manual"
-        self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        self._suppress_param_events = True
+        try:
+            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+        finally:
+            self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnStrictCounterpoint(self, event):
@@ -1738,42 +1742,66 @@ class SanaVerkkoKontrolleri:
         self._commit_int_param(self.voice_distance_context_ctrl, "voice_distance_context", minimum=1, maximum=32)
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
-            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            self._suppress_param_events = True
+            try:
+                self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            finally:
+                self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnRhythmicDivergence(self, event):
         self._commit_float_param(self.rhythmic_divergence_ctrl, "rhythmic_divergence", minimum=0.0, maximum=1.0)
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
-            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            self._suppress_param_events = True
+            try:
+                self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            finally:
+                self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnRhythmGateStrength(self, event):
         self._commit_float_param(self.rhythm_gate_strength_ctrl, "rhythm_gate_strength", minimum=0.0, maximum=1.0)
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
-            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            self._suppress_param_events = True
+            try:
+                self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            finally:
+                self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnRhythmStretchStrength(self, event):
         self._commit_float_param(self.rhythm_stretch_strength_ctrl, "rhythm_stretch_strength", minimum=0.0, maximum=1.0)
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
-            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            self._suppress_param_events = True
+            try:
+                self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            finally:
+                self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnRhythmRotation(self, event):
         self._commit_int_param(self.rhythm_rotation_ctrl, "rhythm_rotation", minimum=0, maximum=31)
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
-            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            self._suppress_param_events = True
+            try:
+                self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            finally:
+                self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnRhythmRadicality(self, event):
         self._commit_float_param(self.rhythm_radicality_ctrl, "rhythm_radicality", minimum=0.0, maximum=1.0)
         self.params["rhythm_style"] = "manual"
         if hasattr(self, "rhythm_style_choice"):
-            self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            self._suppress_param_events = True
+            try:
+                self.rhythm_style_choice.SetStringSelection(self._rhythm_style_label_from_key("manual"))
+            finally:
+                self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
     def OnRhythmModBPM(self, event):
