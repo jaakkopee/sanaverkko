@@ -1869,6 +1869,96 @@ def generate_noise_wave(freq, amplitude, sample_rate, duration=0.25):
     _set_current_sound(samples)
 
 
+def _collect_beat_grid(rhythm_cfg, duration):
+    """Return sorted list of beat onset times (seconds) covering [0, duration+headroom]."""
+    bpm = max(0.01, float(rhythm_cfg.get("bpm", 108.0)))
+    additive_weight = float(rhythm_cfg.get("additive_weight", 0.0))
+    divisive_weight = float(rhythm_cfg.get("divisive_weight", 0.0))
+    beats = {0.0}
+
+    if additive_weight > 0.0:
+        blocks = [int(v) for v in rhythm_cfg.get("additive_blocks", []) if int(v) > 0]
+        if blocks:
+            base_ioi = (60.0 / bpm) * 0.5
+            cycle_dur = sum(blocks) * base_ioi
+            if cycle_dur > 0.0:
+                t_cycle = 0.0
+                while t_cycle <= duration + cycle_dur:
+                    t = t_cycle
+                    for b in blocks:
+                        beats.add(round(t, 8))
+                        t += b * base_ioi
+                    t_cycle += cycle_dur
+
+    if divisive_weight > 0.0:
+        divisive_sig = rhythm_cfg.get("divisive_signature", (4, 4))
+        if isinstance(divisive_sig, (list, tuple)) and len(divisive_sig) >= 2:
+            den = int(divisive_sig[1])
+        else:
+            den = 4
+        beat_dur = (60.0 / bpm) * (4.0 / max(1, den))
+        t = 0.0
+        while t <= duration + beat_dur:
+            beats.add(round(t, 8))
+            t += beat_dur
+
+    return sorted(beats)
+
+
+def _snap_note_onsets_to_beats(parsed_notes, rhythm_cfg, onset_snap):
+    """
+    Insert leading silence pads before notes so their onsets are pulled
+    toward the next strong beat. onset_snap in [0.0, 1.0].
+    """
+    if onset_snap <= 0.0 or not parsed_notes:
+        return list(parsed_notes)
+
+    additive_weight = float(rhythm_cfg.get("additive_weight", 0.0))
+    divisive_weight = float(rhythm_cfg.get("divisive_weight", 0.0))
+    if additive_weight <= 0.0 and divisive_weight <= 0.0:
+        return list(parsed_notes)
+
+    bpm = max(0.01, float(rhythm_cfg.get("bpm", 108.0)))
+    total_duration = sum(dur for _, dur in parsed_notes)
+    beat_times = _collect_beat_grid(rhythm_cfg, total_duration)
+    if not beat_times:
+        return list(parsed_notes)
+
+    # Reference duration: smallest beat grid unit (limits how far a note can be pushed)
+    additive_blocks = [int(v) for v in rhythm_cfg.get("additive_blocks", []) if int(v) > 0]
+    divisive_sig = rhythm_cfg.get("divisive_signature", (4, 4))
+    den = int(divisive_sig[1]) if isinstance(divisive_sig, (list, tuple)) and len(divisive_sig) >= 2 else 4
+    if additive_weight > 0.0 and additive_blocks:
+        ref_dur = (60.0 / bpm) * 0.5 * min(additive_blocks)
+    else:
+        ref_dur = (60.0 / bpm) * (4.0 / max(1, den))
+    max_snap_window = ref_dur  # never push a note further than one beat unit forward
+
+    result = []
+    playback_time = 0.0  # absolute position in rendered buffer (including pads)
+
+    for freq, dur in parsed_notes:
+        # Find the next beat at or after current playback position
+        next_beat = None
+        for bt in beat_times:
+            if bt >= playback_time - 1e-9:
+                next_beat = bt
+                break
+
+        if next_beat is not None:
+            raw_delay = next_beat - playback_time
+            if 1e-3 < raw_delay <= max_snap_window:
+                pad = raw_delay * onset_snap
+                if pad > 1e-3:
+                    result.append((0.0, pad))
+                    playback_time += pad
+
+        result.append((freq, dur))
+        playback_time += dur
+
+    return result
+
+
 def generate_melody(
     melody,
     amplitude,
@@ -1889,6 +1979,7 @@ def generate_melody(
     rhythm_radicality=0.5,
     mapping_mode="original_notes",
     duration_coeff=1.0,
+    onset_snap=0.0,
 ):
     _ensure_audio(sample_rate=sample_rate)
     if melody is None:
@@ -1899,6 +1990,7 @@ def generate_melody(
         return
 
     parsed_notes = _parse_melody_notes(notes, duration_per_note, duration_coeff=duration_coeff)
+    parsed_notes = _snap_note_onsets_to_beats(parsed_notes, dict(_rhythm_modulation), float(onset_snap))
     voice_count = max(1, min(4, int(voices)))
 
     if voice_count == 1 or not counterpoint:
