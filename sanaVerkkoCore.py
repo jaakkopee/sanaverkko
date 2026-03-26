@@ -4304,6 +4304,9 @@ class SanaVerkkoKontrolleri:
         seen_states = set()
 
         for _ in range(max_iterations):
+            # Yield to the main thread if the audience is typing a seed sentence.
+            if self._seed_active:
+                break
             sentence_state = tuple(word.word for word in self.words)
             if sentence_state in seen_states:
                 break
@@ -4964,6 +4967,11 @@ class SanaVerkkoKontrolleri:
         # ── Simulation logic (rate-limited by process_interval) ───────────────
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
         if now - self.last_process_time < self.params["process_interval"]:
+            return
+        # While the seed editor is active, hold off simulation so the main
+        # thread stays responsive for keystrokes.  Don't update last_process_time
+        # so simulation resumes immediately after the user commits/cancels.
+        if self._seed_active:
             return
         self.last_process_time = now
         self._update_logic_worker_status_label()
