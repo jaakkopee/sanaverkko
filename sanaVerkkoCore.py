@@ -3118,9 +3118,13 @@ class SanaVerkkoKontrolleri:
 
     def makeWordCircle(self, words):
         zoom = self.params["zoom"]
+        # Shift the centre upward so neurons don't hide behind the seed/pot bars.
+        pot_h = self._POT_H if self._pot_exposed_indices() else 0
+        reserved = pot_h + self._SEED_H
+        centre_y = (self.size[1] - reserved) / 2
         for i, word in enumerate(words):
             word.x = self.size[0]/2 + 6*zoom * math.cos(2 * math.pi * i / len(words))
-            word.y = self.size[1]/2 + 6*zoom * math.sin(2 * math.pi * i / len(words))
+            word.y = centre_y + 6*zoom * math.sin(2 * math.pi * i / len(words))
             word.neuron.x = word.x
             word.neuron.y = word.y
 
