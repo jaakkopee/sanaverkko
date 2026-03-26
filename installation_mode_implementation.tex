@@ -1,0 +1,350 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue}
+
+\lstdefinestyle{code}{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{green!40!black},
+}
+
+\title{Sanaverkko \\ \large Installation Mode --- Implementation Documentation}
+\author{Project Documentation}
+\date{March 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+% ---------------------------------------------------------------------------
+\chapter{Overview}
+
+\textit{Installation mode} is a set of features added to Sanaverkko that
+allow the system to be operated in a live-performance or gallery-installation
+context.  In this mode:
+
+\begin{itemize}
+  \item A full-screen pygame canvas displays the word network for an audience.
+  \item A strip of virtual potentiometers at the bottom of the canvas lets a
+        performer or the audience adjust algorithm parameters in real time by
+        dragging the knobs.
+  \item A seed-sentence bar lets a user enter a starting sentence that seeds
+        the word network, bypassing the automatic generation for one cycle.
+  \item All of these controls are saved to and restored from JSON preset files
+        together with the rest of the algorithm parameters.
+\end{itemize}
+
+The implementation lives entirely in \texttt{sanaVerkkoCore.py} and was
+merged into \texttt{main} from the branch
+\texttt{controls-for-the-audience} on 26 March 2026.
+
+% ---------------------------------------------------------------------------
+\chapter{Audience Potentiometer Strip}
+
+\section{Concept}
+
+Any of the 128 slots defined in \texttt{AUDIENCE\_PARAMS} can be
+\emph{exposed} to the audience.  An exposed slot appears as a knob in the
+potentiometer strip rendered at the bottom of the pygame window.  Turning the
+knob writes the mapped parameter value into \texttt{self.params} on every
+frame, overriding whatever the wxPython control panel shows.
+
+\section{Parameter table}
+
+\texttt{AUDIENCE\_PARAMS} is a list of 128 tuples:
+
+\begin{lstlisting}[style=code]
+(param_key, lo, hi, label)
+\end{lstlisting}
+
+The first 44 entries cover the primary algorithm parameters (logic, audio,
+rhythm, compressor/ADSR, visual).  The remaining 84 slots wrap around the
+same list cyclically, giving extra reach without hard-coding redundant entries.
+
+\section{Audience Parameters window}
+
+The wxPython control panel has an \textbf{Audience Parameters\ldots} button
+that opens a separate scrollable window.  Each row in that window corresponds
+to one AUDIENCE\_PARAMS slot and contains:
+
+\begin{itemize}
+  \item a label showing the parameter name,
+  \item an \textbf{Expose} checkbox to show the knob in the pygame strip,
+  \item an \textbf{Invert} checkbox to reverse the knob direction (so fully
+        clockwise maps to the minimum value rather than the maximum).
+\end{itemize}
+
+\section{Potentiometer strip rendering}
+
+The strip occupies a fixed-height band (\texttt{\_POT\_H = 80\,px}) at the
+very bottom of the pygame canvas.  Each exposed knob is drawn as:
+
+\begin{itemize}
+  \item a circular arc knob with a 270\textdegree{} sweep (225\textdegree{}
+        at min, $-45$\textdegree{} at max),
+  \item a fill bar beneath the knob showing the current fraction of the range,
+  \item a 7-character abbreviated label below the bar,
+  \item a small numeric value at the very bottom of the strip.
+\end{itemize}
+
+Scroll arrows appear at the left and right edges when there are more exposed
+knobs than fit horizontally (slot width $= 44\,\text{px}$).  The user can
+drag the strip horizontally or use the mouse wheel to scroll.
+
+\subsection{Tooltip}
+
+When the mouse hovers over a knob, the full parameter name is displayed in a
+small semi-transparent tooltip panel positioned just above the seed bar.  The
+tooltip surface is cached and only re-rendered when focus moves to a different
+knob.
+
+\section{Knob interaction}
+
+\begin{longtable}{>{\ttfamily}p{0.22\textwidth} p{0.72\textwidth}}
+\toprule
+\textbf{Action} & \textbf{Effect} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Action} & \textbf{Effect} \\
+\midrule
+\endhead
+Click + drag up/down & Increase/decrease the raw pot value (0--127).
+  Sensitivity: $\approx 0.8$ units per pixel. \\
+Mouse wheel over strip & Scroll visible knobs left/right. \\
+Click + drag on empty strip area & Pan the knob row horizontally. \\
+\bottomrule
+\end{longtable}
+
+% ---------------------------------------------------------------------------
+\chapter{Seed Sentence Bar}
+
+\section{Concept}
+
+The seed sentence bar sits immediately above the potentiometer strip
+(\texttt{\_SEED\_H = 72\,px}).  It allows a user to type one or more words
+that immediately replace the current network nodes, seeding the generative
+process with a specific starting point.
+
+\section{Workflow}
+
+\begin{enumerate}
+  \item The user clicks anywhere on the seed bar.
+  \item A borderless \texttt{wx.Frame} overlay appears, positioned pixel-
+        precisely over the seed bar using the SDL2 window position
+        (\texttt{pygame.\_sdl2.video.Window.position}).
+  \item The overlay contains a \texttt{wx.TextCtrl} pre-filled with the
+        current draft (if any).  The text field has immediate keyboard focus.
+  \item The user types words separated by spaces.  Only characters present in
+        \texttt{gematria\_table} (a–z, å, ä, ö) are accepted; all others are
+        silently filtered on commit.
+  \item Pressing \textbf{Enter} commits the sentence; pressing \textbf{Esc}
+        cancels.  The overlay is then destroyed (not merely hidden — see
+        §\ref{sec:overlay-destroy}).
+\end{enumerate}
+
+\section{Why a wx overlay instead of pygame keyboard input}
+\label{sec:focus}
+
+On macOS, when a wxPython application owns the Cocoa event loop, clicking
+the SDL/pygame window does not reliably steal keyboard focus from the wx
+control panel.  Characters typed by the user go to the invisible wx text
+field rather than to pygame's event queue, so no \texttt{KEYDOWN} events
+ever arrive.
+
+Embedding a \texttt{wx.TextCtrl} in a borderless overlay frame that floats
+over the pygame window solves the problem: wx always wins the focus race, so
+we lean into it.  The TextCtrl uses the same input machinery as the parameter
+panel fields that were already known to work.
+
+\section{Overlay destruction}
+\label{sec:overlay-destroy}
+
+The overlay is \texttt{Destroy()}ed (not \texttt{Hide()}d) when the user
+commits or cancels.  A merely hidden \texttt{STAY\_ON\_TOP} \texttt{wx.Frame}
+remains in the macOS Cocoa window responder chain and double-routes keystrokes
+to whichever text field is active in the main parameter window, causing each
+typed character to appear twice (e.g.\ typing \texttt{64} produces
+\texttt{6644}).  Destruction removes the window from the Cocoa layer
+completely.
+
+\section{Committed sentence display}
+
+After a successful commit the sentence is shown as a line of text rendered
+directly onto the pygame canvas, left-aligned just above the seed bar.  This
+text persists until the next commit and serves as a visible reminder to the
+performer of the current seed.
+
+\section{Chip display}
+
+The committed words are also shown as coloured \emph{chips} in the seed bar
+itself.  Each chip's hue is derived from the word's gematria value (the sum
+of the Hebrew-style letter values of its characters), scaled against the
+maximum gematria in the current draft.  Chip text surfaces are cached
+per word to avoid redundant font rendering.  The cache is cleared whenever
+the draft changes.
+
+\section{Simulation pause during input}
+
+While the seed overlay is open (\texttt{\_seed\_active = True}), the main
+simulation loop resets \texttt{last\_process\_time} every frame.  This means
+the logic worker does not fire immediately when the overlay closes, preventing
+a burst computation that would stall the event loop and make the seed bar
+appear unresponsive to subsequent activations.
+
+\texttt{\_commit\_seed\_sentence()} also resets \texttt{last\_process\_time}
+directly, giving one full \texttt{process\_interval} of lag-free time after
+each commit regardless of how the overlay was closed.
+
+% ---------------------------------------------------------------------------
+\chapter{Preset Integration}
+
+\section{Saving}
+
+When the user saves a preset via \textbf{Save Preset}, three additional
+arrays are appended to the JSON file:
+
+\begin{lstlisting}[style=code]
+preset_data["audience_values"]   = list(self.pot_values)    # 128 ints 0-127
+preset_data["audience_exposed"]  = list(self.pot_exposed)   # 128 bools
+preset_data["audience_inverted"] = list(self.pot_inverted)  # 128 bools
+\end{lstlisting}
+
+\section{Loading}
+
+When a preset is loaded, the three arrays are read back with element-wise
+coercion (missing entries default to safe values).  If the Audience
+Parameters window is currently open, its rows are refreshed immediately so
+the checkboxes reflect the loaded state.
+
+% ---------------------------------------------------------------------------
+\chapter{Network View Adjustment}
+
+Before this feature branch the word-network circle was centred on the full
+window height, causing nodes to overlap with the pot strip and seed bar.
+
+The \texttt{makeWordCircle()} method now computes a reduced centre:
+
+\begin{lstlisting}[style=code]
+pot_h    = self._POT_H if self._pot_exposed_indices() else 0
+reserved = pot_h + self._SEED_H
+centre_y = (self.size[1] - reserved) / 2
+\end{lstlisting}
+
+This shifts the network upward so it occupies only the area above the
+audience controls, keeping nodes clearly visible at all zoom levels.
+
+% ---------------------------------------------------------------------------
+\chapter{Technical Reference}
+
+\section{Key constants}
+
+\begin{longtable}{>{\ttfamily}p{0.38\textwidth} p{0.56\textwidth}}
+\toprule
+\textbf{Name} & \textbf{Value / meaning} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Name} & \textbf{Value / meaning} \\
+\midrule
+\endhead
+\_POT\_H & 80 px — height of the potentiometer strip \\
+\_POT\_W & 44 px — width per knob slot \\
+\_POT\_R & 14 px — knob circle radius \\
+\_SEED\_H & 72 px — height of the seed sentence bar \\
+\_SEED\_FONT\_SIZE & 19 pt — chip label font size \\
+AUDIENCE\_PARAMS & Module-level list of 128 \texttt{(key, lo, hi, label)} tuples \\
+\bottomrule
+\end{longtable}
+
+\section{Key methods}
+
+\begin{longtable}{>{\ttfamily}p{0.38\textwidth} p{0.56\textwidth}}
+\toprule
+\textbf{Method} & \textbf{Responsibility} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Method} & \textbf{Responsibility} \\
+\midrule
+\endhead
+\_pot\_exposed\_indices() & Return sorted list of pot indices where
+  \texttt{pot\_exposed[i]} is True. \\
+\_pot\_value\_to\_param(idx, raw) & Map raw 0--127 value to the physical
+  parameter range, applying inversion. \\
+\_apply\_pot\_values\_to\_params() & Called every frame; writes all exposed
+  pot values into \texttt{self.params}. \\
+\_draw\_pot\_strip(screen) & Render all visible knobs, scroll arrows, and
+  the hover tooltip. \\
+\_handle\_pot\_events(events) & Process mouse drag/scroll on knobs; update
+  hover index. \\
+\_draw\_seed\_editor(screen) & Render the seed bar background, chips, and
+  (when overlay active) a dim overlay tint. \\
+\_handle\_seed\_events(events) & Detect click on seed bar; call
+  \texttt{wx.CallAfter(\_show\_seed\_overlay)}. \\
+\_show\_seed\_overlay() & Create and display the borderless wx input frame. \\
+\_hide\_seed\_overlay(cancel, text) & Destroy the overlay; on commit, parse
+  text and call \texttt{\_commit\_seed\_sentence()}. \\
+\_commit\_seed\_sentence() & Replace network nodes with seed words; reset
+  audio signature; delay next logic tick. \\
+\_seed\_bar\_rect() & Return \texttt{(x, y, w, h)} of the seed bar in pygame
+  window coordinates. \\
+\_seed\_overlay\_screen\_rect() & Translate seed bar rect to absolute screen
+  coordinates using SDL2 window position. \\
+\_seed\_recompute\_gem\_max() & Recompute the maximum gematria value across
+  the current draft for chip colour scaling. \\
+OnOpenAudienceParams(event) & Open the Audience Parameters scrollable
+  wxPython window. \\
+OnSavePreset(event) & Save all params plus audience arrays to JSON. \\
+OnLoadPreset(event) & Restore params and audience arrays from JSON. \\
+\bottomrule
+\end{longtable}
+
+\section{Data flow}
+
+\begin{enumerate}
+  \item \textbf{Every simulation frame:}
+        \begin{enumerate}
+          \item \texttt{\_handle\_pot\_events} processes mouse events and
+                updates \texttt{pot\_values[i]}.
+          \item \texttt{\_handle\_seed\_events} checks for a click on the
+                seed bar and posts \texttt{\_show\_seed\_overlay} if needed.
+          \item \texttt{\_draw\_seed\_editor} and \texttt{\_draw\_pot\_strip}
+                render the bottom UI bands.
+        \end{enumerate}
+  \item \textbf{On each rate-limited logic tick} (governed by
+        \texttt{process\_interval}):
+        \begin{enumerate}
+          \item \texttt{\_apply\_pot\_values\_to\_params} writes knob values
+                into \texttt{self.params}.
+          \item The logic worker reads \texttt{self.params} for all simulation
+                decisions.
+        \end{enumerate}
+  \item \textbf{On seed commit:}
+        \begin{enumerate}
+          \item \texttt{\_commit\_seed\_sentence} replaces \texttt{self.words}
+                and \texttt{self.referenceWords}.
+          \item Audio signature is invalidated so \texttt{updateAudio()}
+                re-synthesises on the next tick without interrupting the
+                currently playing audio.
+        \end{enumerate}
+\end{enumerate}
+
+\end{document}
