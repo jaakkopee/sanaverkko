@@ -4,6 +4,7 @@ import random
 import time
 import math
 import bisect
+import colorsys
 import wx
 import threading
 import sys
@@ -476,8 +477,31 @@ class SanaVerkkoKontrolleri:
         self._pot_scroll_drag = False
         self._pot_scroll_drag_start_x = 0
         self._pot_scroll_drag_offset = 0
+        # Pot strip render cache
+        self._pot_bg_surface = None          # pre-rendered solid background
+        self._pot_bg_size = (0, 0)           # (sw, sh) when bg was built
+        self._pot_label_surfs = {}           # idx → pygame.Surface for static label
+        self._pot_val_surfs = {}             # idx → (value, pygame.Surface)
+        self._pot_font_small = None          # cached font
         # Audience parameters wx frame
         self.audience_frame = None
+
+        # ── Pygame seed sentence editor ────────────────────────────────────────
+        # List of word strings currently being edited (the "draft")
+        self._seed_draft = []          # list of str, words in order
+        self._seed_cursor = 0          # index of currently selected word (0 = before first)
+        self._seed_active = False      # True when the editor has keyboard focus
+        self._seed_typing = ""         # characters typed so far for a new word
+        self._seed_font_cache = {}     # size -> pygame.Font
+        # Rendered sentence shown to audience (set on Enter, never cleared)
+        self._seed_display_sentence = ""
+        # Gematria max for colour scaling (recomputed when draft changes)
+        self._seed_gem_max = 1
+        self._seed_word_rects = []     # [(word_idx, pygame.Rect), ...] updated each draw
+        # Draw caches
+        self._seed_bg_surface = None   # pre-allocated background surface
+        self._seed_bg_size = (0, 0)    # invalidate when window resizes
+        self._seed_chip_surfs = {}     # (word_str, is_selected) -> (main_surf, gem_surf)
 
         self.initPygame()
         self.initAudio()
@@ -3911,6 +3935,9 @@ class SanaVerkkoKontrolleri:
         try:
             self._normalize_params()
             preset_data = {key: value for key, value in self.params.items() if key != "fullscreen"}
+            preset_data["audience_values"]   = list(self.pot_values)
+            preset_data["audience_exposed"]  = list(self.pot_exposed)
+            preset_data["audience_inverted"] = list(self.pot_inverted)
             with open(selected_path, "w", encoding="utf-8") as outfile:
                 json.dump(preset_data, outfile, ensure_ascii=False, indent=2)
             self.preset_status.SetLabel(f"Preset saved: {os.path.basename(selected_path)}")
@@ -4054,6 +4081,27 @@ class SanaVerkkoKontrolleri:
                     continue
                 if key in self.params:
                     self.params[key] = value
+
+            # Restore audience potentiometer state
+            for list_key, target, coerce in (
+                ("audience_values",   self.pot_values,   lambda v: max(0, min(127, int(v)))),
+                ("audience_exposed",  self.pot_exposed,  bool),
+                ("audience_inverted", self.pot_inverted, bool),
+            ):
+                if isinstance(loaded_data.get(list_key), list):
+                    for i, v in enumerate(loaded_data[list_key][:128]):
+                        target[i] = coerce(v)
+
+            # Refresh the Audience Parameters window if it is open
+            if self.audience_frame is not None and hasattr(self, "_aud_rows"):
+                for idx, (exp_cb, rb_norm, rb_inv, val_lbl) in enumerate(self._aud_rows):
+                    try:
+                        exp_cb.SetValue(self.pot_exposed[idx])
+                        rb_norm.SetValue(not self.pot_inverted[idx])
+                        rb_inv.SetValue(self.pot_inverted[idx])
+                        val_lbl.SetLabel(str(self.pot_values[idx]))
+                    except Exception:
+                        pass
 
             self._apply_loaded_preset()
             self.preset_status.SetLabel(f"Preset loaded: {os.path.basename(selected_path)}")
@@ -4352,6 +4400,51 @@ class SanaVerkkoKontrolleri:
         slot_w = max(20, min(self._POT_W, sw // max(1, len(exposed))))
         return exposed, slot_w
 
+    def _pot_ensure_font(self):
+        if self._pot_font_small is not None:
+            return self._pot_font_small
+        if pygame_font is not None:
+            try:
+                f = _pygame_mono_font_cache.get(("pot", 9))
+                if f is None:
+                    f = pygame_font.Font(None, 13)
+                    _pygame_mono_font_cache[("pot", 9)] = f
+                self._pot_font_small = f
+            except Exception:
+                pass
+        return self._pot_font_small
+
+    def _pot_label_surf(self, pot_idx):
+        """Return (cached) surface for the static label of pot_idx."""
+        if pot_idx in self._pot_label_surfs:
+            return self._pot_label_surfs[pot_idx]
+        font = self._pot_ensure_font()
+        _, _lo, _hi, label = AUDIENCE_PARAMS[pot_idx]
+        short = label[:7] if len(label) > 7 else label
+        surf = None
+        if font:
+            try:
+                surf = font.render(short, True, (190, 190, 210))
+            except Exception:
+                pass
+        self._pot_label_surfs[pot_idx] = surf
+        return surf
+
+    def _pot_val_surf(self, pot_idx, raw):
+        """Return (cached) surface for the current value of pot_idx."""
+        cached = self._pot_val_surfs.get(pot_idx)
+        if cached is not None and cached[0] == raw:
+            return cached[1]
+        font = self._pot_ensure_font()
+        surf = None
+        if font:
+            try:
+                surf = font.render(str(raw), True, (220, 220, 160))
+            except Exception:
+                pass
+        self._pot_val_surfs[pot_idx] = (raw, surf)
+        return surf
+
     def _draw_pot_strip(self, screen):
         """Draw the potentiometer strip onto the pygame screen."""
         exposed = self._pot_exposed_indices()
@@ -4359,7 +4452,7 @@ class SanaVerkkoKontrolleri:
             return
 
         sx, sy, sw, sh = self._pot_strip_rect()
-        slot_w, slot_h = self._POT_W, self._POT_H
+        slot_w = self._POT_W
 
         # Count how many fit
         n_visible = max(1, sw // slot_w)
@@ -4367,46 +4460,27 @@ class SanaVerkkoKontrolleri:
         self._pot_scroll_offset = offset
         visible = exposed[offset:offset + n_visible]
 
-        # Background
-        bg_surf = pygame.Surface((sw, sh), pygame.SRCALPHA)
-        bg_surf.fill((20, 20, 30, 210))
-        screen.blit(bg_surf, (sx, sy))
+        # Cached solid background (invalidate when window size changes)
+        if self._pot_bg_surface is None or self._pot_bg_size != (sw, sh):
+            self._pot_bg_surface = pygame.Surface((sw, sh))
+            self._pot_bg_surface.fill((20, 20, 30))
+            self._pot_bg_size = (sw, sh)
+        screen.blit(self._pot_bg_surface, (sx, sy))
 
-        font_small = None
-        if pygame_font is not None:
-            try:
-                fs = 9
-                font_small = _pygame_mono_font_cache.get(("pot", fs))
-                if font_small is None:
-                    font_small = pygame_font.Font(None, fs + 4)
-                    _pygame_mono_font_cache[("pot", fs)] = font_small
-            except Exception:
-                font_small = None
-
+        r = self._POT_R
         for slot_i, pot_idx in enumerate(visible):
             cx = sx + slot_i * slot_w + slot_w // 2
-            cy = sy + self._POT_TOP_PAD + self._POT_R + 4
+            cy = sy + self._POT_TOP_PAD + r + 4
 
             raw = self.pot_values[pot_idx]
-            # Arc: -225° to 45° (270° sweep), value sweeps clockwise
-            # pygame angles: 0=right, counter-clockwise positive
-            sweep_deg = 270
-            start_angle_deg = 225  # start at bottom-left (7 o'clock)
             val_frac = raw / 127.0
             if self.pot_inverted[pot_idx]:
                 val_frac = 1.0 - val_frac
-            angle_deg = start_angle_deg - val_frac * sweep_deg
-
-            # Draw track arc (dark)
-            r = self._POT_R
-            arc_rect = pygame.Rect(cx - r, cy - r, r * 2, r * 2)
-
-            # Filled indicator line from center
+            angle_deg = 225 - val_frac * 270
             angle_rad = math.radians(angle_deg)
             lx = cx + int((r - 3) * math.cos(angle_rad))
             ly = cy - int((r - 3) * math.sin(angle_rad))
 
-            # Colour: blue for normal, orange for inverted
             knob_color = (80, 160, 255) if not self.pot_inverted[pot_idx] else (255, 160, 60)
             line_color = (220, 240, 255) if not self.pot_inverted[pot_idx] else (255, 220, 120)
 
@@ -4414,7 +4488,6 @@ class SanaVerkkoKontrolleri:
             pygame.draw.circle(screen, knob_color, (cx, cy), r, 2)
             pygame.draw.line(screen, line_color, (cx, cy), (lx, ly), 2)
 
-            # Value bar background line
             bx0 = cx - r + 2
             bx1 = cx + r - 2
             by = cy + r + 4
@@ -4423,21 +4496,14 @@ class SanaVerkkoKontrolleri:
             if bar_len > 0:
                 pygame.draw.line(screen, knob_color, (bx0, by), (bx0 + bar_len, by), 3)
 
-            # Label
-            _, _lo, _hi, label = AUDIENCE_PARAMS[pot_idx]
-            short = label[:7] if len(label) > 7 else label
-            if font_small:
-                try:
-                    surf = font_small.render(short, True, (190, 190, 210))
-                    screen.blit(surf, (cx - surf.get_width() // 2, by + 6))
-                    val_surf = font_small.render(str(raw), True, (220, 220, 160))
-                    screen.blit(val_surf, (cx - val_surf.get_width() // 2, sy + sh - 13))
-                except Exception:
-                    pass
-            else:
-                draw_text_centered(screen, short, 8, (190, 190, 210), cx, by + 10)
+            lbl_surf = self._pot_label_surf(pot_idx)
+            if lbl_surf:
+                screen.blit(lbl_surf, (cx - lbl_surf.get_width() // 2, by + 5))
+            val_surf = self._pot_val_surf(pot_idx, raw)
+            if val_surf:
+                screen.blit(val_surf, (cx - val_surf.get_width() // 2, sy + sh - 13))
 
-        # Scroll hint arrows if more pots than visible
+        # Scroll hint arrows
         if len(exposed) > n_visible:
             arrow_col = (160, 160, 200)
             if offset > 0:
@@ -4476,9 +4542,12 @@ class SanaVerkkoKontrolleri:
                     self._pot_drag_start_val = self.pot_values[hit]
                     consumed = True
                 else:
-                    # Scroll bar drag (click on strip but not on a knob)
+                    # Scroll bar drag (click on strip but not on a knob).
+                    # Only consume if pots are actually visible; otherwise the
+                    # seed bar overlaps the pot strip rect and grabs the click.
+                    exposed = self._pot_exposed_indices()
                     sx, sy, sw, sh = self._pot_strip_rect()
-                    if sx <= mx < sx + sw and sy <= my < sy + sh:
+                    if exposed and sx <= mx < sx + sw and sy <= my < sy + sh:
                         self._pot_scroll_drag = True
                         self._pot_scroll_drag_start_x = mx
                         self._pot_scroll_drag_offset = self._pot_scroll_offset
@@ -4517,15 +4586,360 @@ class SanaVerkkoKontrolleri:
                 remaining.append(event)
         return remaining
 
+    # ------------------------------------------------------------------
+    # Pygame seed sentence editor
+    # ------------------------------------------------------------------
+
+    _SEED_H = 72          # pixel height of the seed editor bar
+    _SEED_FONT_SIZE = 19
+
+    def _seed_font(self, size=None):
+        size = size or self._SEED_FONT_SIZE
+        if size in self._seed_font_cache:
+            return self._seed_font_cache[size]
+        font = None
+        if pygame_font is not None:
+            try:
+                for name in MONOSPACE_FONT_CANDIDATES:
+                    path = pygame_font.match_font(name)
+                    if path:
+                        font = pygame_font.Font(path, size)
+                        break
+                if font is None:
+                    font = pygame_font.Font(None, size)
+            except Exception:
+                pass
+        self._seed_font_cache[size] = font
+        return font
+
+    def _seed_gem_color(self, word_str):
+        """Return an RGB colour scaled by the word's gematria, hue cycling."""
+        g = sum(gematria_table.get(c, 0) for c in word_str.lower())
+        if self._seed_gem_max <= 0:
+            t = 0.0
+        else:
+            t = min(1.0, g / self._seed_gem_max)
+        # Hue: low gematria = blue-green, high = red-orange
+        h = (1.0 - t) * 0.55   # 0.55 = cyan, 0 = red
+        r, g_c, b = colorsys.hsv_to_rgb(h, 0.85, 0.95)
+        return (int(r * 255), int(g_c * 255), int(b * 255))
+
+    def _seed_bar_rect(self):
+        """Return (x, y, w, h) for the seed editor bar, above the pot strip."""
+        sw, sh = self.size
+        pot_h = self._POT_H if self._pot_exposed_indices() else 0
+        h = self._SEED_H
+        return (0, sh - pot_h - h, sw, h)
+
+    def _seed_recompute_gem_max(self):
+        if not self._seed_draft:
+            self._seed_gem_max = 1
+            self._seed_chip_surfs.clear()
+            return
+        gems = [sum(gematria_table.get(c, 0) for c in w.lower()) for w in self._seed_draft]
+        new_max = max(1, max(gems))
+        if new_max != self._seed_gem_max:
+            self._seed_gem_max = new_max
+            self._seed_chip_surfs.clear()  # colours changed
+
+    def _draw_seed_editor(self, screen):
+        sx, sy, sw, sh = self._seed_bar_rect()
+
+        # Background — re-allocate only when size changes
+        if self._seed_bg_surface is None or self._seed_bg_size != (sw, sh):
+            self._seed_bg_surface = pygame.Surface((sw, sh))
+            self._seed_bg_surface.fill((12, 12, 22))
+            self._seed_bg_size = (sw, sh)
+            self._seed_chip_surfs.clear()  # chip sizes may have changed
+        screen.blit(self._seed_bg_surface, (sx, sy))
+
+        font = self._seed_font()
+        font_sm = self._seed_font(12)
+
+        # Title / instruction hint (only re-render when active state changes)
+        if font_sm:
+            hint = "SEED  [click · ← → navigate · Space=add · Backspace=del · Enter=commit]" if self._seed_active else "SEED  [click or type to edit]"
+            hint_surf = font_sm.render(hint, True, (100, 120, 160))
+            screen.blit(hint_surf, (sx + 6, sy + 3))
+
+        # Layout words as coloured "chips" left to right
+        x = sx + 6
+        y_word = sy + 20
+        chip_h = sh - 26
+        pad = 6
+        word_rects = []   # list of (word_idx, pygame.Rect) for hit testing
+
+        for idx, word_str in enumerate(self._seed_draft):
+            col = self._seed_gem_color(word_str)
+            g_val = sum(gematria_table.get(c, 0) for c in word_str.lower())
+
+            # Width proportional to gematria, clamped
+            frac = min(1.0, g_val / self._seed_gem_max) if self._seed_gem_max > 0 else 0.5
+            chip_w = max(40, int(30 + frac * 90))
+
+            is_selected = self._seed_active and (idx == self._seed_cursor)
+            bg_col = tuple(max(0, c - 120) for c in col)
+
+            if is_selected:
+                pygame.draw.rect(screen, col, (x, y_word, chip_w, chip_h), border_radius=4)
+                text_col = (0, 0, 0)
+            else:
+                pygame.draw.rect(screen, bg_col, (x, y_word, chip_w, chip_h), border_radius=4)
+                pygame.draw.rect(screen, col, (x, y_word, chip_w, chip_h), 1, border_radius=4)
+                text_col = col
+
+            # Chip text — cached per (word_str, is_selected) to avoid re-rendering every frame
+            cache_key = (word_str, is_selected)
+            if cache_key not in self._seed_chip_surfs and font:
+                try:
+                    ws = font.render(word_str[:8], True, text_col)
+                    gs = font_sm.render(str(g_val), True, (50, 50, 50) if is_selected else (180, 180, 200)) if font_sm else None
+                    self._seed_chip_surfs[cache_key] = (ws, gs)
+                except Exception:
+                    self._seed_chip_surfs[cache_key] = (None, None)
+
+            cached = self._seed_chip_surfs.get(cache_key, (None, None))
+            ws, gs = cached
+            if ws:
+                screen.blit(ws, (x + pad, y_word + (chip_h - ws.get_height()) // 2))
+            if gs:
+                screen.blit(gs, (x + pad, y_word + chip_h - gs.get_height() - 1))
+
+            word_rects.append((idx, pygame.Rect(x, y_word, chip_w, chip_h)))
+            x += chip_w + 4
+
+            if x > sx + sw - 60:
+                break
+
+        self._seed_word_rects = word_rects
+
+        # Typing buffer shown after last chip.
+        # Clamp x so the buffer is always visible even if chips fill the bar.
+        buf_x = min(x, sx + sw - 160)
+        if self._seed_active and self._seed_typing:
+            if font:
+                try:
+                    ts = font.render(self._seed_typing + "_", True, (255, 255, 120))
+                    screen.blit(ts, (buf_x + 4, y_word + (chip_h - ts.get_height()) // 2))
+                except Exception:
+                    pass
+        elif self._seed_active and not self._seed_typing:
+            pygame.draw.line(screen, (255, 255, 120), (buf_x + 2, y_word + 4), (buf_x + 2, y_word + chip_h - 4), 2)
+
+        # Separator line at top of bar
+        pygame.draw.line(screen, (40, 40, 70), (sx, sy), (sx + sw, sy), 1)
+
+    def _handle_seed_events(self, events):
+        """Consume seed-editor events; return remaining."""
+        remaining = []
+        valid_chars = set(gematria_table.keys())
+
+        for event in events:
+            consumed = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                sx, sy, sw, sh = self._seed_bar_rect()
+                mx, my = event.pos
+                if sx <= mx < sx + sw and sy <= my < sy + sh:
+                    self._seed_active = True
+                    # Check if click landed on a word chip
+                    for word_idx, rect in getattr(self, "_seed_word_rects", []):
+                        if rect.collidepoint(mx, my):
+                            self._seed_cursor = word_idx
+                            self._seed_typing = ""
+                            break
+                    consumed = True
+                else:
+                    # Click outside deactivates
+                    self._seed_active = False
+                    self._seed_typing = ""
+
+            elif event.type == pygame.KEYDOWN and not self._seed_active:
+                # Auto-activate: any valid gematria letter wakes the editor
+                ch = event.unicode.lower() if event.unicode else ""
+                if ch and ch in valid_chars:
+                    self._seed_active = True
+                    self._seed_typing = ch
+                    consumed = True
+
+            elif event.type == pygame.KEYDOWN and self._seed_active:
+                consumed = True
+
+                if event.key == pygame.K_ESCAPE:
+                    self._seed_active = False
+                    self._seed_typing = ""
+
+                elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                    # Commit any pending typed word first
+                    if self._seed_typing.strip():
+                        self._seed_draft.insert(self._seed_cursor, self._seed_typing.strip())
+                        self._seed_cursor = min(len(self._seed_draft) - 1, self._seed_cursor + 1)
+                        self._seed_typing = ""
+                        self._seed_recompute_gem_max()
+                    self._commit_seed_sentence()
+                    self._seed_active = False
+
+                elif event.key == pygame.K_SPACE:
+                    # Finalise current typing buffer as a new word
+                    typed = self._seed_typing.strip()
+                    if typed and all(c in valid_chars for c in typed):
+                        self._seed_draft.insert(self._seed_cursor, typed)
+                        self._seed_cursor = min(len(self._seed_draft), self._seed_cursor + 1)
+                        self._seed_recompute_gem_max()
+                    self._seed_typing = ""
+
+                elif event.key == pygame.K_BACKSPACE:
+                    if self._seed_typing:
+                        self._seed_typing = self._seed_typing[:-1]
+                    elif self._seed_draft and 0 <= self._seed_cursor < len(self._seed_draft):
+                        self._seed_draft.pop(self._seed_cursor)
+                        self._seed_cursor = max(0, min(self._seed_cursor, len(self._seed_draft) - 1))
+                        self._seed_recompute_gem_max()
+
+                elif event.key == pygame.K_LEFT:
+                    self._seed_typing = ""
+                    self._seed_cursor = max(0, self._seed_cursor - 1)
+
+                elif event.key == pygame.K_RIGHT:
+                    self._seed_typing = ""
+                    self._seed_cursor = min(max(0, len(self._seed_draft) - 1), self._seed_cursor + 1)
+
+                else:
+                    # Accumulate typed character
+                    ch = event.unicode.lower() if event.unicode else ""
+                    if ch and ch in valid_chars:
+                        self._seed_typing += ch
+
+            if not consumed:
+                remaining.append(event)
+
+        return remaining
+
+    def _commit_seed_sentence(self):
+        """Apply the current seed draft to the algorithm (replace live words)."""
+        if not self._seed_draft:
+            return
+
+        self._seed_display_sentence = " ".join(self._seed_draft)
+
+        # Clear existing network and rebuild from draft
+        self.words = []
+        for word_str in self._seed_draft:
+            new_word = Word(word_str, 0, 0, (255, 255, 255), self)
+            self._assign_seed_pos(new_word)
+            self.words.append(new_word)
+
+        # Reconnect all words
+        for word in self.words:
+            for word2 in self.words:
+                if word is not word2:
+                    weight = self.getGematriaDistance(word.gematria, word2.gematria)
+                    word.connect(word2, weight)
+
+        self.makeWordCircle(self.words)
+
+        # Update reference word list to include draft words
+        existing_ref_texts = {w.word for w in self.referenceWords}
+        for word_str in self._seed_draft:
+            if word_str not in existing_ref_texts:
+                ref = self._reference_word_copy(Word(word_str, 0, 0, (255, 255, 255), self))
+                if ref is not None:
+                    self.referenceWords.append(ref)
+        self._markReferenceIndexDirty()
+
+        # Mark audio signature stale so updateAudio() re-synthesises on the next
+        # rate-limited tick.  Do NOT call sanasyna.stop() here: stopping hard
+        # creates an audible gap while the synthesis thread computes the new
+        # melody.  The old audio keeps playing (or fades out naturally in
+        # play-once mode) until the crossfade mechanism swaps in the new buffer.
+        self.last_audio_sentence_signature = None
+
+        # Reset draft so the bar is empty for the next editing session.
+        # (The committed sentence remains visible via _seed_display_sentence.)
+        self._seed_draft = []
+        self._seed_cursor = 0
+        self._seed_gem_max = 1
+        self._seed_chip_surfs.clear()
+        self._seed_word_rects = []
+
     def simulationStep(self):
         now = time.time()
+
+        # ── Events and rendering run EVERY call (target 60 fps) ──────────────
+        raw_events = pygame.event.get()
+
+        # Handle system-level shortcuts first so they are never consumed by
+        # subsystems (pot handler, seed editor).
+        subsystem_events = []
+        for event in raw_events:
+            if event.type == pygame.QUIT:
+                self.running = False
+                self.OnClose(None)
+                return
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    self._apply_fullscreen_mode(not self._is_effective_fullscreen())
+                    continue  # do not pass to subsystems
+                if event.key == pygame.K_ESCAPE and self._is_effective_fullscreen():
+                    self._apply_fullscreen_mode(False)
+                    continue  # do not pass to subsystems
+            subsystem_events.append(event)
+
+        remaining_events = self._handle_pot_events(subsystem_events)
+        remaining_events = self._handle_seed_events(remaining_events)
+
+        self._sync_display_window_state()
+        self.screen.fill((0, 0, 0))
+
+        # draw connections
+        for word in self.words:
+            for connection in word.neuron.connections:
+                self.conn_color_r = int(255 * abs(connection[1]))
+                self.conn_color_g = connection[0].activation * 255
+                self.conn_color_b = -connection[0].activation * 255
+
+                if self.conn_color_r < 0:
+                    self.conn_color_r = 0
+                if self.conn_color_g < 0:
+                    self.conn_color_g = 0
+                if self.conn_color_b < 0:
+                    self.conn_color_b = 0
+                if self.conn_color_r > 255:
+                    self.conn_color_r = 255
+                if self.conn_color_g > 255:
+                    self.conn_color_g = 255
+                if self.conn_color_b > 255:
+                    self.conn_color_b = 255
+
+                pygame.draw.line(self.screen, (self.conn_color_r, self.conn_color_g, self.conn_color_b), (word.x, word.y), (connection[0].x, connection[0].y), 5)
+
+        for word in self.words:
+            word.draw(self.screen)
+
+        if self.last_result_sentence != "":
+            draw_text_centered(self.screen, self.last_result_sentence, 18, (0, 255, 127), self.size[0]/2, 20)
+        if self.last_result_gematria_line != "":
+            draw_text_centered(self.screen, self.last_result_gematria_line, 14, (180, 230, 255), self.size[0]/2, 40)
+        if self.last_result_reduction_line != "":
+            draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
+
+        # Committed seed sentence shown persistently for audience
+        if self._seed_display_sentence:
+            draw_text_centered(self.screen, self._seed_display_sentence, 15,
+                               (220, 200, 100), self.size[0] / 2, 76)
+
+        self._draw_seed_editor(self.screen)
+        self._draw_pot_strip(self.screen)
+        pygame.display.flip()
+
+        # ── Simulation logic (rate-limited by process_interval) ───────────────
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
         if now - self.last_process_time < self.params["process_interval"]:
             return
         self.last_process_time = now
         self._update_logic_worker_status_label()
 
-        # Apply audience potentiometers to params before any processing
+        # Apply audience potentiometers to params before simulation
         self._apply_pot_values_to_params()
 
         if not melody_from_own_time:
@@ -4535,23 +4949,6 @@ class SanaVerkkoKontrolleri:
             self.audio_playing = False
             self.last_audio_sentence_signature = None
 
-        raw_events = pygame.event.get()
-        remaining_events = self._handle_pot_events(raw_events)
-
-        for event in remaining_events:
-            if event.type == pygame.QUIT:
-                self.running = False
-                self.OnClose(None)
-                return
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_F11:
-                    self._apply_fullscreen_mode(not self._is_effective_fullscreen())
-                elif event.key == pygame.K_ESCAPE and self._is_effective_fullscreen():
-                    self._apply_fullscreen_mode(False)
-
-        self._sync_display_window_state()
-
-        self.screen.fill((0, 0, 0))
         logic_triggered = False
 
         for word in self.words:
@@ -4596,32 +4993,7 @@ class SanaVerkkoKontrolleri:
 
         self.updateAudio()
 
-        #draw connections
-        for word in self.words:
-            for connection in word.neuron.connections:
-                self.conn_color_r = int(255 * abs(connection[1]))
-                self.conn_color_g = connection[0].activation * 255
-                self.conn_color_b = -connection[0].activation * 255
-
-                if self.conn_color_r < 0:
-                    self.conn_color_r = 0
-                if self.conn_color_g < 0:
-                    self.conn_color_g = 0
-                if self.conn_color_b < 0:
-                    self.conn_color_b = 0
-                if self.conn_color_r > 255:
-                    self.conn_color_r = 255
-                if self.conn_color_g > 255:
-                    self.conn_color_g = 255
-                if self.conn_color_b > 255:
-                    self.conn_color_b = 255
-
-                pygame.draw.line(self.screen, (self.conn_color_r, self.conn_color_g, self.conn_color_b), (word.x, word.y), (connection[0].x, connection[0].y), 5)
-
-        for word in self.words:
-            word.draw(self.screen)
-
-        if (sentChanged):
+        if sentChanged:
             self.writeToFile(sentence+"\n")
             sentence_gematria = 0
             word_gematria = 0
@@ -4644,7 +5016,7 @@ class SanaVerkkoKontrolleri:
                 if i < len(nr_reduction_array) - 1:
                     self.writeToFile(" -> ")
             self.writeToFile("\n")
-            self.outfile.flush()      
+            self.outfile.flush()
 
             self.last_result_sentence = sentence.strip()
             self.last_result_gematria_line = " + ".join(gematria_terms) + f" = {starting_gematria}"
@@ -4656,17 +5028,6 @@ class SanaVerkkoKontrolleri:
 
             if bool(self.params.get("piper_tts_on", False)):
                 self._speak_sentence_with_piper_async(self.last_result_sentence)
-
-        if self.last_result_sentence != "":
-            draw_text_centered(self.screen, self.last_result_sentence, 18, (0, 255, 127), self.size[0]/2, 20)
-        if self.last_result_gematria_line != "":
-            draw_text_centered(self.screen, self.last_result_gematria_line, 14, (180, 230, 255), self.size[0]/2, 40)
-        if self.last_result_reduction_line != "":
-            draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
-
-        self._draw_pot_strip(self.screen)
-
-        pygame.display.flip()
 
     def testNeurons(self):
         while self.running:
