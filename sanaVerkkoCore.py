@@ -4780,8 +4780,12 @@ class SanaVerkkoKontrolleri:
                         self._seed_cursor = min(len(self._seed_draft) - 1, self._seed_cursor + 1)
                         self._seed_typing = ""
                         self._seed_recompute_gem_max()
-                    self._commit_seed_sentence()
-                    self._seed_active = False
+                    try:
+                        self._commit_seed_sentence()
+                    except Exception as _e:
+                        print(f"Seed commit error: {_e}")
+                    finally:
+                        self._seed_active = False
 
                 elif event.key == pygame.K_SPACE:
                     # Finalise current typing buffer as a new word
@@ -4927,22 +4931,34 @@ class SanaVerkkoKontrolleri:
         if self.last_result_reduction_line != "":
             draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
 
-        # Committed seed sentence shown persistently for audience
-        if self._seed_display_sentence:
-            draw_text_centered(self.screen, self._seed_display_sentence, 15,
-                               (220, 200, 100), self.size[0] / 2, 76)
-
         self._draw_seed_editor(self.screen)
+
+        # Committed seed sentence drawn left-aligned just above the seed editor bar
+        if self._seed_display_sentence:
+            sx, sy, sw, sh = self._seed_bar_rect()
+            if pygame_font is not None:
+                try:
+                    font_size = 15
+                    disp_font = _pygame_mono_font_cache.get(font_size)
+                    if disp_font is None:
+                        for fn in MONOSPACE_FONT_CANDIDATES:
+                            fp = pygame_font.match_font(fn)
+                            if fp:
+                                disp_font = pygame_font.Font(fp, font_size)
+                                break
+                        if disp_font is None:
+                            disp_font = pygame_font.Font(None, font_size)
+                        _pygame_mono_font_cache[font_size] = disp_font
+                    surf = disp_font.render(self._seed_display_sentence, True, (220, 200, 100))
+                    self.screen.blit(surf, (sx + 6, sy - surf.get_height() - 3))
+                except Exception:
+                    pass
         self._draw_pot_strip(self.screen)
         pygame.display.flip()
 
         # ── Simulation logic (rate-limited by process_interval) ───────────────
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
         if now - self.last_process_time < self.params["process_interval"]:
-            return
-        # Pause simulation while the seed editor has focus so the main thread
-        # stays fully available for responsive input.
-        if self._seed_active:
             return
         self.last_process_time = now
         self._update_logic_worker_status_label()
