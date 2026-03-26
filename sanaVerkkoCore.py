@@ -483,6 +483,9 @@ class SanaVerkkoKontrolleri:
         self._pot_label_surfs = {}           # idx → pygame.Surface for static label
         self._pot_val_surfs = {}             # idx → (value, pygame.Surface)
         self._pot_font_small = None          # cached font
+        self._pot_hover_idx = None           # pot index currently under mouse (for tooltip)
+        self._pot_tooltip_surf = None        # cached tooltip surface
+        self._pot_tooltip_idx = None         # which pot the tooltip was rendered for
         # Audience parameters wx frame
         self.audience_frame = None
 
@@ -4551,6 +4554,34 @@ class SanaVerkkoKontrolleri:
             if offset + n_visible < len(exposed):
                 pygame.draw.polygon(screen, arrow_col, [(sx + sw - 5, sy + sh // 2), (sx + sw - 14, sy + sh // 2 - 7), (sx + sw - 14, sy + sh // 2 + 7)])
 
+        # Tooltip for hovered pot
+        hover = self._pot_hover_idx
+        if hover is not None and hover in visible:
+            slot_i = visible.index(hover)
+            _, _lo, _hi, full_label = AUDIENCE_PARAMS[hover]
+            # Rebuild tooltip surface when hovered pot changes
+            if self._pot_tooltip_idx != hover:
+                self._pot_tooltip_idx = hover
+                self._pot_tooltip_surf = None
+                tip_font = self._pot_ensure_font()
+                if tip_font:
+                    try:
+                        self._pot_tooltip_surf = tip_font.render(full_label, True, (240, 240, 255))
+                    except Exception:
+                        pass
+            if self._pot_tooltip_surf:
+                ts = self._pot_tooltip_surf
+                pad = 4
+                tw, th = ts.get_width() + pad * 2, ts.get_height() + pad * 2
+                cx = sx + slot_i * slot_w + slot_w // 2
+                # Position tooltip above the knob, clamped to screen
+                tx = max(0, min(cx - tw // 2, sx + sw - tw))
+                ty = max(0, sy - th - 2)
+                bg = pygame.Surface((tw, th), pygame.SRCALPHA)
+                bg.fill((30, 30, 50, 220))
+                screen.blit(bg, (tx, ty))
+                screen.blit(ts, (tx + pad, ty + pad))
+
     def _pot_hit_test(self, mx, my):
         """Return pot index in exposed list (local) if (mx,my) is over a knob, else None."""
         exposed = self._pot_exposed_indices()
@@ -4614,6 +4645,11 @@ class SanaVerkkoKontrolleri:
                     delta = -dx // max(1, slot_w)
                     self._pot_scroll_offset = max(0, min(self._pot_scroll_drag_offset + delta, max(0, len(exposed) - n_visible)))
                     consumed = True
+                # Update hover index for tooltip (always, even during drag)
+                mx, my = event.pos
+                hit = self._pot_hit_test(mx, my)
+                if hit != self._pot_hover_idx:
+                    self._pot_hover_idx = hit
             elif event.type == pygame.MOUSEWHEEL:
                 sx, sy, sw, sh = self._pot_strip_rect()
                 mx, my = pygame.mouse.get_pos()
@@ -4795,72 +4831,72 @@ class SanaVerkkoKontrolleri:
         screen_x, screen_y, sw, sh = self._seed_overlay_screen_rect()
         current_text = " ".join(self._seed_draft)
 
-        if self._seed_overlay is None or not self._seed_overlay.IsShown():
-            # Build overlay frame
-            overlay = wx.Frame(
-                None,
-                style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER | wx.STAY_ON_TOP,
-            )
-            overlay.SetBackgroundColour(wx.Colour(12, 12, 22))
-            overlay.SetSize(sw, sh)
-            overlay.SetPosition((screen_x, screen_y))
+        # Always build a fresh frame — destroyed on close so Cocoa
+        # removes it from the responder chain immediately.
+        overlay = wx.Frame(
+            None,
+            style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER | wx.STAY_ON_TOP,
+        )
+        overlay.SetBackgroundColour(wx.Colour(12, 12, 22))
+        overlay.SetSize(sw, sh)
+        overlay.SetPosition((screen_x, screen_y))
 
-            # Instruction label
-            lbl = wx.StaticText(overlay, label="SEED  (Space=word · Enter=commit · Esc=cancel)")
-            lbl.SetForegroundColour(wx.Colour(100, 120, 160))
-            lbl.SetBackgroundColour(wx.Colour(12, 12, 22))
-            font_sm = lbl.GetFont()
-            font_sm.SetPointSize(9)
-            lbl.SetFont(font_sm)
+        # Instruction label
+        lbl = wx.StaticText(overlay, label="SEED  (Space=word · Enter=commit · Esc=cancel)")
+        lbl.SetForegroundColour(wx.Colour(100, 120, 160))
+        lbl.SetBackgroundColour(wx.Colour(12, 12, 22))
+        font_sm = lbl.GetFont()
+        font_sm.SetPointSize(9)
+        lbl.SetFont(font_sm)
 
-            # Text input
-            tc = wx.TextCtrl(
-                overlay, value=current_text,
-                style=wx.TE_PROCESS_ENTER | wx.BORDER_NONE,
-            )
-            tc.SetBackgroundColour(wx.Colour(20, 20, 36))
-            tc.SetForegroundColour(wx.Colour(255, 255, 120))
-            font_tc = tc.GetFont()
-            font_tc.SetPointSize(14)
-            tc.SetFont(font_tc)
-            tc.SetInsertionPointEnd()
-            tc.SelectAll()
+        # Text input
+        tc = wx.TextCtrl(
+            overlay, value=current_text,
+            style=wx.TE_PROCESS_ENTER | wx.BORDER_NONE,
+        )
+        tc.SetBackgroundColour(wx.Colour(20, 20, 36))
+        tc.SetForegroundColour(wx.Colour(255, 255, 120))
+        font_tc = tc.GetFont()
+        font_tc.SetPointSize(14)
+        tc.SetFont(font_tc)
+        tc.SetInsertionPointEnd()
+        tc.SelectAll()
 
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(lbl, 0, wx.LEFT | wx.TOP, 4)
-            sizer.Add(tc, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 4)
-            overlay.SetSizer(sizer)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(lbl, 0, wx.LEFT | wx.TOP, 4)
+        sizer.Add(tc, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 4)
+        overlay.SetSizer(sizer)
 
-            def on_commit(evt):
-                wx.CallAfter(self._hide_seed_overlay, cancel=False, text=tc.GetValue())
+        def on_commit(evt):
+            wx.CallAfter(self._hide_seed_overlay, cancel=False, text=tc.GetValue())
 
-            def on_key(evt):
-                if evt.GetKeyCode() == wx.WXK_ESCAPE:
-                    wx.CallAfter(self._hide_seed_overlay, cancel=True)
-                else:
-                    evt.Skip()
+        def on_key(evt):
+            if evt.GetKeyCode() == wx.WXK_ESCAPE:
+                wx.CallAfter(self._hide_seed_overlay, cancel=True)
+            else:
+                evt.Skip()
 
-            tc.Bind(wx.EVT_TEXT_ENTER, on_commit)
-            tc.Bind(wx.EVT_KEY_DOWN, on_key)
-            overlay.Bind(wx.EVT_CLOSE, lambda e: self._hide_seed_overlay(cancel=True))
+        tc.Bind(wx.EVT_TEXT_ENTER, on_commit)
+        tc.Bind(wx.EVT_KEY_DOWN, on_key)
+        overlay.Bind(wx.EVT_CLOSE, lambda e: self._hide_seed_overlay(cancel=True))
 
-            self._seed_overlay = overlay
-            overlay.Show()
-            tc.SetFocus()
-        else:
-            self._seed_overlay.SetPosition((screen_x, screen_y))
-            self._seed_overlay.SetSize(sw, sh)
-            self._seed_overlay.Show()
-            self._seed_overlay.Raise()
+        self._seed_overlay = overlay
+        overlay.Show()
+        tc.SetFocus()
 
     def _hide_seed_overlay(self, cancel=False, text=None):
         """Hide the overlay and optionally commit the typed sentence."""
-        try:
-            if self._seed_overlay is not None:
-                self._seed_overlay.Hide()
-        except Exception:
-            pass
+        overlay = self._seed_overlay
         self._seed_overlay = None
+        if overlay is not None:
+            try:
+                # Destroy (not just Hide) so the STAY_ON_TOP Cocoa window is
+                # fully removed from the macOS responder chain.  A merely
+                # hidden frame keeps intercepting keystrokes and causes
+                # double-character input in other text fields.
+                overlay.Destroy()
+            except Exception:
+                pass
 
         if not cancel and text is not None:
             valid_chars = set(gematria_table.keys())
