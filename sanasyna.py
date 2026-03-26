@@ -38,6 +38,7 @@ _rhythm_modulation = {
     "additive_weight": 0.0,
     "divisive_signature": (4, 4),
     "divisive_weight": 0.0,
+    "rhythm_gain": 1.0,
 }
 _compressor_config = {
     "enabled": False,
@@ -119,6 +120,9 @@ def set_rhythm_modulators(config):
     divisive_weight = float(config.get("divisive_weight", _rhythm_modulation.get("divisive_weight", 0.0)))
     divisive_weight = min(1.0, max(0.0, divisive_weight))
 
+    rhythm_gain = float(config.get("rhythm_gain", _rhythm_modulation.get("rhythm_gain", 1.0)))
+    rhythm_gain = max(0.0, rhythm_gain)
+
     with _state_lock:
         _rhythm_modulation = {
             "bpm": bpm,
@@ -126,6 +130,7 @@ def set_rhythm_modulators(config):
             "additive_weight": additive_weight,
             "divisive_signature": (num, den),
             "divisive_weight": divisive_weight,
+            "rhythm_gain": rhythm_gain,
         }
 
 
@@ -525,6 +530,7 @@ def _audio_callback(outdata, frames, timing_info, status):
 
     rhythm_gain, rhythm_last_gain = _rhythm_modulation_gain_with_cfg(rhythm_start, frames, rhythm_cfg, rhythm_prev)
     chunk = chunk * rhythm_gain
+    chunk = chunk * float(rhythm_cfg.get("rhythm_gain", 1.0))
     chunk, compressor_last_gain = _compress_chunk_with_state(chunk, compressor_cfg, compressor_prev)
 
     # Speech overlay is sensitive to nonlinear mix distortion; slightly duck

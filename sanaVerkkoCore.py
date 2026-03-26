@@ -305,6 +305,7 @@ class SanaVerkkoKontrolleri:
         self.params["additive_rhythm_weight"] = 0.0
         self.params["divisive_rhythm_signature"] = "4/4"
         self.params["divisive_rhythm_weight"] = 0.0
+        self.params["rhythm_gain"] = 1.0
         self.params["strict_counterpoint"] = True
         self.params["melody_coherence"] = 0.65
         self.params["melody_speed"] = 1.0
@@ -616,6 +617,10 @@ class SanaVerkkoKontrolleri:
         self.rhythm_radicality_ctrl = wx.TextCtrl(panel, -1, str(self.params["rhythm_radicality"]), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.rhythm_radicality_ctrl, self.OnRhythmRadicality)
 
+        self.rhythm_gain_label = wx.StaticText(panel, -1, "Rhythm gain")
+        self.rhythm_gain_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("rhythm_gain", 1.0)), style=wx.TE_PROCESS_ENTER)
+        self._bindNumericCtrl(self.rhythm_gain_ctrl, self.OnRhythmGain)
+
         self.rhythm_mod_bpm_label = wx.StaticText(panel, -1, "Rhythm modulation BPM")
         self.rhythm_mod_bpm_ctrl = wx.TextCtrl(panel, -1, str(self.params.get("rhythm_mod_bpm", 108.0)), style=wx.TE_PROCESS_ENTER)
         self._bindNumericCtrl(self.rhythm_mod_bpm_ctrl, self.OnRhythmModBPM)
@@ -802,6 +807,8 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.rhythm_rotation_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.rhythm_radicality_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhythm_radicality_ctrl, 0, wx.ALL, 5)
+        self.sizer.Add(self.rhythm_gain_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.sizer.Add(self.rhythm_gain_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.rhythm_mod_bpm_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.rhythm_mod_bpm_ctrl, 0, wx.ALL, 5)
         self.sizer.Add(self.additive_editor_button, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -1804,6 +1811,10 @@ class SanaVerkkoKontrolleri:
                 self._suppress_param_events = False
         self.last_audio_sentence_signature = None
 
+    def OnRhythmGain(self, event):
+        self._commit_float_param(self.rhythm_gain_ctrl, "rhythm_gain", minimum=0.0)
+        self._apply_rhythm_modulation_state()
+
     def OnRhythmModBPM(self, event):
         self._commit_float_param(self.rhythm_mod_bpm_ctrl, "rhythm_mod_bpm", minimum=0.01, maximum=300.0)
         self._sync_process_interval_from_bpm()
@@ -2321,6 +2332,7 @@ class SanaVerkkoKontrolleri:
             "additive_weight": float(self.params.get("additive_rhythm_weight", 0.0)),
             "divisive_signature": signature,
             "divisive_weight": float(self.params.get("divisive_rhythm_weight", 0.0)),
+            "rhythm_gain": float(self.params.get("rhythm_gain", 1.0)),
         }
         try:
             sanasyna.set_rhythm_modulators(payload)
@@ -3637,6 +3649,7 @@ class SanaVerkkoKontrolleri:
             divisive_signature = "4/4"
         self.params["divisive_rhythm_signature"] = divisive_signature
         self.params["divisive_rhythm_weight"] = min(1.0, max(0.0, float(self.params.get("divisive_rhythm_weight", 0.0))))
+        self.params["rhythm_gain"] = max(0.0, float(self.params.get("rhythm_gain", 1.0)))
         self.params["melody_coherence"] = min(1.0, max(0.0, float(self.params.get("melody_coherence", 0.65))))
         self.params["melody_speed"] = min(6.0, max(0.2, float(self.params.get("melody_speed", 1.0))))
         self.params["min_note_duration"] = min(1.0, max(0.01, float(self.params.get("min_note_duration", 0.03))))
@@ -3721,6 +3734,7 @@ class SanaVerkkoKontrolleri:
             self._setCtrlValueSilently(self.rhythm_stretch_strength_ctrl, self.params["rhythm_stretch_strength"])
             self._setCtrlValueSilently(self.rhythm_rotation_ctrl, self.params["rhythm_rotation"])
             self._setCtrlValueSilently(self.rhythm_radicality_ctrl, self.params["rhythm_radicality"])
+            self._setCtrlValueSilently(self.rhythm_gain_ctrl, self.params.get("rhythm_gain", 1.0))
             self._setCtrlValueSilently(self.rhythm_mod_bpm_ctrl, self.params.get("rhythm_mod_bpm", 108.0))
             self.divisive_signature_choice.SetStringSelection(self._divisive_signature_label_from_key(self.params.get("divisive_rhythm_signature", "4/4")))
             add_weight_pct = int(min(100, max(0, round(self.params.get("additive_rhythm_weight", 0.0) * 100))))
