@@ -490,8 +490,8 @@ class SanaVerkkoKontrolleri:
         # List of word strings currently being edited (the "draft")
         self._seed_draft = []          # list of str, words in order
         self._seed_cursor = 0          # index of currently selected word (0 = before first)
-        self._seed_active = False      # True when the editor has keyboard focus
-        self._seed_typing = ""         # characters typed so far for a new word
+        self._seed_active = False      # True when the wx overlay is visible
+        self._seed_typing = ""         # not used for input; kept for draw compat
         self._seed_font_cache = {}     # size -> pygame.Font
         # Rendered sentence shown to audience (set on Enter, never cleared)
         self._seed_display_sentence = ""
@@ -502,6 +502,8 @@ class SanaVerkkoKontrolleri:
         self._seed_bg_surface = None   # pre-allocated background surface
         self._seed_bg_size = (0, 0)    # invalidate when window resizes
         self._seed_chip_surfs = {}     # (word_str, is_selected) -> (main_surf, gem_surf)
+        # wx overlay for seed text input (created lazily)
+        self._seed_overlay = None      # wx.Frame overlay
 
         self.initPygame()
         self.initAudio()
@@ -2219,6 +2221,34 @@ class SanaVerkkoKontrolleri:
         except Exception:
             self._pygame_window = None
         return self._pygame_window
+
+    def _focus_pygame_window(self):
+        """Raise and focus the pygame window so macOS routes keypresses to it."""
+        try:
+            win = self._get_display_window()
+            if win is not None:
+                try:
+                    win.focus()
+                except Exception:
+                    pass
+                try:
+                    # Raise window to front (SDL2 >= 2.0.5)
+                    win.flash(pygame._sdl2.video.FLASH_BRIEFLY)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        # macOS: activate the process so the SDL window receives keystrokes
+        try:
+            import subprocess
+            subprocess.run(
+                ["osascript", "-e",
+                 'tell application "System Events" to set frontmost of '
+                 'first process whose unix id is ' + str(__import__("os").getpid()) + ' to true'],
+                capture_output=True, timeout=1
+            )
+        except Exception:
+            pass
 
     def _is_effective_fullscreen(self):
         if bool(self.params.get("fullscreen", False)):
@@ -4304,7 +4334,7 @@ class SanaVerkkoKontrolleri:
         seen_states = set()
 
         for _ in range(max_iterations):
-            # Yield to the main thread if the audience is typing a seed sentence.
+            # Exit early if the audience is editing the seed sentence.
             if self._seed_active:
                 break
             sentence_state = tuple(word.word for word in self.words)
@@ -4314,6 +4344,9 @@ class SanaVerkkoKontrolleri:
 
             changed_this_round = False
             for word in self.words:
+                # Yield the GIL between every word-change so the main thread
+                # can process seed-editor keystrokes without long waits.
+                time.sleep(0)
                 if word.neuron.activation < -threshold or word.neuron.activation > threshold:
                     if self.changeWord(word, self.referenceWords):
                         changed_this_round = True
@@ -4657,15 +4690,14 @@ class SanaVerkkoKontrolleri:
             self._seed_bg_surface = pygame.Surface((sw, sh))
             self._seed_bg_surface.fill((12, 12, 22))
             self._seed_bg_size = (sw, sh)
-            self._seed_chip_surfs.clear()  # chip sizes may have changed
+            self._seed_chip_surfs.clear()
         screen.blit(self._seed_bg_surface, (sx, sy))
 
         font = self._seed_font()
         font_sm = self._seed_font(12)
 
-        # Title / instruction hint (only re-render when active state changes)
         if font_sm:
-            hint = "SEED  [click · ← → navigate · Space=add · Backspace=del · Enter=commit]" if self._seed_active else "SEED  [click or type to edit]"
+            hint = "SEED  [click to enter words]"
             hint_surf = font_sm.render(hint, True, (100, 120, 160))
             screen.blit(hint_surf, (sx + 6, sy + 3))
 
@@ -4674,72 +4706,53 @@ class SanaVerkkoKontrolleri:
         y_word = sy + 20
         chip_h = sh - 26
         pad = 6
-        word_rects = []   # list of (word_idx, pygame.Rect) for hit testing
 
         for idx, word_str in enumerate(self._seed_draft):
             col = self._seed_gem_color(word_str)
             g_val = sum(gematria_table.get(c, 0) for c in word_str.lower())
-
-            # Width proportional to gematria, clamped
             frac = min(1.0, g_val / self._seed_gem_max) if self._seed_gem_max > 0 else 0.5
             chip_w = max(40, int(30 + frac * 90))
-
-            is_selected = self._seed_active and (idx == self._seed_cursor)
             bg_col = tuple(max(0, c - 120) for c in col)
 
-            if is_selected:
-                pygame.draw.rect(screen, col, (x, y_word, chip_w, chip_h), border_radius=4)
-                text_col = (0, 0, 0)
-            else:
-                pygame.draw.rect(screen, bg_col, (x, y_word, chip_w, chip_h), border_radius=4)
-                pygame.draw.rect(screen, col, (x, y_word, chip_w, chip_h), 1, border_radius=4)
-                text_col = col
+            pygame.draw.rect(screen, bg_col, (x, y_word, chip_w, chip_h), border_radius=4)
+            pygame.draw.rect(screen, col, (x, y_word, chip_w, chip_h), 1, border_radius=4)
 
-            # Chip text — cached per (word_str, is_selected) to avoid re-rendering every frame
-            cache_key = (word_str, is_selected)
+            cache_key = (word_str, False)
             if cache_key not in self._seed_chip_surfs and font:
                 try:
-                    ws = font.render(word_str[:8], True, text_col)
-                    gs = font_sm.render(str(g_val), True, (50, 50, 50) if is_selected else (180, 180, 200)) if font_sm else None
+                    ws = font.render(word_str[:8], True, col)
+                    gs = font_sm.render(str(g_val), True, (180, 180, 200)) if font_sm else None
                     self._seed_chip_surfs[cache_key] = (ws, gs)
                 except Exception:
                     self._seed_chip_surfs[cache_key] = (None, None)
 
-            cached = self._seed_chip_surfs.get(cache_key, (None, None))
-            ws, gs = cached
+            ws, gs = self._seed_chip_surfs.get(cache_key, (None, None))
             if ws:
                 screen.blit(ws, (x + pad, y_word + (chip_h - ws.get_height()) // 2))
             if gs:
                 screen.blit(gs, (x + pad, y_word + chip_h - gs.get_height() - 1))
 
-            word_rects.append((idx, pygame.Rect(x, y_word, chip_w, chip_h)))
             x += chip_w + 4
-
             if x > sx + sw - 60:
                 break
 
-        self._seed_word_rects = word_rects
-
-        # Typing buffer shown after last chip.
-        # Clamp x so the buffer is always visible even if chips fill the bar.
-        buf_x = min(x, sx + sw - 160)
-        if self._seed_active and self._seed_typing:
-            if font:
-                try:
-                    ts = font.render(self._seed_typing + "_", True, (255, 255, 120))
-                    screen.blit(ts, (buf_x + 4, y_word + (chip_h - ts.get_height()) // 2))
-                except Exception:
-                    pass
-        elif self._seed_active and not self._seed_typing:
-            pygame.draw.line(screen, (255, 255, 120), (buf_x + 2, y_word + 4), (buf_x + 2, y_word + chip_h - 4), 2)
+        # When the wx overlay is active, dim the bar slightly so the overlay stands out
+        if self._seed_active:
+            dim = pygame.Surface((sw, sh), pygame.SRCALPHA)
+            dim.fill((0, 0, 0, 80))
+            screen.blit(dim, (sx, sy))
 
         # Separator line at top of bar
         pygame.draw.line(screen, (40, 40, 70), (sx, sy), (sx + sw, sy), 1)
 
     def _handle_seed_events(self, events):
-        """Consume seed-editor events; return remaining."""
+        """Consume seed-editor events; return remaining.
+
+        Keyboard input is handled by a borderless wx overlay panel positioned
+        exactly over the pygame seed bar.  This avoids all macOS keyboard-focus
+        issues entirely — wx always wins the focus race, so we lean into it.
+        """
         remaining = []
-        valid_chars = set(gematria_table.keys())
 
         for event in events:
             consumed = False
@@ -4748,88 +4761,128 @@ class SanaVerkkoKontrolleri:
                 sx, sy, sw, sh = self._seed_bar_rect()
                 mx, my = event.pos
                 if sx <= mx < sx + sw and sy <= my < sy + sh:
-                    self._seed_active = True
-                    # Check if click landed on a word chip
-                    for word_idx, rect in getattr(self, "_seed_word_rects", []):
-                        if rect.collidepoint(mx, my):
-                            self._seed_cursor = word_idx
-                            self._seed_typing = ""
-                            break
+                    if not self._seed_active:
+                        wx.CallAfter(self._show_seed_overlay)
                     consumed = True
-                else:
-                    # Click outside deactivates
-                    self._seed_active = False
-                    self._seed_typing = ""
-
-            elif event.type == pygame.KEYDOWN and not self._seed_active:
-                # Auto-activate: any valid gematria letter wakes the editor
-                ch = event.unicode.lower() if event.unicode else ""
-                if ch and ch in valid_chars:
-                    self._seed_active = True
-                    self._seed_typing = ch
-                    self._seed_chip_surfs.clear()
-                    consumed = True
-
-            elif event.type == pygame.KEYDOWN and self._seed_active:
-                consumed = True
-
-                if event.key == pygame.K_ESCAPE:
-                    self._seed_active = False
-                    self._seed_typing = ""
-
-                elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                    # Commit any pending typed word first
-                    if self._seed_typing.strip():
-                        self._seed_draft.insert(self._seed_cursor, self._seed_typing.strip())
-                        self._seed_cursor = min(len(self._seed_draft) - 1, self._seed_cursor + 1)
-                        self._seed_typing = ""
-                        self._seed_recompute_gem_max()
-                    try:
-                        self._commit_seed_sentence()
-                    except Exception as _e:
-                        print(f"Seed commit error: {_e}")
-                    finally:
-                        self._seed_active = False
-
-                elif event.key == pygame.K_SPACE:
-                    # Finalise current typing buffer as a new word
-                    typed = self._seed_typing.strip()
-                    if typed and all(c in valid_chars for c in typed):
-                        self._seed_draft.insert(self._seed_cursor, typed)
-                        self._seed_cursor = min(len(self._seed_draft), self._seed_cursor + 1)
-                        self._seed_recompute_gem_max()
-                    self._seed_typing = ""
-                    self._seed_chip_surfs.clear()
-
-                elif event.key == pygame.K_BACKSPACE:
-                    if self._seed_typing:
-                        self._seed_typing = self._seed_typing[:-1]
-                    elif self._seed_draft and 0 <= self._seed_cursor < len(self._seed_draft):
-                        self._seed_draft.pop(self._seed_cursor)
-                        self._seed_cursor = max(0, min(self._seed_cursor, len(self._seed_draft) - 1))
-                        self._seed_recompute_gem_max()
-                    self._seed_chip_surfs.clear()
-
-                elif event.key == pygame.K_LEFT:
-                    self._seed_typing = ""
-                    self._seed_cursor = max(0, self._seed_cursor - 1)
-                    self._seed_chip_surfs.clear()
-
-                elif event.key == pygame.K_RIGHT:
-                    self._seed_typing = ""
-                    self._seed_cursor = min(max(0, len(self._seed_draft) - 1), self._seed_cursor + 1)
-                    self._seed_chip_surfs.clear()
-
-                else:
-                    # Accumulate typed character
-                    ch = event.unicode.lower() if event.unicode else ""
-                    if ch and ch in valid_chars:
-                        self._seed_typing += ch
+                elif self._seed_active:
+                    wx.CallAfter(self._hide_seed_overlay, cancel=True)
 
             if not consumed:
                 remaining.append(event)
 
         return remaining
+
+    def _seed_overlay_screen_rect(self):
+        """Return the screen-space (x, y, w, h) of the pygame seed bar."""
+        sx, sy, sw, sh = self._seed_bar_rect()
+        # Get pygame window position on screen
+        win_x, win_y = 0, 0
+        try:
+            win = self._get_display_window()
+            if win is not None:
+                pos = win.position
+                win_x, win_y = int(pos[0]), int(pos[1])
+        except Exception:
+            pass
+        return win_x + sx, win_y + sy, sw, sh
+
+    def _show_seed_overlay(self):
+        """Create (or reuse) the wx seed-input overlay and show it."""
+        if self._seed_active:
+            return
+        self._seed_active = True
+
+        screen_x, screen_y, sw, sh = self._seed_overlay_screen_rect()
+        current_text = " ".join(self._seed_draft)
+
+        if self._seed_overlay is None or not self._seed_overlay.IsShown():
+            # Build overlay frame
+            overlay = wx.Frame(
+                None,
+                style=wx.FRAME_NO_TASKBAR | wx.NO_BORDER | wx.STAY_ON_TOP,
+            )
+            overlay.SetBackgroundColour(wx.Colour(12, 12, 22))
+            overlay.SetSize(sw, sh)
+            overlay.SetPosition((screen_x, screen_y))
+
+            # Instruction label
+            lbl = wx.StaticText(overlay, label="SEED  (Space=word · Enter=commit · Esc=cancel)")
+            lbl.SetForegroundColour(wx.Colour(100, 120, 160))
+            lbl.SetBackgroundColour(wx.Colour(12, 12, 22))
+            font_sm = lbl.GetFont()
+            font_sm.SetPointSize(9)
+            lbl.SetFont(font_sm)
+
+            # Text input
+            tc = wx.TextCtrl(
+                overlay, value=current_text,
+                style=wx.TE_PROCESS_ENTER | wx.BORDER_NONE,
+            )
+            tc.SetBackgroundColour(wx.Colour(20, 20, 36))
+            tc.SetForegroundColour(wx.Colour(255, 255, 120))
+            font_tc = tc.GetFont()
+            font_tc.SetPointSize(14)
+            tc.SetFont(font_tc)
+            tc.SetInsertionPointEnd()
+            tc.SelectAll()
+
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(lbl, 0, wx.LEFT | wx.TOP, 4)
+            sizer.Add(tc, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 4)
+            overlay.SetSizer(sizer)
+
+            def on_commit(evt):
+                wx.CallAfter(self._hide_seed_overlay, cancel=False, text=tc.GetValue())
+
+            def on_key(evt):
+                if evt.GetKeyCode() == wx.WXK_ESCAPE:
+                    wx.CallAfter(self._hide_seed_overlay, cancel=True)
+                else:
+                    evt.Skip()
+
+            tc.Bind(wx.EVT_TEXT_ENTER, on_commit)
+            tc.Bind(wx.EVT_KEY_DOWN, on_key)
+            overlay.Bind(wx.EVT_CLOSE, lambda e: self._hide_seed_overlay(cancel=True))
+
+            self._seed_overlay = overlay
+            overlay.Show()
+            tc.SetFocus()
+        else:
+            self._seed_overlay.SetPosition((screen_x, screen_y))
+            self._seed_overlay.SetSize(sw, sh)
+            self._seed_overlay.Show()
+            self._seed_overlay.Raise()
+
+    def _hide_seed_overlay(self, cancel=False, text=None):
+        """Hide the overlay and optionally commit the typed sentence."""
+        try:
+            if self._seed_overlay is not None:
+                self._seed_overlay.Hide()
+        except Exception:
+            pass
+        self._seed_overlay = None
+
+        if not cancel and text is not None:
+            valid_chars = set(gematria_table.keys())
+            raw = text.strip().lower()
+            words = [
+                w for w in raw.split()
+                if w and all(c in valid_chars for c in w)
+            ]
+            if words:
+                self._seed_draft = words
+                self._seed_recompute_gem_max()
+                self._seed_chip_surfs.clear()
+                try:
+                    self._commit_seed_sentence()
+                except Exception as _e:
+                    print(f"Seed commit error: {_e}")
+
+        self._seed_active = False
+
+    def _open_seed_dialog(self):
+        """Alias kept for compatibility."""
+        self._show_seed_overlay()
 
     def _commit_seed_sentence(self):
         """Apply the current seed draft to the algorithm (replace live words)."""
@@ -4870,6 +4923,11 @@ class SanaVerkkoKontrolleri:
         # play-once mode) until the crossfade mechanism swaps in the new buffer.
         self.last_audio_sentence_signature = None
 
+        # Delay the next logic tick by a full process_interval so the algorithm
+        # doesn't immediately burst-compute right after commit (which would
+        # stall the event loop and make re-activation feel dead).
+        self.last_process_time = time.time()
+
         # Reset draft so the bar is empty for the next editing session.
         # (The committed sentence remains visible via _seed_display_sentence.)
         self._seed_draft = []
@@ -4881,8 +4939,15 @@ class SanaVerkkoKontrolleri:
     def simulationStep(self):
         now = time.time()
 
+        # Guard against the wx timer firing after pygame has already shut down.
+        if not pygame.get_init() or not pygame.display.get_init():
+            return
+
         # ── Events and rendering run EVERY call (target 60 fps) ──────────────
-        raw_events = pygame.event.get()
+        try:
+            raw_events = pygame.event.get()
+        except pygame.error:
+            return  # event system shut down between the guard check and here
 
         # Handle system-level shortcuts first so they are never consumed by
         # subsystems (pot handler, seed editor).
@@ -4968,10 +5033,11 @@ class SanaVerkkoKontrolleri:
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
         if now - self.last_process_time < self.params["process_interval"]:
             return
-        # While the seed editor is active, hold off simulation so the main
-        # thread stays responsive for keystrokes.  Don't update last_process_time
-        # so simulation resumes immediately after the user commits/cancels.
+        # While the seed editor is active, keep resetting last_process_time so
+        # logic doesn't burst the moment the user closes the editor (which would
+        # hold the GIL and make the second seed entry appear dead).
         if self._seed_active:
+            self.last_process_time = now
             return
         self.last_process_time = now
         self._update_logic_worker_status_label()
