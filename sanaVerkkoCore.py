@@ -4940,6 +4940,10 @@ class SanaVerkkoKontrolleri:
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
         if now - self.last_process_time < self.params["process_interval"]:
             return
+        # Pause simulation while the seed editor has focus so the main thread
+        # stays fully available for responsive input.
+        if self._seed_active:
+            return
         self.last_process_time = now
         self._update_logic_worker_status_label()
 
