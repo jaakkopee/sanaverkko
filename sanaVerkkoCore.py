@@ -56,6 +56,76 @@ MONOSPACE_FONT_CANDIDATES = [
 _pygame_mono_font_cache = {}
 
 
+# ---------------------------------------------------------------------------
+# Audience Potentiometer parameter table
+# Each entry: (param_key, low_val, high_val, label)
+# The pot value 0..127 maps linearly:  normal  → low_val at 0, high_val at 127
+#                                       inverted → high_val at 0, low_val at 127
+# Indices 0-127 (128 pots total).  Entries beyond the unique params repeat
+# sensible choices so all 128 knobs always do something.
+# ---------------------------------------------------------------------------
+def _make_audience_params():
+    base = [
+        # idx 0-7: Word-network dynamics
+        ("activation_increase",   0.0001, 0.05,   "Activation speed"),
+        ("activation_limit",      0.5,    4.0,    "Activation limit"),
+        ("word_change_threshold", 0.1,    1.5,    "Word change threshold"),
+        ("learning_rate",         0.001,  0.5,    "Learning rate"),
+        ("error",                 0.0,    1.0,    "Backprop error"),
+        ("target",                -1.0,   1.0,    "Backprop target"),
+        ("sigmoid_scale",         0.5,    8.0,    "Sigmoid scale"),
+        ("selection_exploration", 0.0,    1.0,    "Selection exploration"),
+        # idx 8-15: Word selection
+        ("selection_top_k",       1,      20,     "Top-k candidates"),
+        ("jump_probability",      0.0,    0.5,    "Jump probability"),
+        ("jump_radius",           20,     400,    "Jump radius"),
+        ("rhyme_weight",          0.0,    1.0,    "Rhyme weight"),
+        ("rhyme_min_similarity",  0.0,    1.0,    "Rhyme min similarity"),
+        ("rhyme_tail_bias",       0.0,    1.0,    "Rhyme tail bias"),
+        ("ltm_weight",            0.0,    1.0,    "LTM weight"),
+        ("process_interval",      0.03,   2.0,    "Process interval"),
+        # idx 16-23: Audio / synthesis
+        ("synth_volume",          0.0,    2.0,    "Synth volume"),
+        ("piper_volume",          0.0,    1.0,    "TTS volume"),
+        ("melody_coherence",      0.0,    1.0,    "Melody coherence"),
+        ("melody_speed",          0.1,    4.0,    "Melody speed"),
+        ("min_note_duration",     0.01,   0.5,    "Min note duration"),
+        ("voice_spread",          0.0,    2.0,    "Voice spread"),
+        ("voice_distance",        0.0,    1.0,    "Voice distance"),
+        ("rhythmic_divergence",   0.0,    1.0,    "Rhythmic divergence"),
+        # idx 24-31: Rhythm modulation
+        ("rhythm_gate_strength",  0.0,    1.0,    "Rhythm gate strength"),
+        ("rhythm_stretch_strength",0.0,   2.0,    "Rhythm stretch"),
+        ("rhythm_rotation",       0,      31,     "Rhythm rotation"),
+        ("rhythm_radicality",     0.0,    1.0,    "Rhythm radicality"),
+        ("rhythm_gain",           0.0,    4.0,    "Rhythm gain"),
+        ("rhythm_onset_snap",     0.0,    1.0,    "Onset snap"),
+        ("rhythm_mod_bpm",        30.0,   300.0,  "Rhythm BPM"),
+        ("additive_rhythm_weight",0.0,    1.0,    "Additive rhythm weight"),
+        # idx 32-39: Compressor / ADSR
+        ("divisive_rhythm_weight",0.0,    1.0,    "Divisive rhythm weight"),
+        ("compressor_threshold_db",-60.0, 0.0,   "Compressor threshold"),
+        ("compressor_ratio",      1.0,    20.0,   "Compressor ratio"),
+        ("compressor_makeup_db",  0.0,    24.0,   "Compressor makeup"),
+        ("adsr_attack",           0.001,  2.0,    "ADSR attack"),
+        ("adsr_decay",            0.001,  2.0,    "ADSR decay"),
+        ("adsr_sustain",          0.0,    1.0,    "ADSR sustain"),
+        ("adsr_release",          0.001,  2.0,    "ADSR release"),
+        # idx 40-47: Visual / display
+        ("zoom",                  0.01,   1.0,    "Zoom"),
+        ("voice_count",           1,      4,      "Voice count"),
+        ("voice_distance_context",1,      16,     "Voice distance context"),
+        ("logic_iteration_limit", 4,      128,    "Logic iteration limit"),
+        # Fill remaining pots 44-127 by cycling through the base list
+    ]
+    # Pad to 128 by repeating the cycle
+    result = list(base)
+    while len(result) < 128:
+        result.append(base[len(result) % len(base)])
+    return result[:128]
+
+AUDIENCE_PARAMS = _make_audience_params()
+
 
 gematria_table = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10, "k": 20, "l": 30, "m": 40, "n": 50, "o": 60, "p": 70, "q": 80, "r": 90, "s": 100, "t": 200, "u": 300, "v": 400, "w": 500, "x": 600, "y": 700, "z": 800, "å": 900, "ä": 1000, "ö": 1100}
 
@@ -391,6 +461,24 @@ class SanaVerkkoKontrolleri:
         self.additive_timeline_preview = None
         self.fullscreen_checkbox = None
 
+        # Audience potentiometers (128 knobs)
+        # pot_values[i] = int 0..127
+        self.pot_values = [64] * 128
+        # exposed[i] = True means this pot is shown in pygame window and affects params
+        self.pot_exposed = [False] * 128
+        # inverted[i] = True means 0→high, 127→low
+        self.pot_inverted = [False] * 128
+        # Interaction state
+        self._pot_dragging = None        # index being dragged
+        self._pot_drag_start_y = 0
+        self._pot_drag_start_val = 0
+        self._pot_scroll_offset = 0      # horizontal scroll (in pot units)
+        self._pot_scroll_drag = False
+        self._pot_scroll_drag_start_x = 0
+        self._pot_scroll_drag_offset = 0
+        # Audience parameters wx frame
+        self.audience_frame = None
+
         self.initPygame()
         self.initAudio()
         self.initWords()
@@ -701,6 +789,9 @@ class SanaVerkkoKontrolleri:
         self.preset_load_button.Bind(wx.EVT_BUTTON, self.OnLoadPreset)
         self.preset_status = wx.StaticText(panel, -1, "")
 
+        self.audience_params_button = wx.Button(panel, -1, "Audience Parameters...")
+        self.audience_params_button.Bind(wx.EVT_BUTTON, self.OnOpenAudienceParams)
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.set_weight_by_gematria_checkbox, 0, wx.ALL, 5)
         self.sizer.Add(self.use_pos_matching_checkbox, 0, wx.ALL, 5)
@@ -867,6 +958,7 @@ class SanaVerkkoKontrolleri:
         self.sizer.Add(self.preset_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(preset_row, 0, wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.sizer.Add(self.preset_status, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
+        self.sizer.Add(self.audience_params_button, 0, wx.ALL, 5)
 
         self._applyMonospaceToWindow(panel)
         panel.SetSizer(self.sizer)
@@ -2075,6 +2167,15 @@ class SanaVerkkoKontrolleri:
             self.additive_sequence_scroll = None
             self.additive_sequence_sizer = None
             self.additive_timeline_preview = None
+        if self.audience_frame is not None:
+            try:
+                if hasattr(self, "_aud_refresh_timer") and self._aud_refresh_timer is not None:
+                    self._aud_refresh_timer.Stop()
+                    self._aud_refresh_timer = None
+                self.audience_frame.Destroy()
+            except Exception:
+                pass
+            self.audience_frame = None
         if self.frame is not None:
             self.frame.Destroy()
         if self.app is not None and self.app.IsMainLoopRunning():
@@ -3816,6 +3917,119 @@ class SanaVerkkoKontrolleri:
         except Exception as error:
             self.preset_status.SetLabel(f"Preset save failed: {error}")
 
+    def OnOpenAudienceParams(self, event):
+        """Open (or raise) the Audience Parameters configuration window."""
+        if self.audience_frame is not None:
+            try:
+                self.audience_frame.Raise()
+                return
+            except Exception:
+                self.audience_frame = None
+
+        frm = wx.Frame(self.frame, title="Audience Parameters", size=(680, 780))
+        frm.Bind(wx.EVT_CLOSE, lambda e: self._on_audience_frame_close(e))
+        self.audience_frame = frm
+
+        panel = wx.ScrolledWindow(frm, style=wx.VSCROLL)
+        panel.SetScrollRate(0, 12)
+
+        outer_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        header_font = wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+
+        # Column headers
+        hdr = wx.BoxSizer(wx.HORIZONTAL)
+        for txt, w in [("Exp", 40), ("Pot #", 44), ("Parameter", 220), ("Range", 100), ("Direction", 130), ("Value", 60)]:
+            lbl = wx.StaticText(panel, -1, txt, size=(w, -1))
+            lbl.SetFont(header_font)
+            hdr.Add(lbl, 0, wx.LEFT, 3)
+        outer_sizer.Add(hdr, 0, wx.EXPAND | wx.LEFT | wx.TOP | wx.RIGHT, 6)
+        outer_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 6)
+
+        self._aud_rows = []  # list of (exposed_cb, dir_radio_norm, dir_radio_inv, val_label) per pot
+
+        for idx in range(128):
+            param_key, lo, hi, label = AUDIENCE_PARAMS[idx]
+            row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+            # Exposed checkbox
+            exp_cb = wx.CheckBox(panel, -1, "", size=(40, -1))
+            exp_cb.SetValue(self.pot_exposed[idx])
+            def _on_exp(e, i=idx, cb=exp_cb):
+                self.pot_exposed[i] = cb.GetValue()
+            exp_cb.Bind(wx.EVT_CHECKBOX, _on_exp)
+            row_sizer.Add(exp_cb, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 3)
+
+            # Pot number
+            num_lbl = wx.StaticText(panel, -1, f"{idx:3d}", size=(44, -1))
+            row_sizer.Add(num_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 2)
+
+            # Parameter label
+            param_lbl = wx.StaticText(panel, -1, label, size=(220, -1))
+            row_sizer.Add(param_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 2)
+
+            # Range
+            if isinstance(lo, int) and isinstance(hi, int):
+                range_str = f"{lo}–{hi}"
+            else:
+                range_str = f"{lo:.3g}–{hi:.3g}"
+            range_lbl = wx.StaticText(panel, -1, range_str, size=(100, -1))
+            row_sizer.Add(range_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 2)
+
+            # Direction radio: Normal (0→lo, 127→hi) vs Inverted (0→hi, 127→lo)
+            dir_panel = wx.Panel(panel, -1)
+            dir_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            rb_norm = wx.RadioButton(dir_panel, -1, "Normal", style=wx.RB_GROUP)
+            rb_inv  = wx.RadioButton(dir_panel, -1, "Inverted")
+            rb_norm.SetValue(not self.pot_inverted[idx])
+            rb_inv.SetValue(self.pot_inverted[idx])
+            def _on_norm(e, i=idx, rb=rb_norm):
+                if rb.GetValue():
+                    self.pot_inverted[i] = False
+            def _on_inv(e, i=idx, rb=rb_inv):
+                if rb.GetValue():
+                    self.pot_inverted[i] = True
+            rb_norm.Bind(wx.EVT_RADIOBUTTON, _on_norm)
+            rb_inv.Bind(wx.EVT_RADIOBUTTON, _on_inv)
+            dir_sizer.Add(rb_norm, 0, wx.RIGHT, 4)
+            dir_sizer.Add(rb_inv, 0)
+            dir_panel.SetSizer(dir_sizer)
+            row_sizer.Add(dir_panel, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 4)
+
+            # Current value readout
+            val_lbl = wx.StaticText(panel, -1, str(self.pot_values[idx]), size=(60, -1))
+            row_sizer.Add(val_lbl, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 6)
+
+            outer_sizer.Add(row_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 2)
+            self._aud_rows.append((exp_cb, rb_norm, rb_inv, val_lbl))
+
+        panel.SetSizer(outer_sizer)
+        panel.FitInside()
+
+        # Refresh value labels periodically
+        self._aud_refresh_timer = wx.Timer(frm)
+        frm.Bind(wx.EVT_TIMER, self._on_aud_refresh_timer, self._aud_refresh_timer)
+        self._aud_refresh_timer.Start(200)
+
+        frm.Show()
+
+    def _on_audience_frame_close(self, event):
+        if hasattr(self, "_aud_refresh_timer") and self._aud_refresh_timer is not None:
+            self._aud_refresh_timer.Stop()
+            self._aud_refresh_timer = None
+        self.audience_frame = None
+        event.Skip()
+
+    def _on_aud_refresh_timer(self, event):
+        """Update value readout labels in the audience params window."""
+        if not hasattr(self, "_aud_rows"):
+            return
+        for idx, (exp_cb, rb_norm, rb_inv, val_lbl) in enumerate(self._aud_rows):
+            try:
+                val_lbl.SetLabel(str(self.pot_values[idx]))
+            except Exception:
+                pass
+
     def OnLoadPreset(self, event):
         with wx.FileDialog(
             self.frame,
@@ -4090,6 +4304,219 @@ class SanaVerkkoKontrolleri:
     def writeToFile(self, word):
         self.outfile.write(word + " ")
 
+    # ------------------------------------------------------------------
+    # Audience potentiometer helpers
+    # ------------------------------------------------------------------
+
+    def _pot_exposed_indices(self):
+        """Return list of pot indices that are currently exposed."""
+        return [i for i in range(128) if self.pot_exposed[i]]
+
+    def _pot_value_to_param(self, idx, raw_val):
+        """Convert pot raw value 0-127 to the mapped parameter value."""
+        param_key, lo, hi, _label = AUDIENCE_PARAMS[idx]
+        t = raw_val / 127.0
+        if self.pot_inverted[idx]:
+            t = 1.0 - t
+        val = lo + t * (hi - lo)
+        # Keep integer params as int
+        if isinstance(lo, int) and isinstance(hi, int):
+            val = int(round(val))
+        return param_key, val
+
+    def _apply_pot_values_to_params(self):
+        """Write exposed pot values into self.params each frame."""
+        for idx in self._pot_exposed_indices():
+            param_key, val = self._pot_value_to_param(idx, self.pot_values[idx])
+            if param_key in self.params:
+                self.params[param_key] = val
+
+    # Potentiometer strip geometry constants
+    _POT_H = 80          # height of the pot strip
+    _POT_W = 44          # width per pot slot
+    _POT_R = 14          # knob circle radius
+    _POT_TOP_PAD = 6     # pad above arc area
+
+    def _pot_strip_rect(self):
+        """Return (x, y, w, h) of the pot strip at bottom of screen."""
+        sw, sh = self.size
+        h = self._POT_H
+        return (0, sh - h, sw, h)
+
+    def _visible_pot_range(self):
+        """Return (first_exposed_idx_in_list, count_visible, slot_width, strip_x)."""
+        exposed = self._pot_exposed_indices()
+        if not exposed:
+            return exposed, 0, self._POT_W, 0
+        sw = self.size[0]
+        slot_w = max(20, min(self._POT_W, sw // max(1, len(exposed))))
+        return exposed, slot_w
+
+    def _draw_pot_strip(self, screen):
+        """Draw the potentiometer strip onto the pygame screen."""
+        exposed = self._pot_exposed_indices()
+        if not exposed:
+            return
+
+        sx, sy, sw, sh = self._pot_strip_rect()
+        slot_w, slot_h = self._POT_W, self._POT_H
+
+        # Count how many fit
+        n_visible = max(1, sw // slot_w)
+        offset = max(0, min(self._pot_scroll_offset, max(0, len(exposed) - n_visible)))
+        self._pot_scroll_offset = offset
+        visible = exposed[offset:offset + n_visible]
+
+        # Background
+        bg_surf = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        bg_surf.fill((20, 20, 30, 210))
+        screen.blit(bg_surf, (sx, sy))
+
+        font_small = None
+        if pygame_font is not None:
+            try:
+                fs = 9
+                font_small = _pygame_mono_font_cache.get(("pot", fs))
+                if font_small is None:
+                    font_small = pygame_font.Font(None, fs + 4)
+                    _pygame_mono_font_cache[("pot", fs)] = font_small
+            except Exception:
+                font_small = None
+
+        for slot_i, pot_idx in enumerate(visible):
+            cx = sx + slot_i * slot_w + slot_w // 2
+            cy = sy + self._POT_TOP_PAD + self._POT_R + 4
+
+            raw = self.pot_values[pot_idx]
+            # Arc: -225° to 45° (270° sweep), value sweeps clockwise
+            # pygame angles: 0=right, counter-clockwise positive
+            sweep_deg = 270
+            start_angle_deg = 225  # start at bottom-left (7 o'clock)
+            val_frac = raw / 127.0
+            if self.pot_inverted[pot_idx]:
+                val_frac = 1.0 - val_frac
+            angle_deg = start_angle_deg - val_frac * sweep_deg
+
+            # Draw track arc (dark)
+            r = self._POT_R
+            arc_rect = pygame.Rect(cx - r, cy - r, r * 2, r * 2)
+
+            # Filled indicator line from center
+            angle_rad = math.radians(angle_deg)
+            lx = cx + int((r - 3) * math.cos(angle_rad))
+            ly = cy - int((r - 3) * math.sin(angle_rad))
+
+            # Colour: blue for normal, orange for inverted
+            knob_color = (80, 160, 255) if not self.pot_inverted[pot_idx] else (255, 160, 60)
+            line_color = (220, 240, 255) if not self.pot_inverted[pot_idx] else (255, 220, 120)
+
+            pygame.draw.circle(screen, (45, 45, 60), (cx, cy), r)
+            pygame.draw.circle(screen, knob_color, (cx, cy), r, 2)
+            pygame.draw.line(screen, line_color, (cx, cy), (lx, ly), 2)
+
+            # Value bar background line
+            bx0 = cx - r + 2
+            bx1 = cx + r - 2
+            by = cy + r + 4
+            pygame.draw.line(screen, (50, 50, 70), (bx0, by), (bx1, by), 3)
+            bar_len = int((bx1 - bx0) * raw / 127.0)
+            if bar_len > 0:
+                pygame.draw.line(screen, knob_color, (bx0, by), (bx0 + bar_len, by), 3)
+
+            # Label
+            _, _lo, _hi, label = AUDIENCE_PARAMS[pot_idx]
+            short = label[:7] if len(label) > 7 else label
+            if font_small:
+                try:
+                    surf = font_small.render(short, True, (190, 190, 210))
+                    screen.blit(surf, (cx - surf.get_width() // 2, by + 6))
+                    val_surf = font_small.render(str(raw), True, (220, 220, 160))
+                    screen.blit(val_surf, (cx - val_surf.get_width() // 2, sy + sh - 13))
+                except Exception:
+                    pass
+            else:
+                draw_text_centered(screen, short, 8, (190, 190, 210), cx, by + 10)
+
+        # Scroll hint arrows if more pots than visible
+        if len(exposed) > n_visible:
+            arrow_col = (160, 160, 200)
+            if offset > 0:
+                pygame.draw.polygon(screen, arrow_col, [(sx + 5, sy + sh // 2), (sx + 14, sy + sh // 2 - 7), (sx + 14, sy + sh // 2 + 7)])
+            if offset + n_visible < len(exposed):
+                pygame.draw.polygon(screen, arrow_col, [(sx + sw - 5, sy + sh // 2), (sx + sw - 14, sy + sh // 2 - 7), (sx + sw - 14, sy + sh // 2 + 7)])
+
+    def _pot_hit_test(self, mx, my):
+        """Return pot index in exposed list (local) if (mx,my) is over a knob, else None."""
+        exposed = self._pot_exposed_indices()
+        if not exposed:
+            return None
+        sx, sy, sw, sh = self._pot_strip_rect()
+        if not (sx <= mx < sx + sw and sy <= my < sy + sh):
+            return None
+        slot_w = self._POT_W
+        n_visible = max(1, sw // slot_w)
+        offset = self._pot_scroll_offset
+        visible = exposed[offset:offset + n_visible]
+        slot_i = (mx - sx) // slot_w
+        if 0 <= slot_i < len(visible):
+            return visible[slot_i]
+        return None
+
+    def _handle_pot_events(self, events):
+        """Process pygame events for pot interaction. Removes consumed events."""
+        remaining = []
+        for event in events:
+            consumed = False
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+                hit = self._pot_hit_test(mx, my)
+                if hit is not None:
+                    self._pot_dragging = hit
+                    self._pot_drag_start_y = my
+                    self._pot_drag_start_val = self.pot_values[hit]
+                    consumed = True
+                else:
+                    # Scroll bar drag (click on strip but not on a knob)
+                    sx, sy, sw, sh = self._pot_strip_rect()
+                    if sx <= mx < sx + sw and sy <= my < sy + sh:
+                        self._pot_scroll_drag = True
+                        self._pot_scroll_drag_start_x = mx
+                        self._pot_scroll_drag_offset = self._pot_scroll_offset
+                        consumed = True
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if self._pot_dragging is not None:
+                    self._pot_dragging = None
+                    consumed = True
+                if self._pot_scroll_drag:
+                    self._pot_scroll_drag = False
+                    consumed = True
+            elif event.type == pygame.MOUSEMOTION:
+                if self._pot_dragging is not None:
+                    dy = self._pot_drag_start_y - event.pos[1]
+                    new_val = self._pot_drag_start_val + int(dy * 0.8)
+                    self.pot_values[self._pot_dragging] = max(0, min(127, new_val))
+                    consumed = True
+                elif self._pot_scroll_drag:
+                    dx = event.pos[0] - self._pot_scroll_drag_start_x
+                    exposed = self._pot_exposed_indices()
+                    sw = self.size[0]
+                    slot_w = self._POT_W
+                    n_visible = max(1, sw // slot_w)
+                    delta = -dx // max(1, slot_w)
+                    self._pot_scroll_offset = max(0, min(self._pot_scroll_drag_offset + delta, max(0, len(exposed) - n_visible)))
+                    consumed = True
+            elif event.type == pygame.MOUSEWHEEL:
+                sx, sy, sw, sh = self._pot_strip_rect()
+                mx, my = pygame.mouse.get_pos()
+                if sx <= mx < sx + sw and sy <= my < sy + sh:
+                    exposed = self._pot_exposed_indices()
+                    n_visible = max(1, sw // self._POT_W)
+                    self._pot_scroll_offset = max(0, min(self._pot_scroll_offset - event.y, max(0, len(exposed) - n_visible)))
+                    consumed = True
+            if not consumed:
+                remaining.append(event)
+        return remaining
+
     def simulationStep(self):
         now = time.time()
         melody_from_own_time = bool(self.params.get("melody_from_own_time", True))
@@ -4098,6 +4525,9 @@ class SanaVerkkoKontrolleri:
         self.last_process_time = now
         self._update_logic_worker_status_label()
 
+        # Apply audience potentiometers to params before any processing
+        self._apply_pot_values_to_params()
+
         if not melody_from_own_time:
             # Tight timed-mode behavior: end the current loop exactly at period boundary
             # and force a fresh synthesis period regardless of previous signature.
@@ -4105,7 +4535,10 @@ class SanaVerkkoKontrolleri:
             self.audio_playing = False
             self.last_audio_sentence_signature = None
 
-        for event in pygame.event.get():
+        raw_events = pygame.event.get()
+        remaining_events = self._handle_pot_events(raw_events)
+
+        for event in remaining_events:
             if event.type == pygame.QUIT:
                 self.running = False
                 self.OnClose(None)
@@ -4230,6 +4663,8 @@ class SanaVerkkoKontrolleri:
             draw_text_centered(self.screen, self.last_result_gematria_line, 14, (180, 230, 255), self.size[0]/2, 40)
         if self.last_result_reduction_line != "":
             draw_text_centered(self.screen, self.last_result_reduction_line, 12, (220, 200, 255), self.size[0]/2, 56)
+
+        self._draw_pot_strip(self.screen)
 
         pygame.display.flip()
 
