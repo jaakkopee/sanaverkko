@@ -4290,6 +4290,10 @@ class SanaVerkkoKontrolleri:
                 pos_fallback = [candidate for candidate in fallback_candidates if self.getWordPOS(candidate.word, force=True) == source_pos]
                 if pos_fallback:
                     fallback_candidates = pos_fallback
+            if not fluid_root_enabled:
+                root_fallback = [candidate for candidate in fallback_candidates if digital_root(candidate.gematria) == source_root]
+                if root_fallback:
+                    fallback_candidates = root_fallback
             candidates = fallback_candidates
 
         if should_jump and not fluid_root_enabled:
